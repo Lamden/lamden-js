@@ -1,4 +1,4 @@
-import * as jsSHA from 'jssha';
+import jsSHA from 'jssha';
 import * as helpers from './helpers';
 
 /**
