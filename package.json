@@ -1,0 +1,31 @@
+{
+  "name": "lamden-js",
+  "version": "0.5.0",
+  "description": "A javascript implementaion for creating and submitting transactions to a Lamden Blockchain.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lamden/lamden-js.git"
+  },
+  "keywords": [
+    "node",
+    "npm",
+    "blockchain",
+    "lamden"
+  ],
+  "author": "Jeff Scott",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Lamden/lamden-js/issues"
+  },
+  "homepage": "https://github.com/Lamden/lamden-js#readme",
+  "dependencies": {
+    "big-integer": "^1.6.48",
+    "capnp-ts": "^0.4.0",
+    "md5": "^2.2.1",
+    "node-cryptojs-aes": "^0.4.0"
+  }
+}
