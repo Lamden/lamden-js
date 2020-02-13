@@ -1,6 +1,6 @@
 import * as capnp from 'capnp-ts';
-import { TransactionPayload, Transaction } from '../capnp/transaction.capnp';
-import { Value } from '../capnp/values.capnp';
+import { TransactionPayload, Transaction } from '../capnp/js/transaction.capnp';
+import { Value } from '../capnp/js/values.capnp';
 import * as wallet from './wallet';
 import * as pow from './pow';
 export class TransactionBuilder {
