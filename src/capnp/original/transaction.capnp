@@ -1,6 +1,6 @@
 @0x921d030365beff8c;
 
-using V = import "values.capnp";
+using V = import "./values.capnp";
 
 struct Delta {
     key @0 :Data;

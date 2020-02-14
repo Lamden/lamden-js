@@ -7,6 +7,11 @@ Vaild transactions can be sent from the broswer but the response will be blocked
 TODO: Probably need to complie this down to CommonJS to be compatible with Node.js.
 TODO: Tests
 
+# Build (only for capnp schema changes)
+add/overwrite capnp files in src/capnp/original then run the below command
+``` 
+capnpc -o js src/capnp/original/* && mv src/capnp/original/*.js src/capnp/js/
+```
 # Install
 
 ```
