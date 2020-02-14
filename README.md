@@ -7,11 +7,16 @@ Vaild transactions can be sent from the broswer but the response will be blocked
 TODO: Probably need to complie this down to CommonJS to be compatible with Node.js.
 TODO: Tests
 
-# Build (only for capnp schema changes)
+# Transpiling Capt'Proto Schemas to Javascript files (only for schema changes)
+This step only needs to be run if there are changes to the capnp schema files.
+
+Copy new files to src/capnp/original/
+Install  [Capt'Proto](https://capnproto.org/install.html)
 add/overwrite capnp files in src/capnp/original then run the below command
 ``` 
 capnpc -o js src/capnp/original/* && mv src/capnp/original/*.js src/capnp/js/
 ```
+
 # Install
 
 ```
@@ -23,13 +28,13 @@ npm install lamden-js
 ## import lamden-js
 
 ```
-import { TransactionBuilder, wallet } from 'lamden-js'
+import Lamden from 'lamden-js'
 ```
 
 ## Create a Lamden Keypair
 
 ```
-let lamdenWallet = wallet.new_wallet()
+let lamdenWallet = Lamden.wallet.new_wallet()
 
 console.log(lamdenWallet)
 ```
@@ -83,42 +88,33 @@ true
 ```
 
 ## Create a Lamden Transaction
-Testnet host is http://167.71.159.131:8000
+Testnet host is https://testnet.lamden.io:443
 ** Change this to a local testnet (mockchain) instance if you have one running
 
 ### KWARGS (method arguments)
-kwarg objects are an object with properties that have a type/value pairing
+kwarg object is just a regular JavaScript object which you will use to feed the arguments to contract method you are calling.
 
 For example the "transfer" method on the "currency" contract takes two arguments "to" and "amount".
-"amount" is a number, and "to" is a wallet address so we will create our object like so.
 
 ```
-let kwargs = {}
-kwargs.to = {type: "address", value: receiver}
-kwargs.amount = {type: "fixedPoint", value: 1000}
-
+let kwargs = {
+    to: receiver_public_key,
+    amount: 1000
+}
 ```
-
-### KWARG Types
-Type | Description | Useage
---- | --- | ---
-text | any string | When sending any string
-bool | boolean | true or false values
-fixedPoint | decimal or integer | When sending ANY number
-data | bytes | Sending a byte string
-address | wallet address | When sending a wallet address (key), like text but validates the string is hex before sending
 
 ## Create a Lamden Transaction
 ```
-let network = "http://167.71.159.131:8000"
+let network = "https://testnet.lamden.io:443"
 let sender = "ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298"
 let receiver = "bb0fab41b9118f0afdabf3721fa9a6caae3c93845ed409d3118841065ad1a197"
 let contract = "currency"
 let method = "transfer"
 
-let kwargs = {}
-kwargs.to = {type: "address", value: receiver}
-kwargs.amount = {type: "fixedPoint", value: 1000}
+let kwargs = {
+    to: receiver_public_key,
+    amount: 1000
+}
 
 let stampLimit = 50000
 let nonce = "37"
@@ -127,8 +123,6 @@ let processor = "000000000000000000000000000000000000000000000000000000000000000
 
 let txb = new TransactionBuilder(network, sender, contract, method, kwargs, stampLimit, nonce, processor)
 ```
-
-
 
 ## Send a Lamden Transaction
 ```
