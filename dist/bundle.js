@@ -13451,6 +13451,7 @@ function unwrapListeners(arr) {
 }
 
 const { validateTypes } = validators;
+const fetch = require('node-fetch');
 
 class LamdenMasterNode_API{
     constructor(networkInfoObj){
@@ -13490,7 +13491,7 @@ class LamdenMasterNode_API{
             options.headers = headers;
             options.body = data;
         }
-
+        console.log(options);
         return fetch(`${this.url}${path}${parms}`, options)
             .then(res => res.json())
             .then(json => {
@@ -13582,6 +13583,7 @@ class LamdenMasterNode_API{
         if (this.networkType !== 'mockchain') throw Error (`${this.networkType} does not allow minting of coins`)
         if (!validateTypes.isStringWithValue(vk) || !validateTypes.isNumber(amount)) return false;
         let data = JSON.stringify({vk, amount});
+        console.log(data);
         let path = `/mint/`;
         return this.send('POST', path, data, (res, err) => {
             try{
@@ -14124,7 +14126,7 @@ class TransactionBuilder extends Network {
 
 var index = {
     TransactionBuilder,
-    LamdenMasterNode_API,
+    Masternode_API: LamdenMasterNode_API,
     Network,
     wallet
 };

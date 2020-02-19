@@ -1,14 +1,12 @@
-import { LamdenMasterNode_API } from '../../src/js/masternode-api'
-import {  TransactionBuilder } from '../../src/js/transactionBuilder'
-import { new_wallet } from '../../src/js/wallet'
-
+import Lamden from '../../dist/bundle'
+const { Masternode_API, wallet } = Lamden;
 
 let goodNetwork = {
     type: 'mockchain', 
     host: 'https://testnet.lamden.io', 
     port: '443'
 }
-let goodNetwork_api = new LamdenMasterNode_API(goodNetwork)
+let goodNetwork_api = new Masternode_API(goodNetwork)
 
 
 let badNetwork = {
@@ -16,7 +14,7 @@ let badNetwork = {
     host: 'https://badnetwork.lamden.io', 
     port: '443'
 }
-let badNetwork_api = new LamdenMasterNode_API(badNetwork)
+let badNetwork_api = new Masternode_API(badNetwork)
 
 function copyObject(object){
     return JSON.parse(JSON.stringify(object))
@@ -26,7 +24,7 @@ let goodCode = "@export\ndef first_method(value):\n\treturn value"
 let syntaxErrors = "@export\ndef first_method(value)\n\treturn value"
 let lamdenErrors = "def first_method(value):\n\treturn value"
 
-let keyPair = new_wallet()
+let keyPair = wallet.new_wallet()
 
 describe('Test Masternode API returns', () => {
     before(function() {
@@ -37,7 +35,7 @@ describe('Test Masternode API returns', () => {
 
     context('constructor', () => {
         it('can create an instance', () => {
-            let api = new LamdenMasterNode_API(goodNetwork)
+            let api = new Masternode_API(goodNetwork)
             cy.expect(api).to.exist;
             cy.expect(api.host).to.eq(goodNetwork.host);
             cy.expect(api.type).to.eq(goodNetwork.networkType);
@@ -48,7 +46,7 @@ describe('Test Masternode API returns', () => {
         it('rejects arg not being an object', () => {
             let error;
             try{
-                new LamdenMasterNode_API('https://testnet.lamden.io:443')
+                new Masternode_API('https://testnet.lamden.io:443')
             } catch (e) {error = e}
             cy.expect(error.message).to.eq('Expected Object and got Type: string')
         })
@@ -57,7 +55,7 @@ describe('Test Masternode API returns', () => {
             try{
                 let networkInfo = copyObject(goodNetwork)
                 networkInfo.host = ''
-                new LamdenMasterNode_API(networkInfo)
+                new Masternode_API(networkInfo)
             } catch (e) {error = e}
             cy.expect(error.message).to.eq('HOST Required (Type: String)')
 
@@ -67,7 +65,7 @@ describe('Test Masternode API returns', () => {
             try{
                 let networkInfo = copyObject(goodNetwork)
                 networkInfo.host = 'missing.protocol.com'
-                new LamdenMasterNode_API(networkInfo)
+                new Masternode_API(networkInfo)
             } catch (e) {error = e}
             cy.expect(error.message).to.eq('Host String must include http:// or https://')
         })
@@ -76,7 +74,7 @@ describe('Test Masternode API returns', () => {
             try{
                 let networkInfo = copyObject(goodNetwork)
                 networkInfo.port = ''
-                new LamdenMasterNode_API(networkInfo)
+                new Masternode_API(networkInfo)
             } catch (e) {error = e}
             cy.expect(error.message).to.eq('PORT Required (Type: String)')
         })
@@ -85,7 +83,7 @@ describe('Test Masternode API returns', () => {
             try{
                 let networkInfo = copyObject(goodNetwork)
                 networkInfo.type = ''
-                new LamdenMasterNode_API(networkInfo)
+                new Masternode_API(networkInfo)
             } catch (e) {error = e}
             cy.expect(error.message).to.eq('Network Type Required (Type: String)')
         })
@@ -94,7 +92,7 @@ describe('Test Masternode API returns', () => {
             try{
                 let networkInfo = copyObject(goodNetwork)
                 networkInfo.type = 'badtype'
-                new LamdenMasterNode_API(networkInfo)
+                new Masternode_API(networkInfo)
             } catch (e) {error = e}
             cy.expect(error.message).to.eq(`badtype not in Lamden Network Types: ["mockchain","testnet","mainnet"]`)
         })
@@ -119,8 +117,8 @@ describe('Test Masternode API returns', () => {
         it('returns true if mint is successful', () => {
             cy.wrap(goodNetwork_api.mintTestNetCoins(keyPair.vk, 123456789))
             .then((res) => {
-                cy.log(JSON.stringify(keyPair))
-                cy.expect(res).to.eq(true);
+                cy.log(res)
+                cy.expect(res).to.eq(0);
             })
         })
         it('returns false if bad vk is undefined', () => {
@@ -151,7 +149,7 @@ describe('Test Masternode API returns', () => {
             })
         })
         it('returns 0 if the vk does not exist yet', () => {
-            cy.wrap(goodNetwork_api.getTauBalance(new_wallet().vk))
+            cy.wrap(goodNetwork_api.getTauBalance(wallet.new_wallet().vk))
             .then((res) => {
                 cy.expect(res).to.eq(0);
             })
@@ -172,7 +170,7 @@ describe('Test Masternode API returns', () => {
             })
         })
         it('returns false if a contract does not exist on the blockchain', () => {
-            cy.wrap(goodNetwork_api.contractExists(new_wallet().vk))
+            cy.wrap(goodNetwork_api.contractExists(wallet.new_wallet().vk))
             .then((res) => {
                 cy.expect(res).to.eq(false);
             })
@@ -194,7 +192,7 @@ describe('Test Masternode API returns', () => {
             })
         })
         it('returns an empty array if a contract does not exist on the blockchain', () => {
-            cy.wrap(goodNetwork_api.getContractMethods(new_wallet().vk))
+            cy.wrap(goodNetwork_api.getContractMethods(wallet.new_wallet().vk))
             .then((res) => {
                 cy.log(JSON.stringify(res))
                 cy.expect(Array.isArray(res)).to.eq(true);
@@ -219,7 +217,7 @@ describe('Test Masternode API returns', () => {
             })
         })
         it('returns null if the key does not exist in the variable', () => {
-            let parms = {key: new_wallet().vk};
+            let parms = {key: wallet.new_wallet().vk};
             cy.wrap(goodNetwork_api.getVariable('currency', 'balances', {parms}))
             .then((res) => {
                 cy.expect(res).to.eq('null');
@@ -227,14 +225,14 @@ describe('Test Masternode API returns', () => {
         })
         it('returns undefined if the contract does not exist', () => {
             let parms = {key: keyPair.vk};
-            cy.wrap(goodNetwork_api.getVariable(new_wallet().vk, 'balances', {parms}))
+            cy.wrap(goodNetwork_api.getVariable(wallet.new_wallet().vk, 'balances', {parms}))
             .then((res) => {
                 cy.expect(res).to.eq(undefined);
             })
         })
         it('returns null if the variable does not exist', () => {
             let parms = {key: keyPair.vk};
-            cy.wrap(goodNetwork_api.getVariable('currency',  new_wallet().vk, {parms}))
+            cy.wrap(goodNetwork_api.getVariable('currency',  wallet.new_wallet().vk, {parms}))
             .then((res) => {
                 cy.expect(res).to.eq('null');
             })
@@ -286,7 +284,7 @@ describe('Test Masternode API returns', () => {
         it('returns an error message if provided network is unresponsive', () => {
             cy.wrap(badNetwork_api.lintCode('testing', goodCode))
             .then((res) => {
-                cy.expect(res).to.eq('TypeError: Failed to fetch');
+                cy.expect(res).to.eq('TypeError: NetworkError when attempting to fetch resource.');
             })
         })
     })
@@ -308,13 +306,13 @@ describe('Test Masternode API returns', () => {
         it('returns an error message if provided network is unresponsive', () => {
             cy.wrap(badNetwork_api.getNonce(keyPair.vk))
             .then((err) => {
-                cy.expect(err).to.eq(`Unable to get nonce for "${keyPair.vk}". TypeError: Failed to fetch`)
+                cy.expect(err).to.eq(`Unable to get nonce for "${keyPair.vk}". TypeError: NetworkError when attempting to fetch resource.`)
             })
         })
     })/*
     context('sendTransaction', () => {
         it('can send a transaction and has the proper return object', () => {
-            let newWallet = new_wallet()
+            let newWallet = wallet.new_wallet()
             let kwargs = {}
             kwargs.to = {type: "address", value: newWallet.vk}
             kwargs.amount = {type: "fixedPoint", value: 1000}

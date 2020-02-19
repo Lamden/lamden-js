@@ -1,4 +1,5 @@
-import { Network } from '../../src/js/network'
+import Lamden from '../../dist/bundle'
+const { Network } = Lamden;
 
 let goodNetwork = {
     type: 'testnet',
@@ -22,7 +23,7 @@ describe('Test Netowrk class', () => {
     })
 
     context('Constructor', () => {
-        /*
+       
         it('can create an instance', () => {
             let network = new Network(goodNetwork)
             cy.expect(network).to.exist;
@@ -34,7 +35,7 @@ describe('Test Netowrk class', () => {
             cy.expect(network.mainnet).to.eq(false);
             cy.expect(network.testnet).to.eq(true);
             cy.expect(network.mockchain).to.eq(false);
-        })
+        }) 
         it('sets mainnet flag', () => {
             let networkInfo = copyObject(goodNetwork)
             networkInfo.type = 'mainnet'
@@ -107,23 +108,14 @@ describe('Test Netowrk class', () => {
                 networkInfo.type = 'badtype'
                 new Network(networkInfo)
             } catch (e) {error = e}
-            cy.expect(error.message).to.eq(`badtype not in Lamden Network Types: ["mockchain","testnet","mainnet"]`)
+            cy.expect(error.message).to.eq(`Error: badtype not in Lamden Network Types: ["mockchain","testnet","mainnet"]`)
         })
         it('rejects arg not being an object', () => {
             let error;
             try{
                 new Network('https://testnet.lamden.io:443')
             } catch (e) {error = e}
-            cy.expect(error.message).to.eq('Expected Object and got Type: string')
-        })
-        it('rejects missing name string', () => {
-            let error;
-            try{
-                let networkInfo = copyObject(goodNetwork)
-                networkInfo.name = ''
-                new Network(networkInfo)
-            } catch (e) {error = e}
-            cy.expect(error.message).to.eq('Name Required (Type: String)')
+            cy.expect(error.message).to.eq('Expected Network Info Object and got Type: string')
         })
     })
     context('Ping Network', () => {
@@ -160,6 +152,6 @@ describe('Test Netowrk class', () => {
                 cy.expect(network.ping).to.be.called
                 cy.expect(status).to.eq(true) 
             })
-        })*/
+        })
     })        
 })

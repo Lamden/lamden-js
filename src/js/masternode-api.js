@@ -1,5 +1,6 @@
 import validators from 'types-validate-assert'
 const { validateTypes } = validators;
+const fetch = require('node-fetch');
 
 export class LamdenMasterNode_API{
     constructor(networkInfoObj){
@@ -39,7 +40,7 @@ export class LamdenMasterNode_API{
             options.headers = headers;
             options.body = data;
         }
-
+        
         return fetch(`${this.url}${path}${parms}`, options)
             .then(res => res.json())
             .then(json => {
@@ -131,6 +132,7 @@ export class LamdenMasterNode_API{
         if (this.networkType !== 'mockchain') throw Error (`${this.networkType} does not allow minting of coins`)
         if (!validateTypes.isStringWithValue(vk) || !validateTypes.isNumber(amount)) return false;
         let data = JSON.stringify({vk, amount})
+
         let path = `/mint/`
         return this.send('POST', path, data, (res, err) => {
             try{
