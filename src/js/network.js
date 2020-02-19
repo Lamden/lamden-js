@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events'
-import { ValidateTypes } from './validateTypes'
+import validators from 'types-validate-assert'
+const { validateTypes } = validators;
 import { LamdenMasterNode_API } from './masternode-api'
-const validate = new ValidateTypes();
 
 export class Network extends EventEmitter {
     // Constructor needs an Object with the following information to build Class.
@@ -16,18 +16,18 @@ export class Network extends EventEmitter {
         console.log(networkInfoObj)
         const lamdenNetworkTypes = ['mockchain', 'testnet', 'mainnet']
         //Reject undefined or missing info
-        if (!validate.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
-        if (!validate.isStringWithValue(networkInfoObj.host)) throw new Error(`HOST Required (Type: String)`)
-        if (!validate.isStringWithValue(networkInfoObj.port)) throw new Error(`PORT Required (Type: String)`)
-        if (!validate.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
+        if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
+        if (!validateTypes.isStringWithValue(networkInfoObj.host)) throw new Error(`HOST Required (Type: String)`)
+        if (!validateTypes.isStringWithValue(networkInfoObj.port)) throw new Error(`PORT Required (Type: String)`)
+        if (!validateTypes.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
         this.type = networkInfoObj.type.toLowerCase();
 
         this.host = this.vaidateProtocol(networkInfoObj.host.toLowerCase());
         this.port = networkInfoObj.port;
         this.url = `${this.host}:${this.port}`
-        this.name = validate.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : undefined;
-        this.lamden = validate.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : undefined;
+        this.name = validateTypes.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : undefined;
+        this.lamden = validateTypes.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : undefined;
     
         this.online = false;
         try{
@@ -57,7 +57,7 @@ export class Network extends EventEmitter {
     async ping(callback = undefined){
         this.online = await this.API.pingServer()
         this.emit('online', this.online, `${this.url} is ${this.online}`);
-        if (validate.isFunction(callback)) callback(this.online)
+        if (validateTypes.isFunction(callback)) callback(this.online)
         return this.online
     }
     getNetworkInfo(){

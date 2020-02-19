@@ -1,9 +1,9 @@
-import * as capnp from 'capnp-ts';
+//import * as capnp from 'capnp-ts';
 import { NewTransactionPayload, NewTransaction } from '../capnp/js/transaction.capnp';
-import { ValidateTypes } from './validateTypes'
+import validators from 'types-validate-assert'
+const { validateTypes } = validators;
 import * as wallet from './wallet'
 import { Network } from './network'
-const validate = new ValidateTypes();
 import * as pow from './pow';
 
 export class TransactionBuilder extends Network {
@@ -31,15 +31,15 @@ export class TransactionBuilder extends Network {
         super(networkInfo)
 
         //Validate arguments
-        if(!validate.isObjectWithKeys(txInfo)) throw new Error(`txInfo object not found`)
-        if(!validate.isStringHex(txInfo.senderVk)) throw new Error(`Sender Public Key Required (Type: Hex String)`)
-        if(!validate.isStringWithValue(txInfo.contractName)) throw new Error(`Contract Name Required (Type: String)`)
-        if(!validate.isStringWithValue(txInfo.methodName)) throw new Error(`Method Required (Type: String)`)
-        if(!validate.isObject(txInfo.kwargs)) throw new Error(`Kwarg Object Required (Type: Object)`)
-        if(!validate.isInteger(txInfo.stampLimit)) throw new Error(`Stamps Limit Required (Type: Integer)`)        
+        if(!validateTypes.isObjectWithKeys(txInfo)) throw new Error(`txInfo object not found`)
+        if(!validateTypes.isStringHex(txInfo.senderVk)) throw new Error(`Sender Public Key Required (Type: Hex String)`)
+        if(!validateTypes.isStringWithValue(txInfo.contractName)) throw new Error(`Contract Name Required (Type: String)`)
+        if(!validateTypes.isStringWithValue(txInfo.methodName)) throw new Error(`Method Required (Type: String)`)
+        if(!validateTypes.isObject(txInfo.kwargs)) throw new Error(`Kwarg Object Required (Type: Object)`)
+        if(!validateTypes.isInteger(txInfo.stampLimit)) throw new Error(`Stamps Limit Required (Type: Integer)`)        
 
         //Store variables in self for reference
-        this.uid = validate.isStringWithValue(txInfo.uid) ? txInfo.uid : undefined;
+        this.uid = validateTypes.isStringWithValue(txInfo.uid) ? txInfo.uid : undefined;
         this.sender = txInfo.senderVk;
         this.contract = txInfo.contractName;
         this.method = txInfo.methodName;
@@ -48,11 +48,11 @@ export class TransactionBuilder extends Network {
 
         //validate and set nonce and processor if user provided them
         if (typeof txInfo.nonce !== 'undefined'){
-            if(!validate.isInteger(txInfo.nonce)) throw new Error(`arg[6] Nonce is required to be an Integer, type ${typeof txInfo.none} was given`)
+            if(!validateTypes.isInteger(txInfo.nonce)) throw new Error(`arg[6] Nonce is required to be an Integer, type ${typeof txInfo.none} was given`)
             this.nonce = txInfo.nonce;
         }
         if (typeof txInfo.processor !== 'undefined'){
-            if(!validate.isStringWithValue(txInfo.processor)) throw new Error(`arg[7] Processor is required to be a String, type ${typeof txInfo.processor} was given`)
+            if(!validateTypes.isStringWithValue(txInfo.processor)) throw new Error(`arg[7] Processor is required to be a String, type ${typeof txInfo.processor} was given`)
             this.processor = txInfo.processor;
         }
         
@@ -69,31 +69,31 @@ export class TransactionBuilder extends Network {
         
         //Hydrate other items if passed
         if (txData){
-            if (validate.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
-            if (validate.isObjectWithKeys(txData.nonceResult)){
+            if (validateTypes.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
+            if (validateTypes.isObjectWithKeys(txData.nonceResult)){
                 this.nonceResult = txData.nonceResult;
-                if (validate.isInteger(this.nonceResult.nonce)) this.nonce = this.nonceResult.nonce;
-                if (validate.isStringWithValue(this.nonceResult.processor)) this.processor = this.nonceResult.processor;
+                if (validateTypes.isInteger(this.nonceResult.nonce)) this.nonce = this.nonceResult.nonce;
+                if (validateTypes.isStringWithValue(this.nonceResult.processor)) this.processor = this.nonceResult.processor;
             }
-            if (validate.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
-            if (validate.isObjectWithKeys(txData.txBlockResult)) this.txBlockResult = txData.txBlockResult;
-            if (validate.isObjectWithKeys(txData.resultInfo)) this.resultInfo = txData.resultInfo;
+            if (validateTypes.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
+            if (validateTypes.isObjectWithKeys(txData.txBlockResult)) this.txBlockResult = txData.txBlockResult;
+            if (validateTypes.isObjectWithKeys(txData.resultInfo)) this.resultInfo = txData.resultInfo;
         }
         //Create Capnp messages and transactionMessages
         this.initializePayload();
     }
-    initializePayload(){
+    initializePayload(){/*
         this.payloadMessage = new capnp.Message();
         this.payload = this.payloadMessage.initRoot(NewTransactionPayload);
         this.transactionMessage = new capnp.Message();
         this.transaction = this.transactionMessage.initRoot(NewTransaction);
         this.transactionMetadata = this.transaction.initMetadata();
-        this.transaction.initPayload();
+        this.transaction.initPayload();*/
     }
-    numberToUnit64(number) {
+    numberToUnit64(number) {/*
         if (number == null)
             return;
-        return capnp.Uint64.fromNumber(number);
+        return capnp.Uint64.fromNumber(number);*/
     }
     hexStringToByte(string = '') {
         let a = [];
@@ -224,20 +224,20 @@ export class TransactionBuilder extends Network {
     }
     async send(sk = undefined, callback = undefined) {
         //Error if transaction is not signed and no sk provided to the send method to sign it before sending
-        if (!validate.isStringWithValue(sk) && !this.transactionSigned){
+        if (!validateTypes.isStringWithValue(sk) && !this.transactionSigned){
             throw new Error(`Transation Not Signed: Private key needed or call sign(<private key>) first`);
         }
         let timestamp =  new Date().toUTCString();
         try{
             //If the nonce isn't set attempt to get it
-            if (isNaN(this.nonce) || !validate.isStringWithValue(this.processor)) await this.getNonce();
+            if (isNaN(this.nonce) || !validateTypes.isStringWithValue(this.processor)) await this.getNonce();
             //if the sk is provided then sign the transaction
-            if (validate.isStringWithValue(sk)) this.sign(sk);
+            if (validateTypes.isStringWithValue(sk)) this.sign(sk);
             //Serialize transaction
             this.serialize();
             //Send transaction to the masternode
             let response = await this.API.sendTransaction(this.transactonBytes)
-            if (validate.isStringWithValue(response)) this.txSendResult = {errors: [response]}
+            if (validateTypes.isStringWithValue(response)) this.txSendResult = {errors: [response]}
             else this.txSendResult = response;
         } catch(e) {
             this.txSendResult = {errors: [e.message]}
@@ -247,7 +247,7 @@ export class TransactionBuilder extends Network {
             this.txSendResult = {errors: ['TypeError: Failed to fetch']}
         }else{
             //Parse txSendResult for error patterns
-            if (!validate.isArray(this.txSendResult.errors)){
+            if (!validateTypes.isArray(this.txSendResult.errors)){
                 this.txSendResult.errors = [];
                 parseSendErrors();
             }
@@ -256,12 +256,12 @@ export class TransactionBuilder extends Network {
         this.txSendResult.timestamp = timestamp;
 
         //If errors were set then return 
-        if (validate.isArrayWithValues(this.txSendResult.errors)){
+        if (validateTypes.isArrayWithValues(this.txSendResult.errors)){
             this.setBlockResultInfo()
-            if (validate.isFunction(callback)) callback(undefined, this.txSendResult);
+            if (validateTypes.isFunction(callback)) callback(undefined, this.txSendResult);
         } else {
             //If hash exists in the result then this is a pending tx and not a blockresult
-            if (validate.isStringWithValue(this.txSendResult.hash)){
+            if (validateTypes.isStringWithValue(this.txSendResult.hash)){
                 this.txHash = this.txSendResult.hash;
                 this.setPendingBlockInfo()
             }else{
@@ -270,21 +270,21 @@ export class TransactionBuilder extends Network {
                     this.setBlockResultInfo()
                 }
             }
-            if (validate.isFunction(callback)) callback(this.txSendResult);
+            if (validateTypes.isFunction(callback)) callback(this.txSendResult);
         }
-        this.emit('response', this.txSendResult, validate.isObjectWithKeys(this.resultInfo) ? this.resultInfo.subtitle : 'Response');
+        this.emit('response', this.txSendResult, validateTypes.isObjectWithKeys(this.resultInfo) ? this.resultInfo.subtitle : 'Response');
         return this.txSendResult; 
     }
     parseSendErrors(){
-        if (validate.isStringWithValue(this.txSendResult.error)) this.txSendResult.errors.push(this.txSendResult.error)
-        if (validate.isInteger(this.txSendResult.status_code)){
+        if (validateTypes.isStringWithValue(this.txSendResult.error)) this.txSendResult.errors.push(this.txSendResult.error)
+        if (validateTypes.isInteger(this.txSendResult.status_code)){
             if (this.txSendResult.status_code > 0) {
-                if (validate.hasKeys(this.txSendResult.result, ['args'])){
+                if (validateTypes.hasKeys(this.txSendResult.result, ['args'])){
                     this.txSendResult.errors.push("Error: One of your method arguments threw an error")
                     this.txSendResult.errors = [...this.txSendResult.result.args, ...this.txSendResult.errors]                     
                 } 
-                if (validate.hasKeys(this.txSendResult.result, ['error'])){
-                    if (validate.hasKeys(this.txSendResult.result.error, ['error'])){
+                if (validateTypes.hasKeys(this.txSendResult.result, ['error'])){
+                    if (validateTypes.hasKeys(this.txSendResult.result.error, ['error'])){
                         this.txSendResult.errors.push(this.txSendResult.result.error.error)
                     }else{
                         this.txSendResult.errors.push(this.txSendResult.result.error)
@@ -305,7 +305,7 @@ export class TransactionBuilder extends Network {
     setBlockResultInfo(){
         let erroredTx = false;
         let message = '';
-        if(validate.isArrayWithValues(this.txSendResult.errors)){
+        if(validateTypes.isArrayWithValues(this.txSendResult.errors)){
             erroredTx = true;
             message = `This transaction returned ${this.txSendResult.errors.length} errors.`
         }

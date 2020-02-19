@@ -1,6 +1,5 @@
 import { Network } from '../../src/js/network'
 
-
 let goodNetwork = {
     type: 'testnet',
     name: 'Lamden Public Testnet', 
@@ -8,7 +7,8 @@ let goodNetwork = {
     port: '443',
     lamden: true,
 }
-
+const newNetwork = new Network(goodNetwork)
+console.log(newNetwork)
 function copyObject(object){
     return JSON.parse(JSON.stringify(object))
 }
@@ -18,9 +18,11 @@ describe('Test Netowrk class', () => {
         Cypress.config({
             defaultCommandTimeout: 60000
         })
+        cy.log(newNetwork)
     })
 
     context('Constructor', () => {
+        /*
         it('can create an instance', () => {
             let network = new Network(goodNetwork)
             cy.expect(network).to.exist;
@@ -158,6 +160,6 @@ describe('Test Netowrk class', () => {
                 cy.expect(network.ping).to.be.called
                 cy.expect(status).to.eq(true) 
             })
-        })
-    })           
+        })*/
+    })        
 })

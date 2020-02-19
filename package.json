@@ -4,7 +4,8 @@
   "description": "A javascript implementaion for creating and submitting transactions to a Lamden Blockchain.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx cypress open",
+    "build": "gulp build"
   },
   "repository": {
     "type": "git",
@@ -25,13 +26,23 @@
   "dependencies": {
     "assert": "1.4.1",
     "big-integer": "1.6.42",
-    "events": "^3.1.0",
     "capnpc-ts": "^0.4.0",
+    "events": "^3.1.0",
     "jssha": "2.3.1",
     "md5": "2.2.1",
-    "tweetnacl": "1.0.1"
+    "tweetnacl": "1.0.1",
+    "types-validate-assert": "^1.0.0"
   },
   "devDependencies": {
-    "cypress": "^4.0.1"
+    "cypress": "^4.0.1",
+    "@babel/core": "^7.8.4",
+    "gulp": "^4.0.2",
+    "gulp-better-rollup": "^4.0.1",
+    "mocha": "^7.0.1",
+    "rollup": "^1.31.1",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-node-builtins": "^2.1.2"
   }
 }
