@@ -1,11 +1,11 @@
 {
   "name": "lamden-js",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A javascript implementaion for creating and submitting transactions to a Lamden Blockchain.",
-  "main": "index.js",
+  "main": "dist/bundle.js",
   "scripts": {
-    "test": "npx cypress open",
-    "build": "gulp build"
+    "test": "npm run build && npx cypress open",
+    "build": "rollup --config"
   },
   "repository": {
     "type": "git",
@@ -34,15 +34,14 @@
     "types-validate-assert": "^1.0.0"
   },
   "devDependencies": {
-    "cypress": "^4.0.1",
     "@babel/core": "^7.8.4",
-    "gulp": "^4.0.2",
-    "gulp-better-rollup": "^4.0.1",
+    "cypress": "^4.0.1",
     "mocha": "^7.0.1",
     "rollup": "^1.31.1",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-node-builtins": "^2.1.2"
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-node-resolve": "^5.2.0"
   }
 }

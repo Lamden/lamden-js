@@ -1,5 +1,6 @@
-//import * as capnp from 'capnp-ts';
-import { NewTransactionPayload, NewTransaction } from '../capnp/js/transaction.capnp';
+import * as capnp from 'capnp-ts';
+import * as transaction from '../capnp/js/transaction.capnp';
+const { NewTransactionPayload, NewTransaction } = transaction;
 import validators from 'types-validate-assert'
 const { validateTypes } = validators;
 import * as wallet from './wallet'
@@ -82,18 +83,18 @@ export class TransactionBuilder extends Network {
         //Create Capnp messages and transactionMessages
         this.initializePayload();
     }
-    initializePayload(){/*
+    initializePayload(){
         this.payloadMessage = new capnp.Message();
         this.payload = this.payloadMessage.initRoot(NewTransactionPayload);
         this.transactionMessage = new capnp.Message();
         this.transaction = this.transactionMessage.initRoot(NewTransaction);
         this.transactionMetadata = this.transaction.initMetadata();
-        this.transaction.initPayload();*/
+        this.transaction.initPayload();
     }
-    numberToUnit64(number) {/*
+    numberToUnit64(number) {
         if (number == null)
             return;
-        return capnp.Uint64.fromNumber(number);*/
+        return capnp.Uint64.fromNumber(number);
     }
     hexStringToByte(string = '') {
         let a = [];
