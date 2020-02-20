@@ -13,7 +13,6 @@ export class Network extends EventEmitter {
     //  },
     constructor(networkInfoObj){
         super();
-        console.log(networkInfoObj)
         const lamdenNetworkTypes = ['mockchain', 'testnet', 'mainnet']
         //Reject undefined or missing info
         if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)

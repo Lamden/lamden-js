@@ -6,13 +6,13 @@ import globals from 'rollup-plugin-node-globals';
 module.exports = {
     input: 'src/index.js',
     output: {
-      file: 'dist/bundle.js',
-      format: 'cjs'
+      	file: 'dist/bundle.js',
+      	format: 'cjs'
     },
     plugins: [
-        resolve({preferBuiltins: true}),
+		resolve({preferBuiltins: true}),
 		commonjs(),
-        globals(),
-        builtins()
+		globals(),
+		builtins()
 	]
-  };
+};

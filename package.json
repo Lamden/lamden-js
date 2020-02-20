@@ -4,8 +4,9 @@
   "description": "A javascript implementaion for creating and submitting transactions to a Lamden Blockchain.",
   "main": "dist/bundle.js",
   "scripts": {
-    "test": "npm run build && npx cypress open",
-    "build": "rollup --config"
+    "test": "npm run build && mocha",
+    "build": "rollup --config",
+    "test-cypress": "npm run build && npx cypress open"
   },
   "repository": {
     "type": "git",
@@ -36,8 +37,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
-    "cypress": "^4.0.1",
     "mocha": "^7.0.1",
+    "expect.js": "^0.3.1",
     "rollup": "^1.31.1",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.1.0",

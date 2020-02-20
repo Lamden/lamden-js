@@ -1,4 +1,5 @@
-import Lamden from '../../dist/bundle'
+const expect = require('expect.js');
+const Lamden = require('../dist/bundle');
 const { Network } = Lamden;
 
 let goodNetwork = {
@@ -9,58 +10,50 @@ let goodNetwork = {
     lamden: true,
 }
 const newNetwork = new Network(goodNetwork)
-console.log(newNetwork)
+
 function copyObject(object){
     return JSON.parse(JSON.stringify(object))
 }
 
 describe('Test Netowrk class', () => {
-    before(function() {
-        Cypress.config({
-            defaultCommandTimeout: 60000
-        })
-        cy.log(newNetwork)
-    })
-
     context('Constructor', () => {
-       
         it('can create an instance', () => {
             let network = new Network(goodNetwork)
-            cy.expect(network).to.exist;
-            cy.expect(network.host).to.eq(goodNetwork.host);
-            cy.expect(network.type).to.eq(goodNetwork.type);
-            cy.expect(network.name).to.eq(goodNetwork.name);
-            cy.expect(network.port).to.eq(goodNetwork.port);
-            cy.expect(network.lamden).to.eq(goodNetwork.lamden);
-            cy.expect(network.mainnet).to.eq(false);
-            cy.expect(network.testnet).to.eq(true);
-            cy.expect(network.mockchain).to.eq(false);
+            expect(network).to.exist;
+            expect(network.host).to.be(goodNetwork.host);
+            expect(network.type).to.be(goodNetwork.type);
+            expect(network.name).to.be(goodNetwork.name);
+            expect(network.port).to.be(goodNetwork.port);
+            expect(network.lamden).to.be(goodNetwork.lamden);
+            expect(network.mainnet).to.be(false);
+            expect(network.testnet).to.be(true);
+            expect(network.mockchain).to.be(false);
         }) 
         it('sets mainnet flag', () => {
             let networkInfo = copyObject(goodNetwork)
             networkInfo.type = 'mainnet'
             let network = new Network(networkInfo)
-            cy.expect(network.mainnet).to.eq(true);
-            cy.expect(network.testnet).to.eq(false);
-            cy.expect(network.mockchain).to.eq(false);
+            expect(network.mainnet).to.be(true);
+            expect(network.testnet).to.be(false);
+            expect(network.mockchain).to.be(false);
 
         })
         it('sets testnet flag', () => {
             let networkInfo = copyObject(goodNetwork)
             networkInfo.type = 'testnet'
             let network = new Network(networkInfo)
-            cy.expect(network.mainnet).to.eq(false);
-            cy.expect(network.testnet).to.eq(true);
-            cy.expect(network.mockchain).to.eq(false);
+            expect(network.mainnet).to.be(false);
+            expect(network.testnet).to.be(true);
+            expect(network.mockchain).to.be(false);
 
         })
         it('sets mockchain flag', () => {
             let networkInfo = copyObject(goodNetwork)
             networkInfo.type = 'mockchain'
             let network = new Network(networkInfo)
-            cy.expect(network.mainnet).to.eq(false);
-            cy.expect(network.testnet).to.eq(false);
-            cy.expect(network.mockchain).to.eq(true);
+            expect(network.mainnet).to.be(false);
+            expect(network.testnet).to.be(false);
+            expect(network.mockchain).to.be(true);
 
         })
         it('rejects missing host string', () => {
@@ -70,7 +63,7 @@ describe('Test Netowrk class', () => {
                 networkInfo.host = ''
                 new Network(networkInfo)
             } catch (e) {error = e}
-            cy.expect(error.message).to.eq('HOST Required (Type: String)')
+            expect(error.message).to.be('HOST Required (Type: String)')
 
         })
         it('rejects no protocol in host string', () => {
@@ -80,7 +73,7 @@ describe('Test Netowrk class', () => {
                 networkInfo.host = 'missing.protocol.com'
                 new Network(networkInfo)
             } catch (e) {error = e}
-            cy.expect(error.message).to.eq('Host String must include http:// or https://')
+            expect(error.message).to.be('Host String must include http:// or https://')
         })
         it('rejects missing port string', () => {
             let error;
@@ -89,7 +82,7 @@ describe('Test Netowrk class', () => {
                 networkInfo.port = ''
                 new Network(networkInfo)
             } catch (e) {error = e}
-            cy.expect(error.message).to.eq('PORT Required (Type: String)')
+            expect(error.message).to.be('PORT Required (Type: String)')
         })
         it('rejects missing type string', () => {
             let error;
@@ -98,60 +91,49 @@ describe('Test Netowrk class', () => {
                 networkInfo.type = ''
                 new Network(networkInfo)
             } catch (e) {error = e}
-            cy.expect(error.message).to.eq('Network Type Required (Type: String)')
+            expect(error.message).to.be('Network Type Required (Type: String)')
         })
         it('rejects invalid type string', () => {
-            
             let error;
             try{
                 let networkInfo = copyObject(goodNetwork)
                 networkInfo.type = 'badtype'
                 new Network(networkInfo)
             } catch (e) {error = e}
-            cy.expect(error.message).to.eq(`Error: badtype not in Lamden Network Types: ["mockchain","testnet","mainnet"]`)
+            expect(error.message).to.be(`Error: badtype not in Lamden Network Types: ["mockchain","testnet","mainnet"]`)
         })
         it('rejects arg not being an object', () => {
             let error;
             try{
                 new Network('https://testnet.lamden.io:443')
             } catch (e) {error = e}
-            cy.expect(error.message).to.eq('Expected Network Info Object and got Type: string')
+            expect(error.message).to.be('Expected Network Info Object and got Type: string')
         })
     })
     context('Ping Network', () => {
-        it('emits online status', () => {
-            let network = new Network(goodNetwork)
-            const spys = {
-                online (status) {return status},
+        it('emits online status', async () => {
+            function checkResult(result){
+                expect(result).to.be(true)
             }
-            const spy = cy.spy(spys, 'online')
-
-            network.on('online', (status) => spys.online(status))
-            cy.wrap(network.ping()).then(() => {
-                cy.expect(spy).to.be.called
-            })
+            let network = new Network(goodNetwork)
+            network.on('online', (status) => checkResult(status))
+            await network.ping();
         })        
 
-        it('return value from method return', () => {
+        it('return value from method return', async () => {
+            function checkResult(result){
+                expect(result).to.be(true)
+            }
             let network = new Network(goodNetwork)
-
-            const spy = cy.spy(network, 'ping')
-            cy.log(network.ping())
-
-            cy.wrap(network.ping()).then((value) => {
-                cy.expect(spy).to.be.called
-                cy.expect(value).to.eq(true) 
-            })
+            let status = await network.ping()
+            checkResult(status)
         })
-        it('returns online status through callback', () => {
+        it('returns online status through callback', async () => {
+            function checkResult(result){
+                expect(result).to.be(true)
+            }
             let network = new Network(goodNetwork)
-            let status;
-
-            cy.spy(network, 'ping')
-            cy.wrap(network.ping((res) => status = res)).then((value) => {
-                cy.expect(network.ping).to.be.called
-                cy.expect(status).to.eq(true) 
-            })
+            await network.ping(((status) => checkResult(status)))
         })
     })        
 })
