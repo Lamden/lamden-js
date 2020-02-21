@@ -1,6 +1,5 @@
 const expect = require('expect.js');
 const Lamden = require('../dist/bundle');
-//const wallet = require('../src/js/wallet')
 const { Masternode_API, wallet } = Lamden;
 
 let goodNetwork = {
