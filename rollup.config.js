@@ -6,7 +6,7 @@ import globals from 'rollup-plugin-node-globals';
 module.exports = {
     input: 'src/index.js',
     output: {
-      	file: 'dist/bundle.js',
+      	file: 'dist/lamden.js',
       	format: 'cjs'
     },
     plugins: [

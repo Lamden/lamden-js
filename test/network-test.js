@@ -1,5 +1,5 @@
 const expect = require('expect.js');
-const Lamden = require('../dist/bundle');
+const Lamden = require('../dist/lamden');
 
 let goodNetwork = {
     type: 'testnet',

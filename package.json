@@ -1,8 +1,8 @@
 {
   "name": "lamden-js",
-  "version": "0.6.0",
-  "description": "A javascript implementaion for creating and submitting transactions to a Lamden Blockchain.",
-  "main": "dist/bundle.js",
+  "version": "1.0.0",
+  "description": "A javascript implementaion for creating wallets, submitting transactions and interacting with masternodes on the Lamden Blockchain.",
+  "main": "dist/lamden.js",
   "scripts": {
     "test": "npm run build && mocha",
     "tests": "npm run test",
