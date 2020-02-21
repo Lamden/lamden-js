@@ -5,6 +5,10 @@
   "main": "dist/bundle.js",
   "scripts": {
     "test": "npm run build && mocha",
+    "tests": "npm run test",
+    "test-network": "npm run build && mocha test/network-test.js",
+    "test-masternode_api": "npm run build && mocha test/masternode_api-test.js",
+    "test-transactionBuilder": "npm run build && mocha test/transactionBuilder-test.js",
     "build": "rollup --config",
     "test-cypress": "npm run build && npx cypress open"
   },

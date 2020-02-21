@@ -93,7 +93,7 @@ describe('Test Masternode API returns', () => {
         })
     })
 
-    context('pingServer', () => {
+    context('Masternode_API.pingServer()', () => {
         it('returns true if the server is online', async () => {
             let response = await goodNetwork_api.pingServer()
             expect(response).to.be(true);
@@ -105,7 +105,7 @@ describe('Test Masternode API returns', () => {
         })
     })
 
-    context('mintTestNetCoins', () => {
+    context('Masternode_API.mintTestNetCoins()', () => {
         it('returns true if mint is successful', async () => {
             let response = await goodNetwork_api.mintTestNetCoins(keyPair.vk, 123456789)
             expect(response).to.be(true);
@@ -124,7 +124,7 @@ describe('Test Masternode API returns', () => {
         })
     })
 
-    context('getTauBalance', () => {
+    context('Masternode_API.getTauBalance()', () => {
         it('returns the balance for a vk', async () => {
             let response = await goodNetwork_api.getTauBalance(keyPair.vk)
             expect(response).to.be(123456789);
@@ -139,7 +139,7 @@ describe('Test Masternode API returns', () => {
         })
     })
 
-    context('contractExists', () => {
+    context('Masternode_API.contractExists()', () => {
         it('returns true if a contract exists on the blockchain', async () => {
             let response = await goodNetwork_api.contractExists('currency')
             expect(response).to.be(true);
@@ -154,7 +154,7 @@ describe('Test Masternode API returns', () => {
         })
     })
 
-    context('getContractMethods', () => {
+    context('Masternode_API.getContractMethods()', () => {
         it('returns an array if a contract exists on the blockchain', async () => {
             let response = await goodNetwork_api.getContractMethods('currency')
             expect(Array.isArray(response)).to.be(true);
@@ -172,7 +172,7 @@ describe('Test Masternode API returns', () => {
         })
     })
 
-    context('getVariable', () => {
+    context('Masternode_API.getVariable()', () => {
         it('returns the value of the variable if the key exists', async () => {
             let parms = {key: keyPair.vk};
             let response = await goodNetwork_api.getVariable('currency', 'balances', {parms})
@@ -200,7 +200,7 @@ describe('Test Masternode API returns', () => {
         })
     })
 
-    context('getContractInfo', () => {
+    context('Masternode_API.getContractInfo()', () => {
         it('returns a contract info object', async () => {
             let response = await goodNetwork_api.getContractInfo('currency')
             expect(response.name).to.be('currency');
@@ -211,7 +211,7 @@ describe('Test Masternode API returns', () => {
             expect(response).to.be(undefined);
         })
     })
-    context('lintCode', () => {
+    context('Masternode_API.lintCode()', () => {
         it('returns null when no vilations exist', async () => {
             let response = await goodNetwork_api.lintCode('testing', goodCode)
             expect(response.violations).to.be(null);
@@ -231,7 +231,7 @@ describe('Test Masternode API returns', () => {
             expect(response.includes('FetchError:')).to.be(true);
         })
     })
-    context('getNonce', () => {
+    context('Masternode_API.getNonce()', () => {
         it('returns a nonce and processor value for a vk', async () => {
             let response = await goodNetwork_api.getNonce(keyPair.vk)
             expect(response.nonce).to.exist
@@ -244,41 +244,37 @@ describe('Test Masternode API returns', () => {
         })
         it('returns an error message if provided network is unresponsive', async () => {
             let error = await badNetwork_api.getNonce(keyPair.vk)
-            console.log(error)
             expect(error.includes(`Unable to get nonce for "${keyPair.vk}"`)).to.be(true)
         })
-    })/*
-    context('sendTransaction', () => {
-        it('can send a transaction and has the proper return object', () => {
+    })
+    context('Masternode_API.sendTransaction()', () => {
+        it('can send a transaction and has the proper return object', async function() {
+            this.timeout(10000)
+
             let newWallet = wallet.new_wallet()
             let kwargs = {}
-            kwargs.to = {type: "address", value: newWallet.vk}
-            kwargs.amount = {type: "fixedPoint", value: 1000}
+            kwargs.to = newWallet.vk
+            kwargs.amount = 1000
 
-            cy.wrap(api.getNonce(keyPair.vk))
-            .then((response) => {
-                let newTx = new TransactionBuilder(
-                    goodNetwork,
-                    keyPair.vk,
-                    'currency',
-                    'transfer',
-                    kwargs,
-                    50000,
-                    res.nonce,
-                    res.processor
-                )
-                newTx.sign(keyPair.sk)
-                const data = newTx.serialize();
-                cy.wrap(api.sendTransaction(goodNetwork, data))
-                .then((response) => {
-                    cy.log(JSON.stringify(response))
-                    expect(response.state_changes).to.exist
-                    expect(Object.keys(response.state_changes).length).to.be(2)
-                    expect(response.status_code).to.be(0)
-                    expect(response.result).to.be(null)
-                    expect(response.stamps_used).to.be.greaterThan(0)
-                })
-            })
+            let txInfo = {
+                senderVk: keyPair.vk,
+                contractName: 'currency',
+                methodName: 'transfer',
+                kwargs,
+                stampLimit: 50000
+            }
+
+            let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo)
+            await newTx.getNonce();
+            newTx.sign(keyPair.sk)
+            newTx.serialize();
+
+            let response = await goodNetwork_api.sendTransaction(newTx.transactonBytes)
+            expect(response.state_changes).to.exist
+            expect(Object.keys(response.state_changes).length >= 2).to.be(true)
+            expect(response.status_code).to.be(0)
+            expect(response.stamps_used).to.be.greaterThan(0)
+
         })
-    })*/
+    })
 })

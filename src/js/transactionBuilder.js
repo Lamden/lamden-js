@@ -36,7 +36,6 @@ export class TransactionBuilder extends Network {
         if(!validateTypes.isStringHex(txInfo.senderVk)) throw new Error(`Sender Public Key Required (Type: Hex String)`)
         if(!validateTypes.isStringWithValue(txInfo.contractName)) throw new Error(`Contract Name Required (Type: String)`)
         if(!validateTypes.isStringWithValue(txInfo.methodName)) throw new Error(`Method Required (Type: String)`)
-        if(!validateTypes.isObject(txInfo.kwargs)) throw new Error(`Kwarg Object Required (Type: Object)`)
         if(!validateTypes.isInteger(txInfo.stampLimit)) throw new Error(`Stamps Limit Required (Type: Integer)`)        
 
         //Store variables in self for reference
@@ -44,7 +43,8 @@ export class TransactionBuilder extends Network {
         this.sender = txInfo.senderVk;
         this.contract = txInfo.contractName;
         this.method = txInfo.methodName;
-        this.kwargs = txInfo.kwargs;
+        this.kwargs = {};
+        if(validateTypes.isObject(txInfo.kwargs)) this.kwargs = txInfo.kwargs;
         this.stampLimit = txInfo.stampLimit;
 
         //validate and set nonce and processor if user provided them
@@ -62,9 +62,9 @@ export class TransactionBuilder extends Network {
         this.transactionSigned = false;
 
         //Transaction result information
-        this.nonceResult;
-        this.txSendResult;
-        this.blockResult;
+        this.nonceResult = {};
+        this.txSendResult = {errors:[]};
+        this.txBlockResult = {};
         this.txHash;
 
         
@@ -115,7 +115,7 @@ export class TransactionBuilder extends Network {
         this.payload.setFunctionName(this.method);
     }
     setKwargsInPayload() {
-        let kwargBuffer = this.hexStringToByte(JSON.stringify(this.kwargs));
+        let kwargBuffer = Buffer.from(JSON.stringify(this.kwargs));
         let kwargPayload = this.payload.initKwargs(kwargBuffer.byteLength);
         kwargPayload.copyBuffer(kwargBuffer);
     }
@@ -142,9 +142,9 @@ export class TransactionBuilder extends Network {
     }
     setPayloadBytes() {
         if (this.nonce == null)
-            throw new Error('No Nonce Set');
+            throw new Error('No Nonce Set. Call getNonce()');
         if (this.processor == null)
-            throw new Error('No Processor Set');
+            throw new Error('No Processor Set. Call getNonce()');
         //Set the Transaction Paylaod to Uint8Array so it can be signed.
         this.makePayload();
         this.payloadBytes = new Uint8Array(this.payloadMessage.toPackedArrayBuffer());
@@ -212,7 +212,6 @@ export class TransactionBuilder extends Network {
     async getNonce(callback = undefined) {
         let timestamp =  new Date().toUTCString();
         this.nonceResult = await this.API.getNonce(this.sender)
-
         if (typeof this.nonceResult.nonce === 'undefined'){
             throw new Error(`Unable to get nonce for ${this.sender} on network ${this.url}`)
         }
@@ -238,24 +237,27 @@ export class TransactionBuilder extends Network {
             this.serialize();
             //Send transaction to the masternode
             let response = await this.API.sendTransaction(this.transactonBytes)
+            
             if (validateTypes.isStringWithValue(response)) this.txSendResult = {errors: [response]}
-            else this.txSendResult = response;
+            else {
+                if (typeof response.error !== 'undefined'){
+                    if (validateTypes.isArrayWithValues(response.error)) this.txSendResult.errors = response.error
+                    if (validateTypes.isStringWithValue(response.error)) this.txSendResult.errors = [response.error]
+                } 
+                else this.txSendResult = {...this.txSendResult, ...response};
+            }
         } catch(e) {
             this.txSendResult = {errors: [e.message]}
         }
+
         //Set error if txSendResult doesn't exist
         if (this.txSendResult === 'undefined'){
             this.txSendResult = {errors: ['TypeError: Failed to fetch']}
-        }else{
-            //Parse txSendResult for error patterns
-            if (!validateTypes.isArray(this.txSendResult.errors)){
-                this.txSendResult.errors = [];
-                parseSendErrors();
-            }
         }
+        
         //Set timestamp of result
         this.txSendResult.timestamp = timestamp;
-
+        
         //If errors were set then return 
         if (validateTypes.isArrayWithValues(this.txSendResult.errors)){
             this.setBlockResultInfo()
@@ -276,10 +278,12 @@ export class TransactionBuilder extends Network {
         this.emit('response', this.txSendResult, validateTypes.isObjectWithKeys(this.resultInfo) ? this.resultInfo.subtitle : 'Response');
         return this.txSendResult; 
     }
+    // To possibly be removed or moved to lint masternode_api lint method
+    /*
     parseSendErrors(){
         if (validateTypes.isStringWithValue(this.txSendResult.error)) this.txSendResult.errors.push(this.txSendResult.error)
         if (validateTypes.isInteger(this.txSendResult.status_code)){
-            if (this.txSendResult.status_code > 0) {
+            if (this.txSendResult.status_code > 0 && typeof this.txSendResult.result !== 'undefined') {
                 if (validateTypes.hasKeys(this.txSendResult.result, ['args'])){
                     this.txSendResult.errors.push("Error: One of your method arguments threw an error")
                     this.txSendResult.errors = [...this.txSendResult.result.args, ...this.txSendResult.errors]                     
@@ -291,9 +295,9 @@ export class TransactionBuilder extends Network {
                         this.txSendResult.errors.push(this.txSendResult.result.error)
                     }
                 }
-            } 
+            }
         }
-    }
+    }*/
     setPendingBlockInfo(){
         this.resultInfo =  {
             title: 'Transaction Pending',
@@ -313,7 +317,7 @@ export class TransactionBuilder extends Network {
 
         this.resultInfo = {
             title: `Transaction ${erroredTx ? 'Failed' : 'Successful'}`,
-            subtitle: `Your transaction ${erroredTx ? 'returned an error and' : ''} used ${this.txSendResult.stamps_used} stamps`,
+            subtitle: `Your transaction ${erroredTx ? 'returned an error and ' : ''}used ${this.txSendResult.stamps_used} stamps`,
             message,
             type: `${erroredTx ? 'error' : 'success'}`,
             errorInfo: erroredTx ? this.txSendResult.errors : undefined
@@ -334,7 +338,7 @@ export class TransactionBuilder extends Network {
     }
     getAllInfo(){
         return {
-            UID: this.uid,
+            uid: this.uid,
             txHash: this.txHash,
             signed: this.transactionSigned,
             signature: this.signature,

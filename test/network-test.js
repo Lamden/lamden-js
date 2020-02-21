@@ -1,6 +1,5 @@
 const expect = require('expect.js');
 const Lamden = require('../dist/bundle');
-const { Network } = Lamden;
 
 let goodNetwork = {
     type: 'testnet',
@@ -9,7 +8,6 @@ let goodNetwork = {
     port: '443',
     lamden: true,
 }
-const newNetwork = new Network(goodNetwork)
 
 function copyObject(object){
     return JSON.parse(JSON.stringify(object))
@@ -18,7 +16,7 @@ function copyObject(object){
 describe('Test Netowrk class', () => {
     context('Constructor', () => {
         it('can create an instance', () => {
-            let network = new Network(goodNetwork)
+            let network = new Lamden.Network(goodNetwork)
             expect(network).to.exist;
             expect(network.host).to.be(goodNetwork.host);
             expect(network.type).to.be(goodNetwork.type);
@@ -32,7 +30,7 @@ describe('Test Netowrk class', () => {
         it('sets mainnet flag', () => {
             let networkInfo = copyObject(goodNetwork)
             networkInfo.type = 'mainnet'
-            let network = new Network(networkInfo)
+            let network = new Lamden.Network(networkInfo)
             expect(network.mainnet).to.be(true);
             expect(network.testnet).to.be(false);
             expect(network.mockchain).to.be(false);
@@ -41,7 +39,7 @@ describe('Test Netowrk class', () => {
         it('sets testnet flag', () => {
             let networkInfo = copyObject(goodNetwork)
             networkInfo.type = 'testnet'
-            let network = new Network(networkInfo)
+            let network = new Lamden.Network(networkInfo)
             expect(network.mainnet).to.be(false);
             expect(network.testnet).to.be(true);
             expect(network.mockchain).to.be(false);
@@ -50,7 +48,7 @@ describe('Test Netowrk class', () => {
         it('sets mockchain flag', () => {
             let networkInfo = copyObject(goodNetwork)
             networkInfo.type = 'mockchain'
-            let network = new Network(networkInfo)
+            let network = new Lamden.Network(networkInfo)
             expect(network.mainnet).to.be(false);
             expect(network.testnet).to.be(false);
             expect(network.mockchain).to.be(true);
@@ -61,7 +59,7 @@ describe('Test Netowrk class', () => {
             try{
                 let networkInfo = copyObject(goodNetwork)
                 networkInfo.host = ''
-                new Network(networkInfo)
+                new Lamden.Network(networkInfo)
             } catch (e) {error = e}
             expect(error.message).to.be('HOST Required (Type: String)')
 
@@ -71,7 +69,7 @@ describe('Test Netowrk class', () => {
             try{
                 let networkInfo = copyObject(goodNetwork)
                 networkInfo.host = 'missing.protocol.com'
-                new Network(networkInfo)
+                new Lamden.Network(networkInfo)
             } catch (e) {error = e}
             expect(error.message).to.be('Host String must include http:// or https://')
         })
@@ -80,7 +78,7 @@ describe('Test Netowrk class', () => {
             try{
                 let networkInfo = copyObject(goodNetwork)
                 networkInfo.port = ''
-                new Network(networkInfo)
+                new Lamden.Network(networkInfo)
             } catch (e) {error = e}
             expect(error.message).to.be('PORT Required (Type: String)')
         })
@@ -89,7 +87,7 @@ describe('Test Netowrk class', () => {
             try{
                 let networkInfo = copyObject(goodNetwork)
                 networkInfo.type = ''
-                new Network(networkInfo)
+                new Lamden.Network(networkInfo)
             } catch (e) {error = e}
             expect(error.message).to.be('Network Type Required (Type: String)')
         })
@@ -98,14 +96,14 @@ describe('Test Netowrk class', () => {
             try{
                 let networkInfo = copyObject(goodNetwork)
                 networkInfo.type = 'badtype'
-                new Network(networkInfo)
+                new Lamden.Network(networkInfo)
             } catch (e) {error = e}
             expect(error.message).to.be(`Error: badtype not in Lamden Network Types: ["mockchain","testnet","mainnet"]`)
         })
         it('rejects arg not being an object', () => {
             let error;
             try{
-                new Network('https://testnet.lamden.io:443')
+                new Lamden.Network('https://testnet.lamden.io:443')
             } catch (e) {error = e}
             expect(error.message).to.be('Expected Network Info Object and got Type: string')
         })
@@ -115,7 +113,7 @@ describe('Test Netowrk class', () => {
             function checkResult(result){
                 expect(result).to.be(true)
             }
-            let network = new Network(goodNetwork)
+            let network = new Lamden.Network(goodNetwork)
             network.on('online', (status) => checkResult(status))
             await network.ping();
         })        
@@ -124,7 +122,7 @@ describe('Test Netowrk class', () => {
             function checkResult(result){
                 expect(result).to.be(true)
             }
-            let network = new Network(goodNetwork)
+            let network = new Lamden.Network(goodNetwork)
             let status = await network.ping()
             checkResult(status)
         })
@@ -132,7 +130,7 @@ describe('Test Netowrk class', () => {
             function checkResult(result){
                 expect(result).to.be(true)
             }
-            let network = new Network(goodNetwork)
+            let network = new Lamden.Network(goodNetwork)
             await network.ping(((status) => checkResult(status)))
         })
     })        
