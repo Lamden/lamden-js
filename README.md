@@ -1,178 +1,215 @@
 # lamden-js
-This is the Lamden ES6 javascript implementation used in the [Lamden Wallet Chrome Extention](https://chrome.google.com/webstore/detail/lamden-wallet-browser-ext/lgkgmnhecgdjiifepobmobkeeeheakko) ([Github](https://github.com/Lamden/wallet)).
-This can be used to create Lamden Wallets and Transactions with the caveat that if you are implementing this in a webpage then you will need to work around CORS issues for both getting Nonces and Sending Transactions.
+This is the Lamden javascript implementation used in the [Lamden Wallet Chrome Extention](https://chrome.google.com/webstore/detail/lamden-wallet-browser-ext/lgkgmnhecgdjiifepobmobkeeeheakko) ([Github](https://github.com/Lamden/wallet)).
 
-Vaild transactions can be sent from the broswer but the response will be blocked by CORS.
+This package should work in Node.js and Broswer implementations.
 
-TODO: Probably need to complie this down to CommonJS to be compatible with Node.js.
-TODO: Tests
+## Install
 
-# Transpiling Capt'Proto Schemas to Javascript files (only for schema changes)
-This step only needs to be run if there are changes to the capnp schema files.
-
-Copy new files to src/capnp/original/
-Install  [Capt'Proto](https://capnproto.org/install.html)
-add/overwrite capnp files in src/capnp/original then run the below command
-``` 
-capnpc -o js src/capnp/original/* && mv src/capnp/original/*.js src/capnp/js/
-```
-
-# Install
-
-```
+```javascript
 npm install lamden-js
 ```
 
-
-# Usage
-## import lamden-js
-
+## Test
+```javascript
+npm run tests
 ```
+
+## Add to project
+
+```javascript
 import Lamden from 'lamden-js'
+or
+const Lamden = require('lamden-js')
 ```
 
-## Create a Lamden Keypair
-
-```
+## Wallet Functions
+### Create a Lamden Keypair
+```javascript
 let lamdenWallet = Lamden.wallet.new_wallet()
 
 console.log(lamdenWallet)
-```
-```
-{
-    vk: "ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298",
-    sk: "69a8db3fb7196debc2711fad1fa1935918d09f5d8900d84c3288ea5237611c03"
-}
+>> {
+       vk: "ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298",
+       sk: "69a8db3fb7196debc2711fad1fa1935918d09f5d8900d84c3288ea5237611c03"
+   }
 ```
 
-## Get a public key (vk) from a private key (sk)
-
-```
+### Get a public key (vk) from a private key (sk)
+```javascript
 let sk = "69a8db3fb7196debc2711fad1fa1935918d09f5d8900d84c3288ea5237611c03"
-
 let vk = wallet.get_vk(sk)
 
 console.log(vk)
-```
-```
-ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298
+>> 'ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298'
 ```
 
-## Sign a message
-```
+### Sign a message
+```javascript
 let messageBytes = new Uint8Array('message');
 let sk = "69a8db3fb7196debc2711fad1fa1935918d09f5d8900d84c3288ea5237611c03"
 
 let signedMessage = wallet.sign(sk, messageBytes)
 
 console.log(signedMessage)
-```
-```
-982c204fe88e620f3319558aa6b11f9d8be75b99b3199f434f5edf2834a9c52059ba4ea3d623ac1d550170e532e919c364aad1333f757f8f22e0355cb1dd8c09
+>> '982c204fe88e620f3319558aa6b11f9d8be75b99b3199f434f5edf2834a9c52059ba4ea3d623ac1d550170e532e919c364aad1333f757f8f22e0355cb1dd8c09'
 ```
 
-## Verify signature
-
-```
-let vk = "ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298"
-let messageBytes = new Uint8Array('message');
-let signedMessage = "982c204fe88e620f3319558aa6b11f9d8be75b99b3199f434f5edf2834a9c52059ba4ea3d623ac1d550170e532e919c364aad1333f757f8f22e0355cb1dd8c09"
-
+#### Verify signature
+```javascript
 let validSignature = wallet.verify(vk, messageBytes, signedMessage)
 
 console.log(validSignature)
-
-```
-```
-true
+>> true
 ```
 
 ## Create a Lamden Transaction
-Testnet host is https://testnet.lamden.io:443
-** Change this to a local testnet (mockchain) instance if you have one running
+Publick Mockchain host is https://testnet.lamden.io:443
 
-### KWARGS (method arguments)
-kwarg object is just a regular JavaScript object which you will use to feed the arguments to contract method you are calling.
-
-For example the "transfer" method on the "currency" contract takes two arguments "to" and "amount".
-
-```
-let kwargs = {
-    to: receiver_public_key,
-    amount: 1000
-}
-```
+** Change this to a local testnet [mockchain](https://github.com/Lamden/mockchain) instance if you have one running
 
 ## Create a Lamden Transaction
-```
-let network = "https://testnet.lamden.io:443"
-let sender = "ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298"
-let receiver = "bb0fab41b9118f0afdabf3721fa9a6caae3c93845ed409d3118841065ad1a197"
-let contract = "currency"
-let method = "transfer"
+Use Lamden.TransactionBuilder(networkInfo, txInfo) to create a new Lamden transaction.
 
-let kwargs = {
-    to: receiver_public_key,
-    amount: 1000
+### Create networkInfo object
+create an object that describes the masternode/network that you are going to send the transcation to
+```javascript
+let networkInfo = {
+    // Optional: Name of network
+    name: 'Lamden Public Mockchain',
+
+    // Required: type of network 'mockchain', 'testnet', 'mainnet'
+    type: 'mockchain',
+
+    // Required: must begin with http or https
+    host: 'https://testnet.lamden.io',
+
+    // Required: network port
+    port: '443' 
+}
+```
+### Create txInfo object
+create an object that describes the transaction you are going to send
+```javascript
+//Sender and Receiver public keys
+let senderVk = "ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298"
+let receiverVk = "bb0fab41b9118f0afdabf3721fa9a6caae3c93845ed409d3118841065ad1a197"
+
+// Kwargs are the arugments you will send the contract method.  
+// For example the "currency" contract's "transfer" method needs two arguments to create a transfter; the person reciving the TAU and the amount to transfer.  So we create a kwargs object like so.
+let kwargs: {
+        to: receiverVk,
+        amount: 1000
 }
 
-let stampLimit = 50000
-let nonce = "37"
-let processor = "0000000000000000000000000000000000000000000000000000000000000000"
-
-
-let txb = new TransactionBuilder(network, sender, contract, method, kwargs, stampLimit, nonce, processor)
+let txInfo = {
+    senderVk,
+    contractName: "currency",
+    methodName: "transfer",
+    kwargs,
+    stampLimit: 50000, //Max stamps to be used. Could use less, won't use more.
+}
 ```
 
-## Send a Lamden Transaction
+### Create transaction
+```javascript
+let tx = new Lamden.TransactionBuilder(networkInfo, txInfo)
 ```
-let sk = "69a8db3fb7196debc2711fad1fa1935918d09f5d8900d84c3288ea5237611c03"
 
-txb.send(sk, (res, err) =>{
+### Send transaction
+```javascript
+let senderSk = "69a8db3fb7196debc2711fad1fa1935918d09f5d8900d84c3288ea5237611c03"
+
+tx.send(senderSk, (res, err) => {
     if (err) throw new Error(err)
     console.log(res)
 })
+
+//or
+
+tx.send.on((response) => {
+    if (tx.resultInfo.type === 'error') return
+    console.log(response)
+})
+tx.send(senderSk)
+
 ```
 
-Returns the NEW changed state in the currency contract for whatever variables the transfer method effected.  In this case, the balances of both keys (sender -10000 and receiver +10000)
-```
+Returns the NEW changed state in the currency contract for whatever variables the transfer method effected.  
+In this case, the <b>*new*</b> balances for both keys is returned
+```javascript
 {
     state_changes: {
-        "currency:balances:ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298": "50000.0"
-        "currency:balances:bb0fab41b9118f0afdabf3721fa9a6caae3c93845ed409d3118841065ad1a197": "10000.0"
+        "currency:balances:ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298": "4895.0" // -1005 (amount + stamps)
+        "currency:balances:bb0fab41b9118f0afdabf3721fa9a6caae3c93845ed409d3118841065ad1a197": "1000.0" // +1000
     }
     status_code: 0
-    result: null
     stamps_used: 13924
 }
 ```
-*** If CORS is an issue then you will not get a response back, but your transaction will go through if valid.
 
 ## Getting a Nonce and Processor
-Nonces can be set via the TransactionBuilder object directly, if CORS is not an issue.
-getNonce() should always be called before send()
-```
-let txb = new TransactionBuilder(network, sender, contract, method, kwargs, stampLimit)
+Note: Nonce and processor will be retrieved from the masternode automatcially when send() is called.
 
-txb.getNonce((res, err) => {
-    if (err) console.log("Not Set")
-    console.log("Nonce and Processor Set")
+getNonce() can be used to set the nonce and processor before hand.
+```javascript
+let tx = new Lamden.TransactionBuilder(networkInfo, TxInfo)
+
+tx.getNonce((res, err) => {
+    if (err) {
+        console.log("Nonce Not Set")
+        return
+    }
+    console.log(res)
 })
+
+>> {
+       "nonce": 37,
+       "processor": "0000000000000000000000000000000000000000000000000000000000000000",
+       "sender": "ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298"
+   }
 ```
 
-If CORS is an issue (ie. you are running this from a broswer) then "getNonce" will not work.  
-You will need an alternative way (CORS Proxy) to get the nonce from the network API endpoint.
+## Network and API
+Create a network instance will allow you to call the masternode API.  This class takes a "networkInfo" object as described above.
 
-NONCE API ENDPOINT
+### Create new Network instance
+```javascript
+let mockchain = new Network({
+    name: 'Lamden Public Mockchain',
+    type: 'mockchain',
+    host: 'https://testnet.lamden.io', port: '443' 
+})
+
+mockchain.on(online => {
+    console.log(online)
+    >> true or false
+})
+mockchain.ping()
 ```
-http:<network IP>:<network PORT>/nonce/<your vk>
+### Netowrk API Endpoints
+All API methods return a value, Promise or callback if provided
+
+| method   |      masternode endpoint      |  Description |
+|:----------|:-------------:|:------:|
+| getContractInfo(contractName)  |  /contracts/*contractName* | Returns the contract code of *contractName* <br> [example](https://testnet.lamden.io/contracts/currency/) |
+| getVariable(contractName, variableName, parms) |    /contracts/*contractName*/*variableName*?key=*parm*   |   Retrieve the current state of a contract variable <br> [example](https://testnet.lamden.io/contracts/currency/balances?key=7497cfd946eb332f66fe096d6473aa869cdc3836f1c7ac3630cea68e78228e3e) |
+| getContractMethods(contractName) | /contracts/*contractName*/methods |    Returns all methods belonging to *contractName* <br> [example](https://testnet.lamden.io/contracts/currency/methods) |
+| pingServer() | /ping | Checks if network is online <br> [example](https://testnet.lamden.io/ping) |
+| getTauBalance(vk) | /contracts/currency/balances | A wrapper method for getVariable() which always returns the result of the currency contract's balances?key=*vk* <br> [example](https://testnet.lamden.io/contracts/currency/balances?key=7497cfd946eb332f66fe096d6473aa869cdc3836f1c7ac3630cea68e78228e3e)  |
+| contractExists(contractName) | /contracts/*contractName*  | a wrapper method for getContractInfo() which returns if a contract exists on the blockchain |
+| sendTransaction(txData, *callback*) | / | submits a contract to the network <br> For mockchain networks an immediate block result will be returned <br> For testnet and mainnet a tx_hash will be returned |
+| getNonce(senderVk, *callback*) | /nonce/*senderVk* |    Get the current *nonce* and *processor* for a public key (vk) |
+| mintTestNetCoins(vk, amount) | /mint |    <b>Mockchain Networks Only</b> <br> Mints Test TAU to a provided publick key (vk) |
+| lintCode(name, codeString) | right-aligned |  <b>Mockchain Networks Only</b><br> Returns smart contract errors |
+
+
+## Transpiling Capt'Proto Schemas to Javascript files (only for schema changes)
+This step only needs to be run if there are changes to the capnp schema files.
+
+Copy new files to src/capnp/original/
+Install  [Capt'Proto](https://capnproto.org/install.html)
+add/overwrite capnp files in src/capnp/original then run the below command
 ```
-Example
-[http://167.71.159.131:8000/nonce/fe417cb73cf7caf406edd7da38ecd6a115228c00ac9cc1b87491eef2a8dd6a6d](http://167.71.159.131:8000/nonce/fe417cb73cf7caf406edd7da38ecd6a115228c00ac9cc1b87491eef2a8dd6a6d)
+capnpc -o js src/capnp/original/* && mv src/capnp/original/*.js src/capnp/js/
 ```
-{
-    "nonce": 37,
-    "processor": "0000000000000000000000000000000000000000000000000000000000000000",
-    "sender": "fe417cb73cf7caf406edd7da38ecd6a115228c00ac9cc1b87491eef2a8dd6a6d"
-}
-```
+

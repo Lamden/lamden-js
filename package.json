@@ -1,10 +1,17 @@
 {
   "name": "lamden-js",
-  "version": "0.5.0",
-  "description": "A javascript implementaion for creating and submitting transactions to a Lamden Blockchain.",
-  "main": "index.js",
+  "version": "1.0.0",
+  "description": "A javascript implementaion for creating wallets, submitting transactions and interacting with masternodes on the Lamden Blockchain.",
+  "main": "dist/lamden.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run build && mocha",
+    "tests": "npm run test",
+    "test-network": "npm run build && mocha test/network-test.js",
+    "test-masternode_api": "npm run build && mocha test/masternode_api-test.js",
+    "test-transactionBuilder": "npm run build && mocha test/transactionBuilder-test.js",
+    "test-wallet": "npm run build && mocha test/wallet-test.js",
+    "build": "rollup --config",
+    "test-cypress": "npm run build && npx cypress open"
   },
   "repository": {
     "type": "git",
@@ -25,13 +32,23 @@
   "dependencies": {
     "assert": "1.4.1",
     "big-integer": "1.6.42",
-    "events": "^3.1.0",
     "capnpc-ts": "^0.4.0",
+    "events": "^3.1.0",
     "jssha": "2.3.1",
     "md5": "2.2.1",
-    "tweetnacl": "1.0.1"
+    "node-fetch": "^2.6.0",
+    "tweetnacl": "1.0.1",
+    "types-validate-assert": "^1.0.0"
   },
   "devDependencies": {
-    "cypress": "^4.0.1"
+    "@babel/core": "^7.8.4",
+    "mocha": "^7.0.1",
+    "expect.js": "^0.3.1",
+    "rollup": "^1.31.1",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-node-resolve": "^5.2.0"
   }
 }

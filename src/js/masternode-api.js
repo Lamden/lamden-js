@@ -1,12 +1,13 @@
-import { ValidateTypes } from './validateTypes'
-const validate = new ValidateTypes();
+import validators from 'types-validate-assert'
+const { validateTypes } = validators;
+const fetch = require('node-fetch');
 
 export class LamdenMasterNode_API{
     constructor(networkInfoObj){
-        if (!validate.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`)
-        if (!validate.isStringWithValue(networkInfoObj.host)) throw new Error(`HOST Required (Type: String)`)
-        if (!validate.isStringWithValue(networkInfoObj.port)) throw new Error(`PORT Required (Type: String)`)
-        if (!validate.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
+        if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`)
+        if (!validateTypes.isStringWithValue(networkInfoObj.host)) throw new Error(`HOST Required (Type: String)`)
+        if (!validateTypes.isStringWithValue(networkInfoObj.port)) throw new Error(`PORT Required (Type: String)`)
+        if (!validateTypes.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
         const lamdenNetworkTypes = ['mockchain', 'testnet', 'mainnet']
 
@@ -39,7 +40,7 @@ export class LamdenMasterNode_API{
             options.headers = headers;
             options.body = data;
         }
-
+        
         return fetch(`${this.url}${path}${parms}`, options)
             .then(res => res.json())
             .then(json => {
@@ -129,8 +130,9 @@ export class LamdenMasterNode_API{
 
     async mintTestNetCoins(vk, amount){
         if (this.networkType !== 'mockchain') throw Error (`${this.networkType} does not allow minting of coins`)
-        if (!validate.isStringWithValue(vk) || !validate.isNumber(amount)) return false;
+        if (!validateTypes.isStringWithValue(vk) || !validateTypes.isNumber(amount)) return false;
         let data = JSON.stringify({vk, amount})
+
         let path = `/mint/`
         return this.send('POST', path, data, (res, err) => {
             try{
@@ -158,7 +160,7 @@ export class LamdenMasterNode_API{
     }
 
     async getNonce(sender, callback){
-        if (!validate.isStringHex(sender)) return `${sender} is not a hex string.`
+        if (!validateTypes.isStringHex(sender)) return `${sender} is not a hex string.`
         let path = `/nonce/${sender}` 
         return this.send('GET', path, {}, (res, err) => {
             if (err){

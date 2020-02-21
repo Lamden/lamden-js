@@ -1,5 +1,7 @@
-import nacl from 'tweetnacl';
+
 import * as helpers from './helpers';
+const nacl = require('tweetnacl')
+
 /**
  * @param Uint8Array(length: 32) seed
  *      seed:   A Uint8Array with a length of 32 to seed the keyPair with. This is advanced behavior and should be
