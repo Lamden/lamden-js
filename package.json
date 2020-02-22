@@ -1,6 +1,6 @@
 {
   "name": "lamden-js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A javascript implementaion for creating wallets, submitting transactions and interacting with masternodes on the Lamden Blockchain.",
   "main": "dist/lamden.js",
   "scripts": {
@@ -38,7 +38,7 @@
     "md5": "2.2.1",
     "node-fetch": "^2.6.0",
     "tweetnacl": "1.0.1",
-    "types-validate-assert": "^1.0.0"
+    "types-validate-assert": "^1.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
