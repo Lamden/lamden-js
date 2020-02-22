@@ -126,7 +126,7 @@ tx.send(senderSk, (res, err) => {
 
 //or
 
-tx.send.on((response) => {
+tx.on('response', (response) => {
     if (tx.resultInfo.type === 'error') return
     console.log(response)
 })
@@ -180,7 +180,7 @@ let mockchain = new Network({
     host: 'https://testnet.lamden.io', port: '443' 
 })
 
-mockchain.on(online => {
+mockchain.on('online', online => {
     console.log(online)
     >> true or false
 })
