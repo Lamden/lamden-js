@@ -11404,7 +11404,7 @@ const { validateTypes: validateTypes$2 } = validators;
 class TransactionBuilder extends Network {
     // Constructor needs an Object with the following information to build Class.
     //  
-    // arg[0] (networkInfo): {
+    // arg[0] (networkInfo): {  //Can also accpet a Lamden "Network Class"
     //      host: <string> masternode webserver hostname/ip,
     //      port: <string> masternode webserver port,
     //      type: <string> "testnet", "mainnet" or "mockchain"
@@ -11423,7 +11423,9 @@ class TransactionBuilder extends Network {
     //  }
     //  arg[2] (txData): [Optional] state hydrating data
     constructor(networkInfo, txInfo, txData) {
-        super(networkInfo);
+        if (validateTypes$2.isSpecificClass(networkInfo, 'Network'))
+            super(networkInfo.getNetworkInfo());
+        else super(networkInfo);
 
         //Validate arguments
         if(!validateTypes$2.isObjectWithKeys(txInfo)) throw new Error(`txInfo object not found`)

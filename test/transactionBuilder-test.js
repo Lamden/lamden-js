@@ -45,7 +45,6 @@ describe('Test TransactionBuilder class', () => {
         it('can create an instance without nonce or processor', () => {
             let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
             let newTxInfo = newTx.getAllInfo()
-            console.log(newTxInfo)
             expect(newTx).to.exist;
             //Validate TX Info propagated in the class
             expect(newTxInfo.uid).to.be(txInfo_noNonce.uid)
@@ -85,6 +84,18 @@ describe('Test TransactionBuilder class', () => {
             newTx = testValues('Method', goodNetwork, senderWallet.vk, 'currency', undefined, kwargs, 50000)
             newTx = testValues('Stamps', goodNetwork, senderWallet.vk, 'currency', 'transfer', kwargs, undefined)
             expect(typeof newTx).to.be('undefined');
+        })
+
+        it('it can create an instance with a Lamden Network Object as first arg', () => {
+            let network = new Lamden.Network(goodNetwork)
+            let error = ''
+            try {
+                var newTx = new Lamden.TransactionBuilder(network, txInfo_withNonce)
+            } catch (e){
+                error = e
+            }
+            expect(newTx).to.exist;
+            expect(error === '').to.be(true);
         })
     })
 
