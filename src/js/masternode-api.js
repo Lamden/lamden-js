@@ -68,9 +68,11 @@ export class LamdenMasterNode_API{
         })
     }
 
-    async getVariable(contract, variable, parms){
+    async getVariable(contract, variable, key){
+        let parms = {};
+        parms.key = key;
         let path = `/contracts/${contract}/${variable}/`
-        return this.send('GET', path, parms, (res, err) => {
+        return this.send('GET', path, {parms}, (res, err) => {
             try{
                 if (res.value) return res.value
             } catch (e){}
@@ -109,9 +111,7 @@ export class LamdenMasterNode_API{
     }
 
     async getTauBalance(vk){
-        let parms = {};
-        parms.key = vk;
-        let balanceRes = await this.getVariable('currency', 'balances', {parms})
+        let balanceRes = await this.getVariable('currency', 'balances', vk)
         if (isNaN(parseFloat(balanceRes))){
             return 0;
         }

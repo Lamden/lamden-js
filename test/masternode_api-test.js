@@ -173,28 +173,28 @@ describe('Test Masternode API returns', () => {
 
     context('Masternode_API.getVariable()', () => {
         it('returns the value of the variable if the key exists', async () => {
-            let parms = {key: keyPair.vk};
-            let response = await goodNetwork_api.getVariable('currency', 'balances', {parms})
+            let key = keyPair.vk;
+            let response = await goodNetwork_api.getVariable('currency', 'balances', key)
             expect(response).to.be('123456789');
         })
         it('returns null if the key does not exist in the variable', async () => {
-            let parms = {key: wallet.new_wallet().vk};
-            let response = await goodNetwork_api.getVariable('currency', 'balances', {parms})
+            let key = wallet.new_wallet().vk;
+            let response = await goodNetwork_api.getVariable('currency', 'balances', key)
             expect(response).to.be('null');
         })
         it('returns undefined if the contract does not exist', async () => {
-            let parms = {key: keyPair.vk};
-            let response = await goodNetwork_api.getVariable(wallet.new_wallet().vk, 'balances', {parms})
+            let key = keyPair.vk;
+            let response = await goodNetwork_api.getVariable(wallet.new_wallet().vk, 'balances', key)
             expect(response).to.be(undefined);
         })
         it('returns null if the variable does not exist', async () => {
-            let parms = {key: keyPair.vk};
-            let response = await goodNetwork_api.getVariable('currency',  wallet.new_wallet().vk, {parms})
+            let key = keyPair.vk;
+            let response = await goodNetwork_api.getVariable('currency',  wallet.new_wallet().vk, key)
             expect(response).to.be('null');
         })
         it('returns undefined if provided network is unresponsive', async () => {
-            let parms = {key: keyPair.vk};
-            let response = await badNetwork_api.getVariable('currency', 'balances', {parms})
+            let key = keyPair.vk;
+            let response = await badNetwork_api.getVariable('currency', 'balances', key)
             expect(response).to.be(undefined);
         })
     })
