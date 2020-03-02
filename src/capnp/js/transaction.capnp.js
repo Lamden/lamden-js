@@ -26,23 +26,17 @@ class Delta extends capnp_ts_1.Struct {
 Delta._capnp = { displayName: "Delta", id: "b36956d6aca4a098", size: new capnp_ts_1.ObjectSize(0, 2) };
 exports.Delta = Delta;
 class MetaData extends capnp_ts_1.Struct {
-    adoptProof(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(0, this)); }
-    disownProof() { return capnp_ts_1.Struct.disown(this.getProof()); }
-    getProof() { return capnp_ts_1.Struct.getData(0, this); }
-    hasProof() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(0, this)); }
-    initProof(length) { return capnp_ts_1.Struct.initData(0, length, this); }
-    setProof(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(0, this)); }
-    adoptSignature(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(1, this)); }
+    adoptSignature(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(0, this)); }
     disownSignature() { return capnp_ts_1.Struct.disown(this.getSignature()); }
-    getSignature() { return capnp_ts_1.Struct.getData(1, this); }
-    hasSignature() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(1, this)); }
-    initSignature(length) { return capnp_ts_1.Struct.initData(1, length, this); }
-    setSignature(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(1, this)); }
+    getSignature() { return capnp_ts_1.Struct.getData(0, this); }
+    hasSignature() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(0, this)); }
+    initSignature(length) { return capnp_ts_1.Struct.initData(0, length, this); }
+    setSignature(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(0, this)); }
     getTimestamp() { return capnp_ts_1.Struct.getFloat32(0, this); }
     setTimestamp(value) { capnp_ts_1.Struct.setFloat32(0, value, this); }
     toString() { return "MetaData_" + super.toString(); }
 }
-MetaData._capnp = { displayName: "MetaData", id: "a70e205986d03e12", size: new capnp_ts_1.ObjectSize(8, 2) };
+MetaData._capnp = { displayName: "MetaData", id: "a70e205986d03e12", size: new capnp_ts_1.ObjectSize(8, 1) };
 exports.MetaData = MetaData;
 class TransactionPayload extends capnp_ts_1.Struct {
     adoptSender(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(0, this)); }

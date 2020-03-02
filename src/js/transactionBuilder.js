@@ -5,7 +5,6 @@ import validators from 'types-validate-assert'
 const { validateTypes } = validators;
 import * as wallet from './wallet'
 import { Network } from './network'
-import * as pow from './pow';
 
 export class TransactionBuilder extends Network {
     // Constructor needs an Object with the following information to build Class.
@@ -169,21 +168,6 @@ export class TransactionBuilder extends Network {
         const messageSignature = this.transactionMetadata.initSignature(signatureBuffer.byteLength);
         messageSignature.copyBuffer(signatureBuffer);
     }
-    generate_proof() {
-        // Generate a proof of work from the payloadBytes
-        if (this.payloadBytes == null)
-            this.setPayloadBytes();
-        this.proof = pow.find(this.payloadBytes).pow;
-        this.proofGenerated = true;
-    }
-    setProof() {
-        // Store the proof of work in the transaction metadata
-        if (!this.proofGenerated)
-            this.generate_proof();
-        const proofBuffer = this.hexStringToByte(this.proof);
-        const messageProof = this.transactionMetadata.initProof(proofBuffer.byteLength);
-        messageProof.copyBuffer(proofBuffer);
-    }
     setTimeStamp() {
         // Store timstamp in the transaction metadata
         this.transactionMetadata.setTimestamp(+new Date/1000);
@@ -204,7 +188,6 @@ export class TransactionBuilder extends Network {
         if (this.verifySignature()){
             this.setTransactionPayload();
             this.setSignature();
-            this.setProof();
             this.setTimeStamp();
             this.setTransactionBytes();
             return this.transactonBytes;
