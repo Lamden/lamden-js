@@ -1,6 +1,6 @@
 @0x921d030365beff8c;
 
-using V = import "./values.capnp";
+using V = import "values.capnp";
 
 struct Delta {
     key @0 :Data;
@@ -8,9 +8,8 @@ struct Delta {
 }
 
 struct MetaData {
-    proof @0 :Data;         # raghu - can be eliminated
-    signature @1 :Data;
-    timestamp @2 :Float32;
+    signature @0 :Data;
+    timestamp @1 :Float32;
 }
 
 struct TransactionPayload {
