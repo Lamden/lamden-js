@@ -11086,7 +11086,7 @@ class LamdenMasterNode_API{
             options.headers = headers;
             options.body = data;
         }
-        
+        //console.log(`${this.url}${path}${parms}`)
         return fetch(`${this.url}${path}${parms}`, options)
             .then(res => res.json())
             .then(json => {
@@ -11222,6 +11222,24 @@ class LamdenMasterNode_API{
             }
             else return res;
         })
+    }
+
+    async checkTransaction(hash, callback){
+        const parms = {hash};
+        return this.send('GET', '/tx', {parms}, (res, err) => {
+            if (err){
+                if (callback) {
+                    callback(undefined, err);
+                    return;
+                }
+                else return err
+            }
+            if (callback) {
+                callback(res, undefined);
+                return
+            }
+            return res;
+        })  
     }
 }
 
@@ -11361,7 +11379,8 @@ class TransactionBuilder extends Network {
         this.txSendResult = {errors:[]};
         this.txBlockResult = {};
         this.txHash;
-
+        this.txCheckAttempts = 0;
+        this.txCheckLimit = 10;
         
         //Hydrate other items if passed
         if (txData){
@@ -11557,26 +11576,25 @@ class TransactionBuilder extends Network {
         this.emit('response', this.txSendResult, validateTypes$2.isObjectWithKeys(this.resultInfo) ? this.resultInfo.subtitle : 'Response');
         return this.txSendResult; 
     }
-    // To possibly be removed or moved to lint masternode_api lint method
-    /*
-    parseSendErrors(){
-        if (validateTypes.isStringWithValue(this.txSendResult.error)) this.txSendResult.errors.push(this.txSendResult.error)
-        if (validateTypes.isInteger(this.txSendResult.status_code)){
-            if (this.txSendResult.status_code > 0 && typeof this.txSendResult.result !== 'undefined') {
-                if (validateTypes.hasKeys(this.txSendResult.result, ['args'])){
-                    this.txSendResult.errors.push("Error: One of your method arguments threw an error")
-                    this.txSendResult.errors = [...this.txSendResult.result.args, ...this.txSendResult.errors]                     
-                } 
-                if (validateTypes.hasKeys(this.txSendResult.result, ['error'])){
-                    if (validateTypes.hasKeys(this.txSendResult.result.error, ['error'])){
-                        this.txSendResult.errors.push(this.txSendResult.result.error.error)
-                    }else{
-                        this.txSendResult.errors.push(this.txSendResult.result.error)
-                    }
+    checkForTransactionResult(){
+        return this.API.checkTransaction(this.txHash)
+        .then(res => {
+            if (!res.hash){
+                this.txCheckAttempts = this.txCheckAttempts + 1;
+                if (this.txCheckAttempts <= this.txCheckLimit){
+                    setTimeout( () => {
+                        this.checkForTransactionResult();
+                    }, 2000);
+                }else{
+                    return {error: ['Could not get block result']}
                 }
+            }else{
+                this.blockResult = res;
+                this.emit('response', this.blockResult, this.txHash);
+                return res
             }
-        }
-    }*/
+        })
+    }
     setPendingBlockInfo(){
         this.resultInfo =  {
             title: 'Transaction Pending',

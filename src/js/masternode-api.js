@@ -40,7 +40,7 @@ export class LamdenMasterNode_API{
             options.headers = headers;
             options.body = data;
         }
-        
+
         return fetch(`${this.url}${path}${parms}`, options)
             .then(res => res.json())
             .then(json => {
@@ -176,5 +176,23 @@ export class LamdenMasterNode_API{
             }
             else return res;
         })
+    }
+
+    async checkTransaction(hash, callback){
+        const parms = {hash};
+        return this.send('GET', '/tx', {parms}, (res, err) => {
+            if (err){
+                if (callback) {
+                    callback(undefined, err);
+                    return;
+                }
+                else return err
+            }
+            if (callback) {
+                callback(res, undefined);
+                return
+            }
+            return res;
+        })  
     }
 }
