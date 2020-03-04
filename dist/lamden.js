@@ -11086,7 +11086,7 @@ class LamdenMasterNode_API{
             options.headers = headers;
             options.body = data;
         }
-        //console.log(`${this.url}${path}${parms}`)
+
         return fetch(`${this.url}${path}${parms}`, options)
             .then(res => res.json())
             .then(json => {
@@ -11384,13 +11384,17 @@ class TransactionBuilder extends Network {
         
         //Hydrate other items if passed
         if (txData){
+            if (txData.uid) this.uid = txData.uid;
             if (validateTypes$2.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
             if (validateTypes$2.isObjectWithKeys(txData.nonceResult)){
                 this.nonceResult = txData.nonceResult;
                 if (validateTypes$2.isInteger(this.nonceResult.nonce)) this.nonce = this.nonceResult.nonce;
                 if (validateTypes$2.isStringWithValue(this.nonceResult.processor)) this.processor = this.nonceResult.processor;
             }
-            if (validateTypes$2.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
+            if (validateTypes$2.isObjectWithKeys(txData.txSendResult)){
+                this.txSendResult = txData.txSendResult;
+                if (this.txSendResult.hash) this.txHash = this.txSendResult.hash;
+            } 
             if (validateTypes$2.isObjectWithKeys(txData.txBlockResult)) this.txBlockResult = txData.txBlockResult;
             if (validateTypes$2.isObjectWithKeys(txData.resultInfo)) this.resultInfo = txData.resultInfo;
         }

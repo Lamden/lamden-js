@@ -72,13 +72,17 @@ export class TransactionBuilder extends Network {
         
         //Hydrate other items if passed
         if (txData){
+            if (txData.uid) this.uid = txData.uid
             if (validateTypes.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
             if (validateTypes.isObjectWithKeys(txData.nonceResult)){
                 this.nonceResult = txData.nonceResult;
                 if (validateTypes.isInteger(this.nonceResult.nonce)) this.nonce = this.nonceResult.nonce;
                 if (validateTypes.isStringWithValue(this.nonceResult.processor)) this.processor = this.nonceResult.processor;
             }
-            if (validateTypes.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
+            if (validateTypes.isObjectWithKeys(txData.txSendResult)){
+                this.txSendResult = txData.txSendResult;
+                if (this.txSendResult.hash) this.txHash = this.txSendResult.hash
+            } 
             if (validateTypes.isObjectWithKeys(txData.txBlockResult)) this.txBlockResult = txData.txBlockResult;
             if (validateTypes.isObjectWithKeys(txData.resultInfo)) this.resultInfo = txData.resultInfo;
         }
