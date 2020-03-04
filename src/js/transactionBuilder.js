@@ -281,8 +281,8 @@ export class TransactionBuilder extends Network {
                     return {error: ['Could not get block result']}
                 }
             }else{
-                this.blockResult = res;
-                this.emit('response', this.blockResult, this.txHash);
+                this.txBlockResult = res;
+                this.emit('response', this.txBlockResult, this.txHash);
                 return res
             }
         })
