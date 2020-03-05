@@ -271,19 +271,19 @@ export class TransactionBuilder extends Network {
     checkForTransactionResult(){
         return this.API.checkTransaction(this.txHash)
         .then(res => {
-            if (!res.hash){
+            if (res){
+                this.txBlockResult = res;
+                this.emit('response', this.txBlockResult, this.txHash);
+                return res
+            }else{
                 this.txCheckAttempts = this.txCheckAttempts + 1;
                 if (this.txCheckAttempts <= this.txCheckLimit){
                     setTimeout( () => {
                         this.checkForTransactionResult();
                     }, 2000);
                 }else{
-                    return {error: ['Could not get block result']}
+                    return {error: 'Could not get block result'}
                 }
-            }else{
-                this.txBlockResult = res;
-                this.emit('response', this.txBlockResult, this.txHash);
-                return res
             }
         })
     }
