@@ -67,6 +67,7 @@ export class TransactionBuilder extends Network {
         this.txSendResult = {errors:[]};
         this.txBlockResult = {};
         this.txHash;
+        this.txCheckResult = {};
         this.txCheckAttempts = 0;
         this.txCheckLimit = 10;
         
@@ -227,90 +228,94 @@ export class TransactionBuilder extends Network {
             this.serialize();
             //Send transaction to the masternode
             let response = await this.API.sendTransaction(this.transactonBytes)
-            
-            if (validateTypes.isStringWithValue(response)) this.txSendResult = {errors: [response]}
-            else {
-                if (typeof response.error !== 'undefined'){
-                    if (validateTypes.isArrayWithValues(response.error)) this.txSendResult.errors = response.error
-                    if (validateTypes.isStringWithValue(response.error)) this.txSendResult.errors = [response.error]
-                } 
-                else this.txSendResult = {...this.txSendResult, ...response};
-            }
-        } catch(e) {
-            this.txSendResult = {errors: [e.message]}
-        }
-
-        //Set error if txSendResult doesn't exist
-        if (this.txSendResult === 'undefined'){
-            this.txSendResult = {errors: ['TypeError: Failed to fetch']}
-        }
-        
-        //Set timestamp of result
-        this.txSendResult.timestamp = timestamp;
-        
-        //If errors were set then return 
-        if (validateTypes.isArrayWithValues(this.txSendResult.errors)){
-            this.setBlockResultInfo()
-            if (validateTypes.isFunction(callback)) callback(undefined, this.txSendResult);
-        } else {
-            //If hash exists in the result then this is a pending tx and not a blockresult
-            if (validateTypes.isStringWithValue(this.txSendResult.hash)){
-                this.txHash = this.txSendResult.hash;
-                this.setPendingBlockInfo()
+                    //Set error if txSendResult doesn't exist
+            if (response === 'undefined'){
+                this.txSendResult.error = 'TypeError: Failed to fetch'
             }else{
-                if (this.txSendResult.stamps_used){
-                    this.blockResult = this.txSendResult;
-                    this.setBlockResultInfo()
-                }
+                this.txSendResult = response
             }
-            if (validateTypes.isFunction(callback)) callback(this.txSendResult);
+        } catch (e){
+            this.txSendResult.error = e.message
         }
-        this.emit('response', this.txSendResult, validateTypes.isObjectWithKeys(this.resultInfo) ? this.resultInfo.subtitle : 'Response');
-        return this.txSendResult; 
+        this.txSendResult.timestamp = timestamp
+        return this.handleMasterNodeResponse(this.txSendResult, callback)
     }
-    checkForTransactionResult(){
-        return this.API.checkTransaction(this.txHash)
-        .then(res => {
-            if (res){
-                this.txBlockResult = res;
-                this.emit('response', this.txBlockResult, this.txHash);
-                return res
-            }else{
+    checkForTransactionResult(callback = undefined){
+        return new Promise((resolve) => {
+            let timerId = setTimeout(async function checkTx() {
                 this.txCheckAttempts = this.txCheckAttempts + 1;
-                if (this.txCheckAttempts <= this.txCheckLimit){
-                    setTimeout( () => {
-                        this.checkForTransactionResult();
-                    }, 2000);
+                const res = await this.API.checkTransaction(this.txHash)
+                let checkAgain = false;
+                const timestamp =  new Date().toUTCString();
+                if (typeof res === 'undefined'){
+                    this.txCheckResult.error = 'TypeError: Failed to fetch'
                 }else{
-                    return {error: 'Could not get block result'}
+                    if (res.error){
+                        if (res.error === 'Transaction not found.'){
+                            if (this.txCheckAttempts < this.txCheckLimit){
+                                checkAgain = true
+                            }else{
+                                this.txCheckResult.errors = [res.error, `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`]
+                            }
+                        }else{
+                            this.txCheckResult.errors = [res.error]
+                        }
+                    }else{
+                        this.txCheckResult = res;
+                    }
                 }
-            }
+                if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
+                else{
+                    this.txCheckResult.timestamp = timestamp
+                    clearTimeout(timerId);
+                    resolve(this.handleMasterNodeResponse(this.txCheckResult, callback))
+                }
+            }.bind(this), 1000);
         })
+    }
+    handleMasterNodeResponse(result, callback = undefined){
+        //Check to see if this is a successful transacation submission
+        console.log(result)
+        if (validateTypes.isStringWithValue(result.hash) && validateTypes.isStringWithValue(result.success)){
+            this.txHash = result.hash;
+            this.setPendingBlockInfo();
+        }else{
+            this.setBlockResultInfo(result)
+            this.txBlockResult = result;
+        }
+        this.emit('response', result, this.resultInfo.subtitle);
+        if (validateTypes.isFunction(callback)) callback(result)
+        return result
     }
     setPendingBlockInfo(){
         this.resultInfo =  {
             title: 'Transaction Pending',
             subtitle: 'Your transaction was submitted and is is being processed',
-            message: `Tx Hash: ${this.txSendResult.hash}`,
+            message: `Tx Hash: ${this.txHash}`,
             type: 'success',
         }
+        console.log(this.resultInfo)
         return this.resultInfo;
     }
-    setBlockResultInfo(){
+    setBlockResultInfo(result){
+        console.log(result)
         let erroredTx = false;
+        let stamps = (result.stampsUsed || result.stamps_used) || 0
         let message = '';
-        if(validateTypes.isArrayWithValues(this.txSendResult.errors)){
+        if(validateTypes.isArrayWithValues(result.errors)){
             erroredTx = true;
-            message = `This transaction returned ${this.txSendResult.errors.length} errors.`
+            message = `This transaction returned ${result.errors.length} errors.`
         }
 
         this.resultInfo = {
             title: `Transaction ${erroredTx ? 'Failed' : 'Successful'}`,
-            subtitle: `Your transaction ${erroredTx ? 'returned an error and ' : ''}used ${this.txSendResult.stamps_used} stamps`,
+            subtitle: `Your transaction ${erroredTx ? 'returned an error and ' : ''}used ${stamps} stamps`,
             message,
             type: `${erroredTx ? 'error' : 'success'}`,
-            errorInfo: erroredTx ? this.txSendResult.errors : undefined
+            errorInfo: erroredTx ? result.errors : undefined,
+            stampUsed: stamps
         }
+        console.log(this.resultInfo)
         return this.resultInfo;
     }
     getResultInfo(){

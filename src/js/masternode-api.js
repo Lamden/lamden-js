@@ -110,7 +110,7 @@ export class LamdenMasterNode_API{
         })
     }
 
-    async getTauBalance(vk){
+    async getCurrencyBalance(vk){
         let balanceRes = await this.getVariable('currency', 'balances', vk)
         if (isNaN(parseFloat(balanceRes))){
             return 0;

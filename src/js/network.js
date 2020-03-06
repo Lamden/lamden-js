@@ -25,6 +25,7 @@ export class Network extends EventEmitter {
         this.host = this.vaidateProtocol(networkInfoObj.host.toLowerCase());
         this.port = networkInfoObj.port;
         this.url = `${this.host}:${this.port}`
+        this.currencySymbol = validateTypes.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU'
         this.name = validateTypes.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : undefined;
         this.lamden = validateTypes.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : undefined;
     

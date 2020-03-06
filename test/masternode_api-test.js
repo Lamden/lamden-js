@@ -123,17 +123,17 @@ describe('Test Masternode API returns', () => {
         })
     })
 
-    context('Masternode_API.getTauBalance()', () => {
+    context('Masternode_API.getCurrencyBalance()', () => {
         it('returns the balance for a vk', async () => {
-            let response = await goodNetwork_api.getTauBalance(keyPair.vk)
+            let response = await goodNetwork_api.getCurrencyBalance(keyPair.vk)
             expect(response).to.be(123456789);
         })
         it('returns 0 if the vk does not exist yet', async () => {
-            let response = await goodNetwork_api.getTauBalance(wallet.new_wallet().vk)
+            let response = await goodNetwork_api.getCurrencyBalance(wallet.new_wallet().vk)
             expect(response).to.be(0);
         })
         it('returns 0 if provided network is unresponsive',  async () => {
-            let response = await badNetwork_api.getTauBalance()
+            let response = await badNetwork_api.getCurrencyBalance()
             expect(response).to.be(0);
         })
     })
