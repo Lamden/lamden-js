@@ -214,6 +214,7 @@ export class TransactionBuilder extends Network {
         return callback(this.nonceResult)
     }
     async send(sk = undefined, callback = undefined) {
+        console.log(this.getAllInfo())
         //Error if transaction is not signed and no sk provided to the send method to sign it before sending
         if (!validateTypes.isStringWithValue(sk) && !this.transactionSigned){
             throw new Error(`Transation Not Signed: Private key needed or call sign(<private key>) first`);
@@ -228,11 +229,13 @@ export class TransactionBuilder extends Network {
             this.serialize();
             //Send transaction to the masternode
             let response = await this.API.sendTransaction(this.transactonBytes)
+            console.log(response)
                     //Set error if txSendResult doesn't exist
-            if (response === 'undefined'){
-                this.txSendResult.error = 'TypeError: Failed to fetch'
+            if (response === 'undefined' || validateTypes.isStringWithValue(response)){
+                this.txSendResult.errors = ['TypeError: Failed to fetch']
             }else{
-                this.txSendResult = response
+                if (response.error) this.txSendResult.errors = [response.error]
+                else this.txSendResult = response
             }
         } catch (e){
             this.txSendResult.error = e.message

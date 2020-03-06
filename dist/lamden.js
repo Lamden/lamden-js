@@ -11086,9 +11086,13 @@ class LamdenMasterNode_API{
             options.headers = headers;
             options.body = data;
         }
-
+        console.log(options);
+        console.log(`${this.url}${path}${parms}`);
         return fetch(`${this.url}${path}${parms}`, options)
-            .then(res => res.json())
+            .then(res => {
+                console.log(res);
+                return res.json()
+            } )
             .then(json => {
                     return callback(json, undefined)
             })
@@ -11527,6 +11531,7 @@ class TransactionBuilder extends Network {
         return callback(this.nonceResult)
     }
     async send(sk = undefined, callback = undefined) {
+        console.log(this.getAllInfo());
         //Error if transaction is not signed and no sk provided to the send method to sign it before sending
         if (!validateTypes$2.isStringWithValue(sk) && !this.transactionSigned){
             throw new Error(`Transation Not Signed: Private key needed or call sign(<private key>) first`);
@@ -11541,11 +11546,13 @@ class TransactionBuilder extends Network {
             this.serialize();
             //Send transaction to the masternode
             let response = await this.API.sendTransaction(this.transactonBytes);
+            console.log(response);
                     //Set error if txSendResult doesn't exist
-            if (response === 'undefined'){
-                this.txSendResult.error = 'TypeError: Failed to fetch';
+            if (response === 'undefined' || validateTypes$2.isStringWithValue(response)){
+                this.txSendResult.errors = ['TypeError: Failed to fetch'];
             }else{
-                this.txSendResult = response;
+                if (response.error) this.txSendResult.errors = [response.error];
+                else this.txSendResult = response;
             }
         } catch (e){
             this.txSendResult.error = e.message;

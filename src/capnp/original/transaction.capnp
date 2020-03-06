@@ -3,8 +3,8 @@
 using V = import "values.capnp";
 
 struct Delta {
-    key @0 :Data;
-    value @1 :Data;
+    key @0 :Text;
+    value @1 :Text;
 }
 
 struct MetaData {
@@ -30,10 +30,11 @@ struct Transaction {
 }
 
 struct TransactionData {
-    transaction @0 :NewTransaction;
-    status @1: UInt8;
-    state @2: List(Delta);
-    stampsUsed @3: UInt64;
+    hash @0: Data;
+    transaction @1 :NewTransaction;
+    status @2: UInt8;
+    state @3: List(Delta);
+    stampsUsed @4: UInt64;
 }
 
 struct Transactions {
@@ -45,7 +46,7 @@ struct TransactionBatch {
     timestamp @1: Float64;
     signature @2: Data;
     sender @3: Data;
-    inputHash @4: Data;  # hash of transactions + timestamp
+    inputHash @4: Text;  # hash of transactions + timestamp
 }
 
 struct NewTransactionPayload {
@@ -57,7 +58,7 @@ struct NewTransactionPayload {
 
     contractName @4 :Text;
     functionName @5 :Text;
-    kwargs @6 :Data;
+    kwargs @6 :Text;
 }
 
 struct NewTransaction {
