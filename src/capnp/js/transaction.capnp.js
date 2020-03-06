@@ -9,18 +9,10 @@ const capnp_ts_1 = require("capnp-ts");
 const values_capnp_1 = require("./values.capnp");
 exports._capnpFileId = "921d030365beff8c";
 class Delta extends capnp_ts_1.Struct {
-    adoptKey(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(0, this)); }
-    disownKey() { return capnp_ts_1.Struct.disown(this.getKey()); }
-    getKey() { return capnp_ts_1.Struct.getData(0, this); }
-    hasKey() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(0, this)); }
-    initKey(length) { return capnp_ts_1.Struct.initData(0, length, this); }
-    setKey(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(0, this)); }
-    adoptValue(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(1, this)); }
-    disownValue() { return capnp_ts_1.Struct.disown(this.getValue()); }
-    getValue() { return capnp_ts_1.Struct.getData(1, this); }
-    hasValue() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(1, this)); }
-    initValue(length) { return capnp_ts_1.Struct.initData(1, length, this); }
-    setValue(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(1, this)); }
+    getKey() { return capnp_ts_1.Struct.getText(0, this); }
+    setKey(value) { capnp_ts_1.Struct.setText(0, value, this); }
+    getValue() { return capnp_ts_1.Struct.getText(1, this); }
+    setValue(value) { capnp_ts_1.Struct.setText(1, value, this); }
     toString() { return "Delta_" + super.toString(); }
 }
 Delta._capnp = { displayName: "Delta", id: "b36956d6aca4a098", size: new capnp_ts_1.ObjectSize(0, 2) };
@@ -87,25 +79,31 @@ class Transaction extends capnp_ts_1.Struct {
 Transaction._capnp = { displayName: "Transaction", id: "f784dfdeb15a3120", size: new capnp_ts_1.ObjectSize(0, 2) };
 exports.Transaction = Transaction;
 class TransactionData extends capnp_ts_1.Struct {
-    adoptTransaction(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(0, this)); }
+    adoptHash(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(0, this)); }
+    disownHash() { return capnp_ts_1.Struct.disown(this.getHash()); }
+    getHash() { return capnp_ts_1.Struct.getData(0, this); }
+    hasHash() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(0, this)); }
+    initHash(length) { return capnp_ts_1.Struct.initData(0, length, this); }
+    setHash(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(0, this)); }
+    adoptTransaction(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(1, this)); }
     disownTransaction() { return capnp_ts_1.Struct.disown(this.getTransaction()); }
-    getTransaction() { return capnp_ts_1.Struct.getStruct(0, NewTransaction, this); }
-    hasTransaction() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(0, this)); }
-    initTransaction() { return capnp_ts_1.Struct.initStructAt(0, NewTransaction, this); }
-    setTransaction(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(0, this)); }
+    getTransaction() { return capnp_ts_1.Struct.getStruct(1, NewTransaction, this); }
+    hasTransaction() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(1, this)); }
+    initTransaction() { return capnp_ts_1.Struct.initStructAt(1, NewTransaction, this); }
+    setTransaction(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(1, this)); }
     getStatus() { return capnp_ts_1.Struct.getUint8(0, this); }
     setStatus(value) { capnp_ts_1.Struct.setUint8(0, value, this); }
-    adoptState(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(1, this)); }
+    adoptState(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(2, this)); }
     disownState() { return capnp_ts_1.Struct.disown(this.getState()); }
-    getState() { return capnp_ts_1.Struct.getList(1, TransactionData._State, this); }
-    hasState() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(1, this)); }
-    initState(length) { return capnp_ts_1.Struct.initList(1, TransactionData._State, length, this); }
-    setState(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(1, this)); }
+    getState() { return capnp_ts_1.Struct.getList(2, TransactionData._State, this); }
+    hasState() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(2, this)); }
+    initState(length) { return capnp_ts_1.Struct.initList(2, TransactionData._State, length, this); }
+    setState(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(2, this)); }
     getStampsUsed() { return capnp_ts_1.Struct.getUint64(8, this); }
     setStampsUsed(value) { capnp_ts_1.Struct.setUint64(8, value, this); }
     toString() { return "TransactionData_" + super.toString(); }
 }
-TransactionData._capnp = { displayName: "TransactionData", id: "a2d62360f4be217c", size: new capnp_ts_1.ObjectSize(16, 2) };
+TransactionData._capnp = { displayName: "TransactionData", id: "a2d62360f4be217c", size: new capnp_ts_1.ObjectSize(16, 3) };
 exports.TransactionData = TransactionData;
 class Transactions extends capnp_ts_1.Struct {
     adoptTransactions(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(0, this)); }
@@ -139,12 +137,8 @@ class TransactionBatch extends capnp_ts_1.Struct {
     hasSender() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(2, this)); }
     initSender(length) { return capnp_ts_1.Struct.initData(2, length, this); }
     setSender(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(2, this)); }
-    adoptInputHash(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(3, this)); }
-    disownInputHash() { return capnp_ts_1.Struct.disown(this.getInputHash()); }
-    getInputHash() { return capnp_ts_1.Struct.getData(3, this); }
-    hasInputHash() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(3, this)); }
-    initInputHash(length) { return capnp_ts_1.Struct.initData(3, length, this); }
-    setInputHash(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(3, this)); }
+    getInputHash() { return capnp_ts_1.Struct.getText(3, this); }
+    setInputHash(value) { capnp_ts_1.Struct.setText(3, value, this); }
     toString() { return "TransactionBatch_" + super.toString(); }
 }
 TransactionBatch._capnp = { displayName: "TransactionBatch", id: "b7fe07c9f4fa8a5b", size: new capnp_ts_1.ObjectSize(8, 4) };
@@ -170,12 +164,8 @@ class NewTransactionPayload extends capnp_ts_1.Struct {
     setContractName(value) { capnp_ts_1.Struct.setText(2, value, this); }
     getFunctionName() { return capnp_ts_1.Struct.getText(3, this); }
     setFunctionName(value) { capnp_ts_1.Struct.setText(3, value, this); }
-    adoptKwargs(value) { capnp_ts_1.Struct.adopt(value, capnp_ts_1.Struct.getPointer(4, this)); }
-    disownKwargs() { return capnp_ts_1.Struct.disown(this.getKwargs()); }
-    getKwargs() { return capnp_ts_1.Struct.getData(4, this); }
-    hasKwargs() { return !capnp_ts_1.Struct.isNull(capnp_ts_1.Struct.getPointer(4, this)); }
-    initKwargs(length) { return capnp_ts_1.Struct.initData(4, length, this); }
-    setKwargs(value) { capnp_ts_1.Struct.copyFrom(value, capnp_ts_1.Struct.getPointer(4, this)); }
+    getKwargs() { return capnp_ts_1.Struct.getText(4, this); }
+    setKwargs(value) { capnp_ts_1.Struct.setText(4, value, this); }
     toString() { return "NewTransactionPayload_" + super.toString(); }
 }
 NewTransactionPayload._capnp = { displayName: "NewTransactionPayload", id: "ea60ddf0049b6602", size: new capnp_ts_1.ObjectSize(16, 5) };

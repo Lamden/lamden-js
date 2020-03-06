@@ -122,9 +122,7 @@ export class TransactionBuilder extends Network {
         this.payload.setFunctionName(this.method);
     }
     setKwargsInPayload() {
-        let kwargBuffer = Buffer.from(JSON.stringify(this.kwargs));
-        let kwargPayload = this.payload.initKwargs(kwargBuffer.byteLength);
-        kwargPayload.copyBuffer(kwargBuffer);
+        this.payload.setKwargs(JSON.stringify(this.kwargs));
     }
     setStamps() {
         this.payload.setStampsSupplied(this.numberToUnit64(this.stampLimit));
