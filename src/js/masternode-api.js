@@ -40,11 +40,9 @@ export class LamdenMasterNode_API{
             options.headers = headers;
             options.body = data;
         }
-        console.log(options)
-        console.log(`${this.url}${path}${parms}`)
+
         return fetch(`${this.url}${path}${parms}`, options)
             .then(res => {
-                console.log(res)
                 return res.json()
             } )
             .then(json => {

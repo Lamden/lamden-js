@@ -11076,11 +11076,9 @@ class LamdenMasterNode_API{
             options.headers = headers;
             options.body = data;
         }
-        console.log(options);
-        console.log(`${this.url}${path}${parms}`);
+
         return fetch(`${this.url}${path}${parms}`, options)
             .then(res => {
-                console.log(res);
                 return res.json()
             } )
             .then(json => {
@@ -11519,7 +11517,6 @@ class TransactionBuilder extends Network {
         return callback(this.nonceResult)
     }
     async send(sk = undefined, callback = undefined) {
-        console.log(this.getAllInfo());
         //Error if transaction is not signed and no sk provided to the send method to sign it before sending
         if (!validateTypes$2.isStringWithValue(sk) && !this.transactionSigned){
             throw new Error(`Transation Not Signed: Private key needed or call sign(<private key>) first`);
@@ -11534,7 +11531,6 @@ class TransactionBuilder extends Network {
             this.serialize();
             //Send transaction to the masternode
             let response = await this.API.sendTransaction(this.transactonBytes);
-            console.log(response);
                     //Set error if txSendResult doesn't exist
             if (response === 'undefined' || validateTypes$2.isStringWithValue(response)){
                 this.txSendResult.errors = ['TypeError: Failed to fetch'];
@@ -11583,7 +11579,6 @@ class TransactionBuilder extends Network {
     }
     handleMasterNodeResponse(result, callback = undefined){
         //Check to see if this is a successful transacation submission
-        console.log(result);
         if (validateTypes$2.isStringWithValue(result.hash) && validateTypes$2.isStringWithValue(result.success)){
             this.txHash = result.hash;
             this.setPendingBlockInfo();
@@ -11602,11 +11597,9 @@ class TransactionBuilder extends Network {
             message: `Tx Hash: ${this.txHash}`,
             type: 'success',
         };
-        console.log(this.resultInfo);
         return this.resultInfo;
     }
     setBlockResultInfo(result){
-        console.log(result);
         let erroredTx = false;
         let stamps = (result.stampsUsed || result.stamps_used) || 0;
         let message = '';
@@ -11623,7 +11616,6 @@ class TransactionBuilder extends Network {
             errorInfo: erroredTx ? result.errors : undefined,
             stampUsed: stamps
         };
-        console.log(this.resultInfo);
         return this.resultInfo;
     }
     getResultInfo(){
