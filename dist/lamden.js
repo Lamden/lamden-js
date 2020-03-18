@@ -11091,6 +11091,7 @@ class LamdenMasterNode_API{
     }
 
     createParms(parms){
+        if (Object.keys(parms).length === 0) return ''
         let parmString = '?';
         Object.keys(parms).forEach(key => {
             parmString = `${parmString}${key}=${parms[key]}&`;
@@ -11106,9 +11107,10 @@ class LamdenMasterNode_API{
         })
     }
 
-    async getVariable(contract, variable, key){
+    async getVariable(contract, variable, key = ''){
         let parms = {};
-        parms.key = key;
+        if (validateTypes.isStringWithValue(key)) parms.key = key;
+
         let path = `/contracts/${contract}/${variable}/`;
         return this.send('GET', path, {parms}, (res, err) => {
             try{
