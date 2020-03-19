@@ -11616,7 +11616,7 @@ class TransactionBuilder extends Network {
             message,
             type: `${erroredTx ? 'error' : 'success'}`,
             errorInfo: erroredTx ? result.errors : undefined,
-            stampUsed: stamps
+            stampsUsed: stamps
         };
         return this.resultInfo;
     }
