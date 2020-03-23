@@ -265,6 +265,12 @@ export class TransactionBuilder extends Network {
                 }
                 if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
                 else{
+                    if (validateTypes.isNumber(this.txCheckResult.status)){
+                        if (this.txCheckResult.status > 0){
+                            if (!validateTypes.isArray(this.txCheckResult.errors)) this.txCheckResult.errors = []
+                            this.txCheckResult.errors.push('This transaction returned a non-zero status code')
+                        }
+                    }
                     this.txCheckResult.timestamp = timestamp
                     clearTimeout(timerId);
                     resolve(this.handleMasterNodeResponse(this.txCheckResult, callback))
@@ -296,21 +302,25 @@ export class TransactionBuilder extends Network {
     }
     setBlockResultInfo(result){
         let erroredTx = false;
-        let stamps = (result.stampsUsed || result.stamps_used) || 0
+        let errorText = `returned an error and `
+        let statusCode = validateTypes.isNumber(result.status) ? result.status : undefined
+        let stamps = (result.stampsUsed || result.stamps_used) || 0;
         let message = '';
         if(validateTypes.isArrayWithValues(result.errors)){
             erroredTx = true;
-            message = `This transaction returned ${result.errors.length} errors.`
+            message = `This transaction returned ${result.errors.length} errors.`;
         }
-
+        if (statusCode && erroredTx) errorText = `returned status code ${statusCode} and `
+          
         this.resultInfo = {
             title: `Transaction ${erroredTx ? 'Failed' : 'Successful'}`,
-            subtitle: `Your transaction ${erroredTx ? 'returned an error and ' : ''}used ${stamps} stamps`,
+            subtitle: `Your transaction ${erroredTx ? `${errorText} ` : ''}used ${stamps} stamps`,
             message,
             type: `${erroredTx ? 'error' : 'success'}`,
             errorInfo: erroredTx ? result.errors : undefined,
-            stampsUsed: stamps
-        }
+            stampsUsed: stamps,
+            statusCode
+        };
         return this.resultInfo;
     }
     getResultInfo(){
