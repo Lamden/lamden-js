@@ -45,7 +45,8 @@ console.log(vk)
 
 ### Sign a message
 ```javascript
-let messageBytes = new Uint8Array('message');
+const stringBuffer = Buffer.from('message')
+let messageBytes = new Uint8Array(stringBuffer);
 let sk = "69a8db3fb7196debc2711fad1fa1935918d09f5d8900d84c3288ea5237611c03"
 
 let signedMessage = wallet.sign(sk, messageBytes)
@@ -63,9 +64,7 @@ console.log(validSignature)
 ```
 
 ## Create a Lamden Transaction
-Publick Mockchain host is https://testnet.lamden.io:443
-
-** Change this to a local testnet [mockchain](https://github.com/Lamden/mockchain) instance if you have one running
+Public Testnet masternode is http://167.172.126.5:18080
 
 ## Create a Lamden Transaction
 Use Lamden.TransactionBuilder(networkInfo, txInfo) to create a new Lamden transaction.
@@ -75,16 +74,16 @@ create an object that describes the masternode/network that you are going to sen
 ```javascript
 let networkInfo = {
     // Optional: Name of network
-    name: 'Lamden Public Mockchain',
+    name: 'Lamden Public Testnet',
 
     // Required: type of network 'mockchain', 'testnet', 'mainnet'
-    type: 'mockchain',
+    type: 'testnet',
 
     // Required: must begin with http or https
-    host: 'https://testnet.lamden.io',
+    host: 'http://167.172.126.5',
 
     // Required: network port
-    port: '443' 
+    port: '18080' 
 }
 ```
 ### Create txInfo object
@@ -121,16 +120,18 @@ let senderSk = "69a8db3fb7196debc2711fad1fa1935918d09f5d8900d84c3288ea5237611c03
 
 tx.send(senderSk, (res, err) => {
     if (err) throw new Error(err)
-    console.log(res)
+    console.log(res.hash)
+    tx.checkForTransactionResult()
+    .then(res => console.log(res))
 })
 
 //or
 
-tx.on('response', (response) => {
+tx.events.on('response', (response) => {
     if (tx.resultInfo.type === 'error') return
     console.log(response)
 })
-tx.send(senderSk)
+tx.send(senderSk).then(() => tx.checkForTransactionResult())
 
 ```
 
@@ -174,17 +175,17 @@ Create a network instance will allow you to call the masternode API.  This class
 
 ### Create new Network instance
 ```javascript
-let mockchain = new Network({
-    name: 'Lamden Public Mockchain',
-    type: 'mockchain',
-    host: 'https://testnet.lamden.io', port: '443' 
+let testnet = new Network({
+    name: 'Lamden Public Testnet',
+    type: 'testnet',
+    host: 'http://167.172.126.5', port: '18080' 
 })
 
-mockchain.on('online', online => {
+testnet.events.on('online', (online) => {
     console.log(online)
     >> true or false
 })
-mockchain.ping()
+testnet.ping()
 ```
 ### Netowrk API Endpoints
 All API methods return a value, Promise or callback if provided
@@ -197,19 +198,6 @@ All API methods return a value, Promise or callback if provided
 | pingServer() | /ping | Checks if network is online <br> [example](https://testnet.lamden.io/ping) |
 | getCurrencyBalance(vk) | /contracts/currency/balances | A wrapper method for getVariable() which always returns the result of the currency contract's balances?key=*vk* <br> [example](https://testnet.lamden.io/contracts/currency/balances?key=7497cfd946eb332f66fe096d6473aa869cdc3836f1c7ac3630cea68e78228e3e)  |
 | contractExists(contractName) | /contracts/*contractName*  | a wrapper method for getContractInfo() which returns if a contract exists on the blockchain |
-| sendTransaction(txData, *callback*) | / | submits a contract to the network <br> For mockchain networks an immediate block result will be returned <br> For testnet and mainnet a tx_hash will be returned |
+| sendTransaction(txData, *callback*) | / | submits a contract to the network a txHash will be returned.  Use checkTransaction() to get tx result |
 | getNonce(senderVk, *callback*) | /nonce/*senderVk* |    Get the current *nonce* and *processor* for a public key (vk) |
-| mintTestNetCoins(vk, amount) | /mint |    <b>Mockchain Networks Only</b> <br> Mints Test TAU to a provided publick key (vk) |
-| lintCode(name, codeString) | right-aligned |  <b>Mockchain Networks Only</b><br> Returns smart contract errors |
-
-
-## Transpiling Capt'Proto Schemas to Javascript files (only for schema changes)
-This step only needs to be run if there are changes to the capnp schema files.
-
-Copy new files to src/capnp/original/
-Install  [Capt'Proto](https://capnproto.org/install.html)
-add/overwrite capnp files in src/capnp/original then run the below command
-```
-capnpc -o js src/capnp/original/* && mv src/capnp/original/*.js src/capnp/js/
-```
-
+| checkTransaction(txHash, callback) | /tx?hash=*txHash* | Get the result of a transaction |

@@ -1,6 +1,3 @@
-import * as capnp from 'capnp-ts';
-import * as transaction from '../capnp/js/transaction.capnp';
-const { NewTransactionPayload, NewTransaction } = transaction;
 import validators from 'types-validate-assert'
 const { validateTypes } = validators;
 import * as wallet from './wallet'
@@ -58,7 +55,6 @@ export class TransactionBuilder extends Network {
             this.processor = txInfo.processor;
         }
         
-        this.proofGenerated = false;
         this.signature;
         this.transactionSigned = false;
 
@@ -88,115 +84,87 @@ export class TransactionBuilder extends Network {
             if (validateTypes.isObjectWithKeys(txData.resultInfo)) this.resultInfo = txData.resultInfo;
         }
         //Create Capnp messages and transactionMessages
-        this.initializePayload();
-    }
-    initializePayload(){
-        this.payloadMessage = new capnp.Message();
-        this.payload = this.payloadMessage.initRoot(NewTransactionPayload);
-        this.transactionMessage = new capnp.Message();
-        this.transaction = this.transactionMessage.initRoot(NewTransaction);
-        this.transactionMetadata = this.transaction.initMetadata();
-        this.transaction.initPayload();
-    }
-    numberToUnit64(number) {
-        if (number == null)
-            return;
-        return capnp.Uint64.fromNumber(number);
-    }
-    hexStringToByte(string = '') {
-        let a = [];
-        for (let i = 0, len = string.length; i < len; i += 2) {
-            a.push(parseInt(string.substr(i, 2), 16));
-        }
-        return new Uint8Array(a);
-    }
-    setSender() {
-        let senderBuffer = this.hexStringToByte(this.sender);
-        let senderPayload = this.payload.initSender(senderBuffer.byteLength);
-        senderPayload.copyBuffer(senderBuffer);
-    }
-    setContract() {
-        this.payload.setContractName(this.contract);
-    }
-    setFunctionName() {
-        this.payload.setFunctionName(this.method);
-    }
-    setKwargsInPayload() {
-        this.payload.setKwargs(JSON.stringify(this.kwargs));
-    }
-    setStamps() {
-        this.payload.setStampsSupplied(this.numberToUnit64(this.stampLimit));
-    }
-    setNonce() {
-        this.payload.setNonce(this.numberToUnit64(this.nonce));
-    }
-    setProcessor() {
-        let processorBuffer = this.hexStringToByte(this.processor);
-        let processorPayload = this.payload.initProcessor(processorBuffer.byteLength);
-        processorPayload.copyBuffer(processorBuffer);
+        this.makePayload();
     }
     makePayload(){
-        //Add values to the capnp structures
-        this.setSender();
-        this.setProcessor();
-        this.setNonce();
-        this.setContract();
-        this.setFunctionName();
-        this.setStamps();
-        this.setKwargsInPayload();
+        this.payload = {
+            contract: this.contract,
+            function: this.method,
+            kwargs: this.kwargs,
+            nonce: this.nonce,
+            processor: this.processor,
+            sender: this.sender,
+            stamps_supplied: this.stampLimit
+        }
+        this.sortedPayload = this.sortObject(this.payload)
     }
-    setPayloadBytes() {
-        if (this.nonce == null)
-            throw new Error('No Nonce Set. Call getNonce()');
-        if (this.processor == null)
-            throw new Error('No Processor Set. Call getNonce()');
-        //Set the Transaction Paylaod to Uint8Array so it can be signed.
-        this.makePayload();
-        this.payloadBytes = new Uint8Array(this.payloadMessage.toPackedArrayBuffer());
-    }
-    sign(sk) {
-        if (this.payloadBytes == null) this.setPayloadBytes();
-        // Get signature
-        this.signature = wallet.sign(sk, this.payloadBytes);
-        this.transactionSigned = true;
+    makeTransaction(){
+        this.tx = {
+            metadata: {
+                signature: this.signature,
+                timestamp: parseInt(+new Date / 1000),
+            },
+            payload: this.sortedPayload.orderedObj
+        }
     }
     verifySignature(){
         //Verify the signature is correct
         if (!this.transactionSigned) throw new Error('Transaction has not be been signed. Use the sign(<private key>) method first.')
-        return wallet.verify(this.sender, this.payloadBytes, this.signature)
+        const stringBuffer = Buffer.from(this.sortedPayload.json)
+        const stringArray = new Uint8Array(stringBuffer)
+        return wallet.verify(this.sender, stringArray, this.signature)
     }
-    setSignature() {
-        // Set the signature in the transcation metadata
-        if (!this.transactionSigned) throw new Error(`No signature present. Use the sign(<private key>) method then try again.`)
-        const signatureBuffer = this.hexStringToByte(this.signature);
-        const messageSignature = this.transactionMetadata.initSignature(signatureBuffer.byteLength);
-        messageSignature.copyBuffer(signatureBuffer);
+    sign(sk){
+        const stringBuffer = Buffer.from(this.sortedPayload.json)
+        const stringArray = new Uint8Array(stringBuffer)
+        this.signature = wallet.sign(sk, stringArray)
+        this.transactionSigned = true;
     }
-    setTimeStamp() {
-        // Store timstamp in the transaction metadata
-        this.transactionMetadata.setTimestamp(+new Date/1000);
-    }
-    setTransactionPayload() {
-        // Store Transaction Payload in the transaction
-        this.transaction.setPayload(this.payload);
-    }
-    setTransactionMetadata() {
-        // Store Transaction Payload in the transaction
-        this.transaction.setMetadata(this.transactionMetadata);
-    }
-    setTransactionBytes() {
-        //Convert message to bytes
-        this.transactonBytes = this.transactionMessage.toPackedArrayBuffer();
-    }
-    serialize() {
-        if (this.verifySignature()){
-            this.setTransactionPayload();
-            this.setSignature();
-            this.setTimeStamp();
-            this.setTransactionBytes();
-            return this.transactonBytes;
+    sortObject(object){
+        const processObj = (obj) => {
+            const getType = (value) => {
+             return Object.prototype.toString.call(value)
+            }
+            const isArray = (value) => {
+             if(getType(value) === "[object Array]") return true;
+             return false;  
+            }
+            const isObject = (value) => {
+             if(getType(value) === "[object Object]") return true;
+             return false;  
+            }
+        
+            const sortObjKeys = (unsorted) => {
+                const sorted = {};
+                Object.keys(unsorted).sort().forEach(key => sorted[key] = unsorted[key]);
+                return sorted
+            }
+        
+            const formatKeys = (unformatted) => {
+                Object.keys(unformatted).forEach(key => {
+                        if (isArray(unformatted[key])) unformatted[key] = unformatted[key].map(item => {
+                        if (isObject(item)) return formatKeys(item)
+                        return item
+                    })
+                    if (isObject(unformatted[key])) unformatted[key] = formatKeys(unformatted[key])
+                })
+                return sortObjKeys(unformatted)
+            }
+        
+            if (!isObject(obj)) throw new TypeError('Not a valid Object')
+                try{
+                    obj = JSON.parse(JSON.stringify(obj))
+                } catch (e) {
+                    throw new TypeError('Not a valid JSON Object')
+                }
+            return formatKeys(obj)
         }
-        throw new Error('Invalid signature')
+        const orderedObj = processObj(object)
+        return { 
+            orderedObj, 
+            json: JSON.stringify(orderedObj)
+        }
+
     }
     async getNonce(callback = undefined) {
         let timestamp =  new Date().toUTCString();
@@ -207,6 +175,8 @@ export class TransactionBuilder extends Network {
         this.nonceResult.timestamp = timestamp;
         this.nonce = this.nonceResult.nonce;
         this.processor = this.nonceResult.processor;
+        //Create payload object
+        this.makePayload()
 
         if (!callback) return this.nonceResult;
         return callback(this.nonceResult)
@@ -216,17 +186,19 @@ export class TransactionBuilder extends Network {
         if (!validateTypes.isStringWithValue(sk) && !this.transactionSigned){
             throw new Error(`Transation Not Signed: Private key needed or call sign(<private key>) first`);
         }
+
         let timestamp =  new Date().toUTCString();
+
         try{
             //If the nonce isn't set attempt to get it
             if (isNaN(this.nonce) || !validateTypes.isStringWithValue(this.processor)) await this.getNonce();
             //if the sk is provided then sign the transaction
             if (validateTypes.isStringWithValue(sk)) this.sign(sk);
             //Serialize transaction
-            this.serialize();
+            this.makeTransaction();
             //Send transaction to the masternode
-            let response = await this.API.sendTransaction(this.transactonBytes)
-                    //Set error if txSendResult doesn't exist
+            let response = await this.API.sendTransaction(this.tx)
+            //Set error if txSendResult doesn't exist
             if (response === 'undefined' || validateTypes.isStringWithValue(response)){
                 this.txSendResult.errors = ['TypeError: Failed to fetch']
             }else{
@@ -234,7 +206,7 @@ export class TransactionBuilder extends Network {
                 else this.txSendResult = response
             }
         } catch (e){
-            this.txSendResult.error = e.message
+            this.txSendResult.errors = [e.message]
         }
         this.txSendResult.timestamp = timestamp
         return this.handleMasterNodeResponse(this.txSendResult, callback)
@@ -287,7 +259,7 @@ export class TransactionBuilder extends Network {
             this.setBlockResultInfo(result)
             this.txBlockResult = result;
         }
-        this.emit('response', result, this.resultInfo.subtitle);
+        this.events.emit('response', result, this.resultInfo.subtitle);
         if (validateTypes.isFunction(callback)) callback(result)
         return result
     }
@@ -309,6 +281,9 @@ export class TransactionBuilder extends Network {
         if(validateTypes.isArrayWithValues(result.errors)){
             erroredTx = true;
             message = `This transaction returned ${result.errors.length} errors.`;
+            if (result.result){
+                if (result.result.includes('AssertionError')) result.errors.push(result.result)
+            }
         }
         if (statusCode && erroredTx) errorText = `returned status code ${statusCode} and `
           
@@ -318,6 +293,7 @@ export class TransactionBuilder extends Network {
             message,
             type: `${erroredTx ? 'error' : 'success'}`,
             errorInfo: erroredTx ? result.errors : undefined,
+            returnResult: result.result || "",
             stampsUsed: stamps,
             statusCode
         };
