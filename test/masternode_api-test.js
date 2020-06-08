@@ -3,28 +3,31 @@ const Lamden = require('../dist/lamden');
 const { Masternode_API, wallet } = Lamden;
 
 let goodNetwork = {
-    type: 'mockchain', 
-    host: 'https://testnet.lamden.io', 
-    port: '443'
+    type: 'testnet',
+    name: 'Lamden Public Testnet', 
+    host: 'http://167.172.126.5', 
+    port: '18080'
 }
 let goodNetwork_api = new Masternode_API(goodNetwork)
 
 let badNetwork = {
-    type: 'mockchain', 
-    host: 'https://badnetwork.lamden.io', 
-    port: '443'
+    type: 'testnet',
+    name: 'Bad Network', 
+    host: 'http://badnetwork.lamden.io', 
+    port: '18080'
 }
+
 let badNetwork_api = new Masternode_API(badNetwork)
 
 function copyObject(object){
     return JSON.parse(JSON.stringify(object))
 }
 
-let goodCode = "@export\ndef first_method(value):\n\treturn value"
-let syntaxErrors = "@export\ndef first_method(value)\n\treturn value"
-let lamdenErrors = "def first_method(value):\n\treturn value"
-
 let keyPair = wallet.new_wallet()
+
+const balanceCheckWallet = {
+    vk: '2c3b35a5c97c711749137a8d194b7920f07801e910b5f4ce58bd8f2c7e23ca75'
+}
 
 describe('Test Masternode API returns', () => {
     context('constructor', () => {
@@ -104,29 +107,10 @@ describe('Test Masternode API returns', () => {
         })
     })
 
-    context('Masternode_API.mintTestNetCoins()', () => {
-        it('returns true if mint is successful', async () => {
-            let response = await goodNetwork_api.mintTestNetCoins(keyPair.vk, 123456789)
-            expect(response).to.be(true);
-        })
-        it('returns false if bad vk is undefined', async () => {
-            let response = await goodNetwork_api.mintTestNetCoins(undefined, 123456789)
-            expect(response).to.be(false);
-        })
-        it('returns false if balance is undefined', async () => {
-            let response = await goodNetwork_api.mintTestNetCoins(keyPair.vk, undefined)
-            expect(response).to.be(false);
-        })
-        it('returns false if provided network is unresponsive', async () => {
-            let response = await badNetwork_api.mintTestNetCoins(keyPair.vk, 123456789)
-            expect(response).to.be(false);
-        })
-    })
-
     context('Masternode_API.getCurrencyBalance()', () => {
         it('returns the balance for a vk', async () => {
-            let response = await goodNetwork_api.getCurrencyBalance(keyPair.vk)
-            expect(response).to.be(123456789);
+            let response = await goodNetwork_api.getCurrencyBalance(balanceCheckWallet.vk)
+            expect(response).to.be(1234);
         })
         it('returns 0 if the vk does not exist yet', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(wallet.new_wallet().vk)
@@ -173,24 +157,24 @@ describe('Test Masternode API returns', () => {
 
     context('Masternode_API.getVariable()', () => {
         it('returns the value of the variable if the key exists', async () => {
-            let key = keyPair.vk;
+            let key = balanceCheckWallet.vk;
             let response = await goodNetwork_api.getVariable('currency', 'balances', key)
-            expect(response).to.be('123456789');
+            expect(response).to.be(1234);
         })
-        it('returns null if the key does not exist in the variable', async () => {
+        it('returns undefined if the key does not exist in the variable', async () => {
             let key = wallet.new_wallet().vk;
             let response = await goodNetwork_api.getVariable('currency', 'balances', key)
-            expect(response).to.be('null');
+            expect(response).to.be(undefined);
         })
         it('returns undefined if the contract does not exist', async () => {
             let key = keyPair.vk;
             let response = await goodNetwork_api.getVariable(wallet.new_wallet().vk, 'balances', key)
             expect(response).to.be(undefined);
         })
-        it('returns null if the variable does not exist', async () => {
+        it('returns undefined if the variable does not exist', async () => {
             let key = keyPair.vk;
             let response = await goodNetwork_api.getVariable('currency',  wallet.new_wallet().vk, key)
-            expect(response).to.be('null');
+            expect(response).to.be(undefined);
         })
         it('returns undefined if provided network is unresponsive', async () => {
             let key = keyPair.vk;
@@ -209,7 +193,8 @@ describe('Test Masternode API returns', () => {
             let response = await badNetwork_api.getContractInfo('currency')
             expect(response).to.be(undefined);
         })
-    })
+    })/*
+    /// Depreciated, no more mockchain
     context('Masternode_API.lintCode()', () => {
         it('returns null when no vilations exist', async () => {
             let response = await goodNetwork_api.lintCode('testing', goodCode)
@@ -229,7 +214,7 @@ describe('Test Masternode API returns', () => {
             let response = await badNetwork_api.lintCode('testing', goodCode)
             expect(response.includes('FetchError:')).to.be(true);
         })
-    })
+    })*/
     context('Masternode_API.getNonce()', () => {
         it('returns a nonce and processor value for a vk', async () => {
             let response = await goodNetwork_api.getNonce(keyPair.vk)
@@ -244,36 +229,6 @@ describe('Test Masternode API returns', () => {
         it('returns an error message if provided network is unresponsive', async () => {
             let error = await badNetwork_api.getNonce(keyPair.vk)
             expect(error.includes(`Unable to get nonce for "${keyPair.vk}"`)).to.be(true)
-        })
-    })
-    context('Masternode_API.sendTransaction()', () => {
-        it('can send a transaction and has the proper return object', async function() {
-            this.timeout(10000)
-
-            let newWallet = wallet.new_wallet()
-            let kwargs = {}
-            kwargs.to = newWallet.vk
-            kwargs.amount = 1000
-
-            let txInfo = {
-                senderVk: keyPair.vk,
-                contractName: 'currency',
-                methodName: 'transfer',
-                kwargs,
-                stampLimit: 50000
-            }
-
-            let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo)
-            await newTx.getNonce();
-            newTx.sign(keyPair.sk)
-            newTx.serialize();
-
-            let response = await goodNetwork_api.sendTransaction(newTx.transactonBytes)
-            expect(response.state_changes).to.exist
-            expect(Object.keys(response.state_changes).length >= 2).to.be(true)
-            expect(response.status_code).to.be(0)
-            expect(response.stamps_used).to.be.greaterThan(0)
-
         })
     })
 })

@@ -1,46 +1,46 @@
 const expect = require('expect.js');
 const Lamden = require('../dist/lamden');
 
+
+
 let goodNetwork = {
-    type: 'mockchain',
-    name: 'Lamden Public Mockchain', 
-    host: 'https://testnet.lamden.io', 
-    port: '443'
+    type: 'testnet',
+    name: 'Lamden Public Testnet', 
+    host: 'http://167.172.126.5', 
+    port: '18080'
 }
 
 let badNetwork = {
-    type: 'mockchain',
+    type: 'testnet',
     name: 'Bad Network', 
     host: 'http://badnetwork.lamden.io', 
-    port: '8000'
+    port: '18080'
 }
 
 let uid = "randomUIDstring"
-let senderWallet = Lamden.wallet.new_wallet()
+
+const senderWallet = {
+    vk: "960c002a36c30c3aec8bc670e9b8b40eebcfd545f4e9237579fd7395a21ccebb",
+    sk: "c8a3c5333aa3b058c4fa16d48db52355ab62ddc8daa9a183706a912e522440b6"
+}
 let recieverWallet = Lamden.wallet.new_wallet()
 
 let senderVk = senderWallet.vk
 let contractName = 'currency'
 let methodName = 'transfer'
-let stampLimit = 50000
+let stampLimit = 100000
 let nonce = 0;
 let processor = "0000000000000000000000000000000000000000000000000000000000000000";
 
-let kwargs = {}
-kwargs.to = recieverWallet.vk
-kwargs.amount = 1000
+let kwargs = {
+    to: recieverWallet.vk,
+    amount: 1
+}
 
 let txInfo_noNonce = {uid, senderVk, contractName, methodName, kwargs, stampLimit }
 let txInfo_withNonce = {uid, senderVk, contractName, methodName, kwargs, stampLimit, nonce, processor }
 
 describe('Test TransactionBuilder class', () => {
-    before(async function() {
-        //Mint some Coins to the wallet we will use for testing
-        let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
-        let response = await newTx.API.mintTestNetCoins(senderWallet.vk, 100000)
-        expect(response).to.be(true);
-    })
-
     context('new TransactionBuilder', () => {
         it('can create an instance without nonce or processor', () => {
             let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
@@ -159,70 +159,93 @@ describe('Test TransactionBuilder class', () => {
     })
 
     context('TransactionBuilder.send()', () => {
-        it('sends a transaction and produces success resultInfo', async function () {
-            let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
-            await newTx.getNonce();
+        let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
 
+        it('Sends a transaction and recevies a hash back', async function () {
+            await newTx1.getNonce(() => console.log('done nonce'));
             //Sign transaction
-            newTx.sign(senderWallet.sk)
+            newTx1.sign(senderWallet.sk)
 
             //Validate transaction is signed
-            expect(newTx.transactionSigned).to.be(true)
-            expect(newTx.verifySignature()).to.be(true)
+            expect(newTx1.transactionSigned).to.be(true)
+            expect(newTx1.verifySignature()).to.be(true)
 
-            let response = await newTx.send();
-            console.log(response)
+            //Send Tx
+            await newTx1.send();
 
-            expect(Object.keys(response.state_changes).length >= 2).to.be(true)
-            expect(response.status_code).to.exist
-            expect(response.result).to.be(undefined)
-            expect(response.stamps_used).to.exist    
-            
-            let txData = newTx.getAllInfo()
-            let resultInfo = txData.resultInfo;
-            expect(response.errors.length === 0).to.be(true)
-            expect(resultInfo.title).to.be(`Transaction Successful`)
-            expect(resultInfo.subtitle).to.be(`Your transaction used ${response.stamps_used} stamps`)
-            expect(resultInfo.message).to.be(``)
-            expect(resultInfo.type).to.be(`success`)
-            expect(resultInfo.errorInfo).to.be(undefined)
+            let txSendResult = newTx1.txSendResult;
+            expect(txSendResult.success).to.equal('Transaction successfully submitted to the network.')
+            expect(txSendResult.hash).to.exist
+            expect(txSendResult.timestamp).to.exist   
+        })
+        it('Creates ResultInfo object based on txSendResult', async function () {
+            let resultInfo = newTx1.resultInfo;
+
+            expect(resultInfo.title).to.equal('Transaction Pending')
+            expect(resultInfo.subtitle).to.equal('Your transaction was submitted and is is being processed')
+            expect(resultInfo.message).to.equal(`Tx Hash: ${newTx1.txSendResult.hash}`)
+            expect(resultInfo.type).to.equal('success')
+        })
+        it('Sends can get hash result from masternode', async function () {
+            await newTx1.checkForTransactionResult()
+            let txBlockResult = newTx1.txBlockResult;
+            expect(txBlockResult.hash).to.equal(newTx1.txSendResult.hash)
+            expect(txBlockResult.result).to.equal('None')
+            expect(txBlockResult.stamps_used > 0).to.be(true)
+            expect(txBlockResult.state.length).to.equal(2)
+            expect(txBlockResult.status).to.equal(0)
+            expect(JSON.stringify(txBlockResult.transaction)).to.equal(JSON.stringify(newTx1.tx))
+            expect(txBlockResult.timestamp).to.exist
+        })
+        it('Creates ResultInfo object based on txBlockResult', async function () {
+            let resultInfo = newTx1.resultInfo;
+
+            expect(resultInfo.title).to.equal('Transaction Successful')
+            expect(resultInfo.subtitle).to.equal(`Your transaction used ${resultInfo.stampsUsed} stamps`)
+            expect(resultInfo.message).to.equal('')
+            expect(resultInfo.type).to.equal('success')
+            expect(resultInfo.errorInfo).to.equal(undefined)
+            expect(resultInfo.stampsUsed).to.equal(newTx1.txBlockResult.stamps_used)
+            expect(resultInfo.statusCode).to.equal(0)
+            expect(resultInfo.returnResult).to.equal('None')
+
         })
         it('gets nonce and signs transacation automatically if sk is provided', async function () {
             let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
+            //Send Tx
+            await newTx.send(senderWallet.sk);
 
-            //Send Transaction
-            let response = await newTx.send(senderWallet.sk);
+            let txSendResult = newTx.txSendResult;
 
-            expect(Object.keys(response.state_changes).length >= 2).to.be(true)
-            expect(response.status_code).to.exist
-            expect(response.result).to.be(undefined)
-            expect(response.stamps_used).to.exist
-            expect(response.errors.length === 0).to.be(true)
+            expect(txSendResult.success).to.equal('Transaction successfully submitted to the network.')
+            expect(txSendResult.hash).to.exist
+            expect(txSendResult.timestamp).to.exist  
         })
         it('throws error if provided network is unresponsive', async function () {
             let newTx = new Lamden.TransactionBuilder(badNetwork, txInfo_withNonce)
             let response = await newTx.send(senderWallet.sk)
-
-            expect(response.errors.length > 0).to.be(true)
-            expect(response.errors[0].includes('FetchError:')).to.be(true)
+            expect(response.errors[0].includes('Failed to fetch')).to.be(true)
 
         })
         it('can return execution errors list', async function () {
             let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
-            newTx.stampLimit = 0;
+            newTx.stampLimit = 0
+            //Send Tx
+            await newTx.send(senderWallet.sk);
+            await newTx.checkForTransactionResult()
 
-            //Send Transaction
-            let response = await newTx.send(senderWallet.sk);
-            expect(response.errors.length > 0).to.be(true)
-            expect(response.errors[0]).to.be('The cost has exceeded the stamp supplied!\n')
+            let resultInfo = newTx.resultInfo;
 
-            let txData = newTx.getAllInfo()
-            let resultInfo = txData.resultInfo;
-            expect(resultInfo.title).to.be(`Transaction Failed`)
-            expect(resultInfo.subtitle).to.be(`Your transaction returned an error and used ${response.stamps_used} stamps`)
-            expect(resultInfo.message).to.be(`This transaction returned ${response.errors.length} errors.`)
-            expect(resultInfo.type).to.be(`error`)
-            expect(JSON.stringify(resultInfo.errorInfo)).to.be(JSON.stringify(response.errors))
+            expect(resultInfo.title).to.equal('Transaction Failed')
+            expect(resultInfo.subtitle).to.equal(`Your transaction returned status code 1 and  used ${resultInfo.stampsUsed} stamps`)
+            expect(resultInfo.message).to.equal('This transaction returned 1 errors.')
+            expect(resultInfo.type).to.equal('error')
+            expect(resultInfo.errorInfo.length).to.equal(2)
+            expect(resultInfo.errorInfo[0]).to.equal('This transaction returned a non-zero status code')
+            expect(resultInfo.errorInfo[1].includes('The cost has exceeded the stamp supplied!')).to.be(true)
+            expect(resultInfo.stampsUsed).to.equal(newTx.txBlockResult.stamps_used)
+            expect(resultInfo.statusCode).to.equal(1)
+            expect(resultInfo.returnResult.includes('The cost has exceeded the stamp supplied!')).to.be(true)
         })
         it('can return transaction validation errors list', async function () {
             let sender = Lamden.wallet.new_wallet()

@@ -95,14 +95,6 @@ export class LamdenMasterNode_API{
         
     }
 
-    async lintCode(name, code){
-        let data = JSON.stringify({name, code})
-        return this.send('POST', '/lint/', data, (res, err) => {
-            if (err) return err;
-            return res;
-        })
-    }
-
     async pingServer(){
         return this.send('GET', '/ping', {}, (res, err) => {
             try { 
@@ -131,7 +123,9 @@ export class LamdenMasterNode_API{
             return false;
         })
     }
-
+    /* 
+    // Mockchain Depreciated
+    ///
     async mintTestNetCoins(vk, amount){
         if (this.networkType !== 'mockchain') throw Error (`${this.networkType} does not allow minting of coins`)
         if (!validateTypes.isStringWithValue(vk) || !validateTypes.isNumber(amount)) return false;
@@ -146,8 +140,16 @@ export class LamdenMasterNode_API{
         })    
     }
 
+    async lintCode(name, code){
+        let data = JSON.stringify({name, code})
+        return this.send('POST', '/lint/', data, (res, err) => {
+            if (err) return err;
+            return res;
+        })
+    }
+    */
     async sendTransaction(data, callback){
-        return this.send('POST', '/', data, (res, err) => {
+        return this.send('POST', '/', JSON.stringify(data), (res, err) => {
             if (err){
                 if (callback) {
                     callback(undefined, err);

@@ -4,8 +4,8 @@ const Lamden = require('../dist/lamden');
 let goodNetwork = {
     type: 'testnet',
     name: 'Lamden Public Testnet', 
-    host: 'https://testnet.lamden.io', 
-    port: '443',
+    host: 'http://167.172.126.5', 
+    port: '18080',
     lamden: true,
 }
 
@@ -111,10 +111,11 @@ describe('Test Netowrk class', () => {
     context('Ping Network', () => {
         it('emits online status', async () => {
             function checkResult(result){
+                console.log(result)
                 expect(result).to.be(true)
             }
             let network = new Lamden.Network(goodNetwork)
-            network.on('online', (status) => checkResult(status))
+            network.events.on('online', (status) => checkResult(status))
             await network.ping();
         })        
 

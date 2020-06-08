@@ -1,9 +1,9 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from './eventEmitter'
 import validators from 'types-validate-assert'
 const { validateTypes } = validators;
 import { LamdenMasterNode_API } from './masternode-api'
 
-export class Network extends EventEmitter {
+export class Network {
     // Constructor needs an Object with the following information to build Class.
     //
     // networkInfo: {
@@ -12,7 +12,6 @@ export class Network extends EventEmitter {
     //      type: <string> "testnet", "mainnet" or "mockchain"
     //  },
     constructor(networkInfoObj){
-        super();
         const lamdenNetworkTypes = ['mockchain', 'testnet', 'mainnet']
         //Reject undefined or missing info
         if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
@@ -21,7 +20,7 @@ export class Network extends EventEmitter {
         if (!validateTypes.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
         this.type = networkInfoObj.type.toLowerCase();
-
+        this.events = new EventEmitter()
         this.host = this.vaidateProtocol(networkInfoObj.host.toLowerCase());
         this.port = networkInfoObj.port;
         this.url = `${this.host}:${this.port}`
@@ -56,7 +55,7 @@ export class Network extends EventEmitter {
     //Also returns status as well as passes status to a callback
     async ping(callback = undefined){
         this.online = await this.API.pingServer()
-        this.emit('online', this.online, `${this.url} is ${this.online}`);
+        this.events.emit('online', this.online);
         if (validateTypes.isFunction(callback)) callback(this.online)
         return this.online
     }
