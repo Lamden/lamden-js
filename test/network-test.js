@@ -7,6 +7,7 @@ let goodNetwork = {
     host: 'http://167.172.126.5', 
     port: '18080',
     lamden: true,
+    blockExplorer: 'https://explorer.lamden.io'
 }
 
 function copyObject(object){
@@ -26,6 +27,7 @@ describe('Test Netowrk class', () => {
             expect(network.mainnet).to.be(false);
             expect(network.testnet).to.be(true);
             expect(network.mockchain).to.be(false);
+            expect(network.blockExplorer).to.be(goodNetwork.blockExplorer);
         }) 
         it('sets mainnet flag', () => {
             let networkInfo = copyObject(goodNetwork)

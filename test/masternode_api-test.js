@@ -110,7 +110,7 @@ describe('Test Masternode API returns', () => {
     context('Masternode_API.getCurrencyBalance()', () => {
         it('returns the balance for a vk', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(balanceCheckWallet.vk)
-            expect(response).to.be(1234);
+            expect(response).to.be(2468);
         })
         it('returns 0 if the vk does not exist yet', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(wallet.new_wallet().vk)
@@ -159,7 +159,7 @@ describe('Test Masternode API returns', () => {
         it('returns the value of the variable if the key exists', async () => {
             let key = balanceCheckWallet.vk;
             let response = await goodNetwork_api.getVariable('currency', 'balances', key)
-            expect(response).to.be(1234);
+            expect(response).to.be(2468);
         })
         it('returns undefined if the key does not exist in the variable', async () => {
             let key = wallet.new_wallet().vk;
