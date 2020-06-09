@@ -2617,6 +2617,7 @@ class Network {
         this.currencySymbol = validateTypes$1.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU';
         this.name = validateTypes$1.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : undefined;
         this.lamden = validateTypes$1.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : undefined;
+        this.blockExplorer = validateTypes$1.isStringWithValue(networkInfoObj.blockExplorer) ? networkInfoObj.blockExplorer : undefined;
     
         this.online = false;
         try{
