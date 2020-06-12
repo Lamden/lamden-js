@@ -186,9 +186,13 @@ describe('Test TransactionBuilder class', () => {
             expect(resultInfo.message).to.equal(`Tx Hash: ${newTx1.txSendResult.hash}`)
             expect(resultInfo.type).to.equal('success')
         })
-        it('Sends can get hash result from masternode', async function () {
+        it('Sends transactions and can get hash result from masternode', async function () {
+            this.timeout(10000);
             await newTx1.checkForTransactionResult()
             let txBlockResult = newTx1.txBlockResult;
+            console.log('-----------------------')
+            console.log(txBlockResult)
+            console.log('-----------------------')
             expect(txBlockResult.hash).to.equal(newTx1.txSendResult.hash)
             expect(txBlockResult.result).to.equal('None')
             expect(txBlockResult.stamps_used > 0).to.be(true)
@@ -199,6 +203,7 @@ describe('Test TransactionBuilder class', () => {
         })
         it('Creates ResultInfo object based on txBlockResult', async function () {
             let resultInfo = newTx1.resultInfo;
+            console.log(resultInfo)
 
             expect(resultInfo.title).to.equal('Transaction Successful')
             expect(resultInfo.subtitle).to.equal(`Your transaction used ${resultInfo.stampsUsed} stamps`)
@@ -211,6 +216,7 @@ describe('Test TransactionBuilder class', () => {
 
         })
         it('gets nonce and signs transacation automatically if sk is provided', async function () {
+            this.timeout(10000);
             let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
             //Send Tx
             await newTx.send(senderWallet.sk);
@@ -228,6 +234,7 @@ describe('Test TransactionBuilder class', () => {
 
         })
         it('can return execution errors list', async function () {
+            this.timeout(10000);
             let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
             newTx.stampLimit = 0
             //Send Tx
