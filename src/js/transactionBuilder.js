@@ -8,7 +8,6 @@ export class TransactionBuilder extends Network {
     //  
     // arg[0] (networkInfo): {  //Can also accpet a Lamden "Network Class"
     //      host: <string> masternode webserver hostname/ip,
-    //      port: <string> masternode webserver port,
     //      type: <string> "testnet", "mainnet" or "mockchain"
     //  }
     //  arg[1] (txInfo): {

@@ -5,16 +5,14 @@ const { Masternode_API, wallet } = Lamden;
 let goodNetwork = {
     type: 'testnet',
     name: 'Lamden Public Testnet', 
-    hosts: ['http://167.172.126.5'], 
-    port: '18080'
+    hosts: ['http://167.172.126.5:18080']
 }
 let goodNetwork_api = new Masternode_API(goodNetwork)
 
 let badNetwork = {
     type: 'testnet',
     name: 'Bad Network', 
-    hosts: ['http://badnetwork.lamden.io'], 
-    port: '18080'
+    hosts: ['http://badnetwork.lamden.io:18080']
 }
 
 let badNetwork_api = new Masternode_API(badNetwork)
@@ -36,8 +34,7 @@ describe('Test Masternode API returns', () => {
             expect(api).to.exist;
             expect(JSON.stringify(api.hosts)).to.be(JSON.stringify(goodNetwork.hosts));
             expect(api.type).to.be(goodNetwork.networkType);
-            expect(api.port).to.be(goodNetwork.port);
-            expect(api.url).to.be(`${goodNetwork.hosts[0]}:${goodNetwork.port}`);
+            expect(api.url).to.be(goodNetwork.hosts[0]);
         })
         it('rejects arg not being an object', () => {
             let error;
@@ -64,15 +61,6 @@ describe('Test Masternode API returns', () => {
                 new Masternode_API(networkInfo)
             } catch (e) {error = e}
             expect(error.message).to.be('Host String must include http:// or https://')
-        })
-        it('rejects missing port string', () => {
-            let error;
-            try{
-                let networkInfo = copyObject(goodNetwork)
-                networkInfo.port = ''
-                new Masternode_API(networkInfo)
-            } catch (e) {error = e}
-            expect(error.message).to.be('PORT Required (Type: String)')
         })
         it('rejects missing type string', () => {
             let error;

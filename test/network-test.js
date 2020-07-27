@@ -4,8 +4,7 @@ const Lamden = require('../dist/lamden');
 let goodNetwork = {
     type: 'testnet',
     name: 'Lamden Public Testnet', 
-    hosts: ['http://167.172.126.5'], 
-    port: '18080',
+    hosts: ['http://167.172.126.5:18080'],
     lamden: true,
     blockExplorer: 'https://explorer.lamden.io'
 }
@@ -21,10 +20,9 @@ describe('Test Netowrk class', () => {
             expect(network).to.exist;
             expect(JSON.stringify(network.hosts)).to.be(JSON.stringify(goodNetwork.hosts));
             expect(network.host).to.be(goodNetwork.hosts[0]);
-            expect(network.url).to.be(`${goodNetwork.hosts[0]}:${goodNetwork.port}`);
+            expect(network.url).to.be(goodNetwork.hosts[0]);
             expect(network.type).to.be(goodNetwork.type);
             expect(network.name).to.be(goodNetwork.name);
-            expect(network.port).to.be(goodNetwork.port);
             expect(network.lamden).to.be(goodNetwork.lamden);
             expect(network.mainnet).to.be(false);
             expect(network.testnet).to.be(true);
@@ -76,15 +74,6 @@ describe('Test Netowrk class', () => {
                 new Lamden.Network(networkInfo)
             } catch (e) {error = e}
             expect(error.message).to.be('Host String must include http:// or https://')
-        })
-        it('rejects missing port string', () => {
-            let error;
-            try{
-                let networkInfo = copyObject(goodNetwork)
-                networkInfo.port = ''
-                new Lamden.Network(networkInfo)
-            } catch (e) {error = e}
-            expect(error.message).to.be('PORT Required (Type: String)')
         })
         it('rejects missing type string', () => {
             let error;
