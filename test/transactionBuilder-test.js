@@ -190,9 +190,6 @@ describe('Test TransactionBuilder class', () => {
             this.timeout(10000);
             await newTx1.checkForTransactionResult()
             let txBlockResult = newTx1.txBlockResult;
-            console.log('-----------------------')
-            console.log(txBlockResult)
-            console.log('-----------------------')
             expect(txBlockResult.hash).to.equal(newTx1.txSendResult.hash)
             expect(txBlockResult.result).to.equal('None')
             expect(txBlockResult.stamps_used > 0).to.be(true)
@@ -203,8 +200,6 @@ describe('Test TransactionBuilder class', () => {
         })
         it('Creates ResultInfo object based on txBlockResult', async function () {
             let resultInfo = newTx1.resultInfo;
-            console.log(resultInfo)
-
             expect(resultInfo.title).to.equal('Transaction Successful')
             expect(resultInfo.subtitle).to.equal(`Your transaction used ${resultInfo.stampsUsed} stamps`)
             expect(resultInfo.message).to.equal('')

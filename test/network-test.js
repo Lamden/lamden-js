@@ -115,7 +115,6 @@ describe('Test Netowrk class', () => {
     context('Ping Network', () => {
         it('emits online status', async () => {
             function checkResult(result){
-                console.log(result)
                 expect(result).to.be(true)
             }
             let network = new Lamden.Network(goodNetwork)

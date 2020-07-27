@@ -4,7 +4,6 @@ const fetch = require('node-fetch');
 
 export class LamdenMasterNode_API{
     constructor(networkInfoObj){
-        console.log(networkInfoObj)
         if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`)
         if (!validateTypes.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
         if (!validateTypes.isStringWithValue(networkInfoObj.port)) throw new Error(`PORT Required (Type: String)`)

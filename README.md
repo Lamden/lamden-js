@@ -70,7 +70,7 @@ Public Testnet masternode is http://167.172.126.5:18080
 Use Lamden.TransactionBuilder(networkInfo, txInfo) to create a new Lamden transaction.
 
 ### Create networkInfo object
-create an object that describes the masternode/network that you are going to send the transcation to
+create an object that describes the masternode/network that you are going to send the transcation to.
 ```javascript
 let networkInfo = {
     // Optional: Name of network
@@ -80,7 +80,7 @@ let networkInfo = {
     type: 'testnet',
 
     // Required: must begin with http or https
-    host: 'http://167.172.126.5',
+    hosts: ['http://167.172.126.5'],
 
     // Required: network port
     port: '18080' 
@@ -178,7 +178,7 @@ Create a network instance will allow you to call the masternode API.  This class
 let testnet = new Network({
     name: 'Lamden Public Testnet',
     type: 'testnet',
-    host: 'http://167.172.126.5', port: '18080' 
+    hosts: ['http://167.172.126.5'], port: '18080' 
 })
 
 testnet.events.on('online', (online) => {
