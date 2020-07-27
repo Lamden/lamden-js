@@ -5,7 +5,7 @@ const { Masternode_API, wallet } = Lamden;
 let goodNetwork = {
     type: 'testnet',
     name: 'Lamden Public Testnet', 
-    host: 'http://167.172.126.5', 
+    hosts: ['http://167.172.126.5'], 
     port: '18080'
 }
 let goodNetwork_api = new Masternode_API(goodNetwork)
@@ -13,7 +13,7 @@ let goodNetwork_api = new Masternode_API(goodNetwork)
 let badNetwork = {
     type: 'testnet',
     name: 'Bad Network', 
-    host: 'http://badnetwork.lamden.io', 
+    hosts: ['http://badnetwork.lamden.io'], 
     port: '18080'
 }
 
@@ -26,7 +26,7 @@ function copyObject(object){
 let keyPair = wallet.new_wallet()
 
 const balanceCheckWallet = {
-    vk: '2c3b35a5c97c711749137a8d194b7920f07801e910b5f4ce58bd8f2c7e23ca75'
+    vk: 'd41b8ed0d747ca6dfacdc58b78e1dba86cd9616359014eebd5f3443509111120'
 }
 
 describe('Test Masternode API returns', () => {
@@ -34,11 +34,10 @@ describe('Test Masternode API returns', () => {
         it('can create an instance', () => {
             let api = new Masternode_API(goodNetwork)
             expect(api).to.exist;
-            expect(api.host).to.be(goodNetwork.host);
+            expect(JSON.stringify(api.hosts)).to.be(JSON.stringify(goodNetwork.hosts));
             expect(api.type).to.be(goodNetwork.networkType);
             expect(api.port).to.be(goodNetwork.port);
-            expect(api.url).to.be(`${goodNetwork.host}:${goodNetwork.port}`);
-            
+            expect(api.url).to.be(`${goodNetwork.hosts[0]}:${goodNetwork.port}`);
         })
         it('rejects arg not being an object', () => {
             let error;
@@ -47,21 +46,21 @@ describe('Test Masternode API returns', () => {
             } catch (e) {error = e}
             expect(error.message).to.be('Expected Object and got Type: string')
         })
-        it('rejects missing host string', () => {
+        it('rejects missing hosts Array', () => {
             let error;
             try{
                 let networkInfo = copyObject(goodNetwork)
-                networkInfo.host = ''
+                networkInfo.hosts = []
                 new Masternode_API(networkInfo)
             } catch (e) {error = e}
-            expect(error.message).to.be('HOST Required (Type: String)')
+            expect(error.message).to.be('HOSTS Required (Type: Array)')
 
         })
         it('rejects no protocol in host string', () => {
             let error;
             try{
                 let networkInfo = copyObject(goodNetwork)
-                networkInfo.host = 'missing.protocol.com'
+                networkInfo.hosts = ['missing.protocol.com']
                 new Masternode_API(networkInfo)
             } catch (e) {error = e}
             expect(error.message).to.be('Host String must include http:// or https://')
@@ -110,7 +109,7 @@ describe('Test Masternode API returns', () => {
     context('Masternode_API.getCurrencyBalance()', () => {
         it('returns the balance for a vk', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(balanceCheckWallet.vk)
-            expect(response).to.be(2468);
+            expect(response).to.be.above(0);
         })
         it('returns 0 if the vk does not exist yet', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(wallet.new_wallet().vk)
@@ -159,7 +158,7 @@ describe('Test Masternode API returns', () => {
         it('returns the value of the variable if the key exists', async () => {
             let key = balanceCheckWallet.vk;
             let response = await goodNetwork_api.getVariable('currency', 'balances', key)
-            expect(response).to.be(2468);
+            expect(response).to.be.above(0);
         })
         it('returns undefined if the key does not exist in the variable', async () => {
             let key = wallet.new_wallet().vk;

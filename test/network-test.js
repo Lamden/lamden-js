@@ -4,7 +4,7 @@ const Lamden = require('../dist/lamden');
 let goodNetwork = {
     type: 'testnet',
     name: 'Lamden Public Testnet', 
-    host: 'http://167.172.126.5', 
+    hosts: ['http://167.172.126.5'], 
     port: '18080',
     lamden: true,
     blockExplorer: 'https://explorer.lamden.io'
@@ -19,7 +19,9 @@ describe('Test Netowrk class', () => {
         it('can create an instance', () => {
             let network = new Lamden.Network(goodNetwork)
             expect(network).to.exist;
-            expect(network.host).to.be(goodNetwork.host);
+            expect(JSON.stringify(network.hosts)).to.be(JSON.stringify(goodNetwork.hosts));
+            expect(network.host).to.be(goodNetwork.hosts[0]);
+            expect(network.url).to.be(`${goodNetwork.hosts[0]}:${goodNetwork.port}`);
             expect(network.type).to.be(goodNetwork.type);
             expect(network.name).to.be(goodNetwork.name);
             expect(network.port).to.be(goodNetwork.port);
@@ -56,21 +58,21 @@ describe('Test Netowrk class', () => {
             expect(network.mockchain).to.be(true);
 
         })
-        it('rejects missing host string', () => {
+        it('rejects missing hosts Array', () => {
             let error;
             try{
                 let networkInfo = copyObject(goodNetwork)
-                networkInfo.host = ''
+                delete networkInfo.hosts
                 new Lamden.Network(networkInfo)
             } catch (e) {error = e}
-            expect(error.message).to.be('HOST Required (Type: String)')
+            expect(error.message).to.be('HOSTS Required (Type: Array)')
 
         })
         it('rejects no protocol in host string', () => {
             let error;
             try{
                 let networkInfo = copyObject(goodNetwork)
-                networkInfo.host = 'missing.protocol.com'
+                networkInfo.hosts = ['missing.protocol.com']
                 new Lamden.Network(networkInfo)
             } catch (e) {error = e}
             expect(error.message).to.be('Host String must include http:// or https://')
@@ -113,7 +115,6 @@ describe('Test Netowrk class', () => {
     context('Ping Network', () => {
         it('emits online status', async () => {
             function checkResult(result){
-                console.log(result)
                 expect(result).to.be(true)
             }
             let network = new Lamden.Network(goodNetwork)
