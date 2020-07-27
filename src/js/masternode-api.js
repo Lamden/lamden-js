@@ -6,12 +6,10 @@ export class LamdenMasterNode_API{
     constructor(networkInfoObj){
         if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`)
         if (!validateTypes.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
-        if (!validateTypes.isStringWithValue(networkInfoObj.port)) throw new Error(`PORT Required (Type: String)`)
         if (!validateTypes.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
         const lamdenNetworkTypes = ['mockchain', 'testnet', 'mainnet']
         this.hosts = this.validateHosts(networkInfoObj.hosts);
-        this.port = networkInfoObj.port;
         this.networkType = networkInfoObj.type.toLowerCase();
         if (!lamdenNetworkTypes.includes(this.networkType)) {
             throw new Error(`${this.networkType} not in Lamden Network Types: ${JSON.stringify(lamdenNetworkTypes)}`)
@@ -28,7 +26,7 @@ export class LamdenMasterNode_API{
         return hosts.map(host => this.vaidateProtocol(host.toLowerCase()))
     }
     get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
-    get url() {return `${this.host}:${this.port}`}
+    get url() {return this.host}
     send(method, path, data, callback){
         let parms = '';
         if (Object.keys(data).includes('parms')) {

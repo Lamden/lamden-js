@@ -80,10 +80,7 @@ let networkInfo = {
     type: 'testnet',
 
     // Required: must begin with http or https
-    hosts: ['http://167.172.126.5'],
-
-    // Required: network port
-    port: '18080' 
+    hosts: ['http://167.172.126.5:18080']
 }
 ```
 ### Create txInfo object
@@ -178,7 +175,7 @@ Create a network instance will allow you to call the masternode API.  This class
 let testnet = new Network({
     name: 'Lamden Public Testnet',
     type: 'testnet',
-    hosts: ['http://167.172.126.5'], port: '18080' 
+    hosts: ['http://167.172.126.5:18080']
 })
 
 testnet.events.on('online', (online) => {

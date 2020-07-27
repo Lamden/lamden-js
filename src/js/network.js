@@ -8,7 +8,6 @@ export class Network {
     //
     // networkInfo: {
     //      hosts: <array> list of masternode hostname/ip urls,
-    //      port: <string> masternode webserver port,
     //      type: <string> "testnet", "mainnet" or "mockchain"
     //  },
     constructor(networkInfoObj){
@@ -16,13 +15,11 @@ export class Network {
         //Reject undefined or missing info
         if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
         if (!validateTypes.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
-        if (!validateTypes.isStringWithValue(networkInfoObj.port)) throw new Error(`PORT Required (Type: String)`)
         if (!validateTypes.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
         this.type = networkInfoObj.type.toLowerCase();
         this.events = new EventEmitter()
         this.hosts = this.validateHosts(networkInfoObj.hosts);
-        this.port = networkInfoObj.port;
         this.currencySymbol = validateTypes.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU'
         this.name = validateTypes.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : undefined;
         this.lamden = validateTypes.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : undefined;
@@ -63,12 +60,11 @@ export class Network {
         return this.online
     }
     get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
-    get url() {return `${this.host}:${this.port}`}
+    get url() {return this.host}
     getNetworkInfo(){
         return {
             type: this.type,
             hosts: this.hosts,
-            port: this.port,
             url: this.url,
             online: this.online,
             mainnet: this.mainnet,

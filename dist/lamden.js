@@ -2394,12 +2394,10 @@ class LamdenMasterNode_API{
     constructor(networkInfoObj){
         if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`)
         if (!validateTypes.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
-        if (!validateTypes.isStringWithValue(networkInfoObj.port)) throw new Error(`PORT Required (Type: String)`)
         if (!validateTypes.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
         const lamdenNetworkTypes = ['mockchain', 'testnet', 'mainnet'];
         this.hosts = this.validateHosts(networkInfoObj.hosts);
-        this.port = networkInfoObj.port;
         this.networkType = networkInfoObj.type.toLowerCase();
         if (!lamdenNetworkTypes.includes(this.networkType)) {
             throw new Error(`${this.networkType} not in Lamden Network Types: ${JSON.stringify(lamdenNetworkTypes)}`)
@@ -2416,7 +2414,7 @@ class LamdenMasterNode_API{
         return hosts.map(host => this.vaidateProtocol(host.toLowerCase()))
     }
     get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
-    get url() {return `${this.host}:${this.port}`}
+    get url() {return this.host}
     send(method, path, data, callback){
         let parms = '';
         if (Object.keys(data).includes('parms')) {
@@ -2600,7 +2598,6 @@ class Network {
     //
     // networkInfo: {
     //      hosts: <array> list of masternode hostname/ip urls,
-    //      port: <string> masternode webserver port,
     //      type: <string> "testnet", "mainnet" or "mockchain"
     //  },
     constructor(networkInfoObj){
@@ -2608,13 +2605,11 @@ class Network {
         //Reject undefined or missing info
         if (!validateTypes$1.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
         if (!validateTypes$1.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
-        if (!validateTypes$1.isStringWithValue(networkInfoObj.port)) throw new Error(`PORT Required (Type: String)`)
         if (!validateTypes$1.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
         this.type = networkInfoObj.type.toLowerCase();
         this.events = new EventEmitter();
         this.hosts = this.validateHosts(networkInfoObj.hosts);
-        this.port = networkInfoObj.port;
         this.currencySymbol = validateTypes$1.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU';
         this.name = validateTypes$1.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : undefined;
         this.lamden = validateTypes$1.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : undefined;
@@ -2655,12 +2650,11 @@ class Network {
         return this.online
     }
     get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
-    get url() {return `${this.host}:${this.port}`}
+    get url() {return this.host}
     getNetworkInfo(){
         return {
             type: this.type,
             hosts: this.hosts,
-            port: this.port,
             url: this.url,
             online: this.online,
             mainnet: this.mainnet,
@@ -2677,7 +2671,6 @@ class TransactionBuilder extends Network {
     //  
     // arg[0] (networkInfo): {  //Can also accpet a Lamden "Network Class"
     //      host: <string> masternode webserver hostname/ip,
-    //      port: <string> masternode webserver port,
     //      type: <string> "testnet", "mainnet" or "mockchain"
     //  }
     //  arg[1] (txInfo): {

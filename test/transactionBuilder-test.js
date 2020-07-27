@@ -6,15 +6,13 @@ const Lamden = require('../dist/lamden');
 let goodNetwork = {
     type: 'testnet',
     name: 'Lamden Public Testnet', 
-    hosts: ['http://167.172.126.5'], 
-    port: '18080'
+    hosts: ['http://167.172.126.5:18080'] 
 }
 
 let badNetwork = {
     type: 'testnet',
     name: 'Bad Network', 
-    hosts: ['http://badnetwork.lamden.io'], 
-    port: '18080'
+    hosts: ['http://badnetwork.lamden.io:18080']
 }
 
 let uid = "randomUIDstring"
