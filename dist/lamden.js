@@ -2392,16 +2392,15 @@ const fetch = require('node-fetch');
 
 class LamdenMasterNode_API{
     constructor(networkInfoObj){
+        console.log(networkInfoObj);
         if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`)
-        if (!validateTypes.isStringWithValue(networkInfoObj.host)) throw new Error(`HOST Required (Type: String)`)
+        if (!validateTypes.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
         if (!validateTypes.isStringWithValue(networkInfoObj.port)) throw new Error(`PORT Required (Type: String)`)
         if (!validateTypes.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
         const lamdenNetworkTypes = ['mockchain', 'testnet', 'mainnet'];
-
-        this.host = this.vaidateProtocol(networkInfoObj.host);
+        this.hosts = this.validateHosts(networkInfoObj.hosts);
         this.port = networkInfoObj.port;
-        this.url = `${this.host}:${this.port}`;
         this.networkType = networkInfoObj.type.toLowerCase();
         if (!lamdenNetworkTypes.includes(this.networkType)) {
             throw new Error(`${this.networkType} not in Lamden Network Types: ${JSON.stringify(lamdenNetworkTypes)}`)
@@ -2414,7 +2413,11 @@ class LamdenMasterNode_API{
         if (protocols.map(protocol => host.includes(protocol)).includes(true)) return host
         throw new Error('Host String must include http:// or https://')
     }
-
+    validateHosts(hosts){
+        return hosts.map(host => this.vaidateProtocol(host.toLowerCase()))
+    }
+    get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
+    get url() {return `${this.host}:${this.port}`}
     send(method, path, data, callback){
         let parms = '';
         if (Object.keys(data).includes('parms')) {
@@ -2597,7 +2600,7 @@ class Network {
     // Constructor needs an Object with the following information to build Class.
     //
     // networkInfo: {
-    //      host: <string> masternode webserver hostname/ip,
+    //      hosts: <array> list of masternode hostname/ip urls,
     //      port: <string> masternode webserver port,
     //      type: <string> "testnet", "mainnet" or "mockchain"
     //  },
@@ -2605,15 +2608,14 @@ class Network {
         const lamdenNetworkTypes = ['mockchain', 'testnet', 'mainnet'];
         //Reject undefined or missing info
         if (!validateTypes$1.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
-        if (!validateTypes$1.isStringWithValue(networkInfoObj.host)) throw new Error(`HOST Required (Type: String)`)
+        if (!validateTypes$1.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
         if (!validateTypes$1.isStringWithValue(networkInfoObj.port)) throw new Error(`PORT Required (Type: String)`)
         if (!validateTypes$1.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
         this.type = networkInfoObj.type.toLowerCase();
         this.events = new EventEmitter();
-        this.host = this.vaidateProtocol(networkInfoObj.host.toLowerCase());
+        this.hosts = this.validateHosts(networkInfoObj.hosts);
         this.port = networkInfoObj.port;
-        this.url = `${this.host}:${this.port}`;
         this.currencySymbol = validateTypes$1.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU';
         this.name = validateTypes$1.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : undefined;
         this.lamden = validateTypes$1.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : undefined;
@@ -2641,6 +2643,9 @@ class Network {
         if (protocols.map(protocol => host.includes(protocol)).includes(true)) return host
         throw new Error('Host String must include http:// or https://')
     }
+    validateHosts(hosts){
+        return hosts.map(host => this.vaidateProtocol(host.toLowerCase()))
+    }
     //Check if the network is online
     //Emits boolean as 'online' event
     //Also returns status as well as passes status to a callback
@@ -2650,10 +2655,12 @@ class Network {
         if (validateTypes$1.isFunction(callback)) callback(this.online);
         return this.online
     }
+    get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
+    get url() {return `${this.host}:${this.port}`}
     getNetworkInfo(){
         return {
             type: this.type,
-            host: this.host,
+            hosts: this.hosts,
             port: this.port,
             url: this.url,
             online: this.online,
