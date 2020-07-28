@@ -21,8 +21,8 @@ export class Network {
         this.events = new EventEmitter()
         this.hosts = this.validateHosts(networkInfoObj.hosts);
         this.currencySymbol = validateTypes.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU'
-        this.name = validateTypes.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : undefined;
-        this.lamden = validateTypes.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : undefined;
+        this.name = validateTypes.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : 'lamden network';
+        this.lamden = validateTypes.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : false;
         this.blockExplorer = validateTypes.isStringWithValue(networkInfoObj.blockExplorer) ? networkInfoObj.blockExplorer : undefined;
     
         this.online = false;
@@ -63,6 +63,8 @@ export class Network {
     get url() {return this.host}
     getNetworkInfo(){
         return {
+            name: this.name,
+            lamden: this.lamden,
             type: this.type,
             hosts: this.hosts,
             url: this.url,
