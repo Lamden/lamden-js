@@ -8,6 +8,12 @@ const dateString = "2020-07-28T19:16:35.059Z"
 const millisecondsDelta = 475200000
 
 describe('Test Type Encoder', () => {
+    context('TYPES', () => {
+        it('Encoder rejects unknown TYPE', () => {
+            expect(() => Encoder('nope', {})).to.throwError();
+        })
+    })
+
     context('Strings', () => {
         it('encodes a string from a string', () => {
             expect( Encoder('str', 'string') ).to.be( 'string' )

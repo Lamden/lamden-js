@@ -87,12 +87,13 @@ const Encoder = (type, value) => {
         list: () => encodeList(),
         Any: () => value,
         "datetime.timedelta": () => encodeTimeDelta(), 
-        "datetime.datetime": () => encodeDateTime() 
+        "datetime.datetime": () => encodeDateTime(),
+        timedelta: () => encodeTimeDelta(), 
+        datetime: () => encodeDateTime(),
     }
 
-
-    return encoder[type]()
-
+    if (Object.keys(encoder).includes(type)) return encoder[type]()
+    else throw new Error(`Error: ${type} is not a valid encoder type.`)
 }
 
 module.exports = {
