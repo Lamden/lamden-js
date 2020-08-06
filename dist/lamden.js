@@ -2394,15 +2394,8 @@ class LamdenMasterNode_API{
     constructor(networkInfoObj){
         if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`)
         if (!validateTypes.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
-        if (!validateTypes.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
-        const lamdenNetworkTypes = ['mockchain', 'testnet', 'mainnet'];
-        this.hosts = this.validateHosts(networkInfoObj.hosts);
-        this.networkType = networkInfoObj.type.toLowerCase();
-        if (!lamdenNetworkTypes.includes(this.networkType)) {
-            throw new Error(`${this.networkType} not in Lamden Network Types: ${JSON.stringify(lamdenNetworkTypes)}`)
-        }
-        
+        this.hosts = this.validateHosts(networkInfoObj.hosts);        
     }
     //This will throw an error if the protocol wasn't included in the host string
     vaidateProtocol(host){
@@ -2511,31 +2504,7 @@ class LamdenMasterNode_API{
             return false;
         })
     }
-    /* 
-    // Mockchain Depreciated
-    ///
-    async mintTestNetCoins(vk, amount){
-        if (this.networkType !== 'mockchain') throw Error (`${this.networkType} does not allow minting of coins`)
-        if (!validateTypes.isStringWithValue(vk) || !validateTypes.isNumber(amount)) return false;
-        let data = JSON.stringify({vk, amount})
 
-        let path = `/mint/`
-        return this.send('POST', path, data, (res, err) => {
-            try{
-                if (res.success) return true;
-            } catch (e){}
-            return false;
-        })    
-    }
-
-    async lintCode(name, code){
-        let data = JSON.stringify({name, code})
-        return this.send('POST', '/lint/', data, (res, err) => {
-            if (err) return err;
-            return res;
-        })
-    }
-    */
     async sendTransaction(data, callback){
         return this.send('POST', '/', JSON.stringify(data), (res, err) => {
             if (err){
@@ -2598,16 +2567,14 @@ class Network {
     //
     // networkInfo: {
     //      hosts: <array> list of masternode hostname/ip urls,
-    //      type: <string> "testnet", "mainnet" or "mockchain"
+    //      type: <string> "testnet", "mainnet" or "custom"
     //  },
     constructor(networkInfoObj){
-        const lamdenNetworkTypes = ['mockchain', 'testnet', 'mainnet'];
         //Reject undefined or missing info
         if (!validateTypes$1.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
         if (!validateTypes$1.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
-        if (!validateTypes$1.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
-        this.type = networkInfoObj.type.toLowerCase();
+        this.type = validateTypes$1.isStringWithValue(networkInfoObj.type) ? networkInfoObj.type.toLowerCase() : "custom";
         this.events = new EventEmitter();
         this.hosts = this.validateHosts(networkInfoObj.hosts);
         this.currencySymbol = validateTypes$1.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU';
@@ -2621,15 +2588,6 @@ class Network {
         } catch (e) {
             throw new Error(e)
         }
-        
-        if (!lamdenNetworkTypes.includes(this.type)) {
-            throw new Error(`${this.type} not in Lamden Network Types: ${JSON.stringify(lamdenNetworkTypes)}`)
-        }
-        
-        this.mainnet = this.type === 'mainnet';
-        this.testnet = this.type === 'testnet';
-        this.mockchain = this.type === 'mockchain';
-
     }
     //This will throw an error if the protocol wasn't included in the host string
     vaidateProtocol(host){
@@ -2659,9 +2617,6 @@ class Network {
             hosts: this.hosts,
             url: this.url,
             online: this.online,
-            mainnet: this.mainnet,
-            testnet: this.testnet,
-            mockchain: this.mockchain
         }
     }
 }
