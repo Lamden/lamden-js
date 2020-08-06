@@ -33,7 +33,6 @@ describe('Test Masternode API returns', () => {
             let api = new Masternode_API(goodNetwork)
             expect(api).to.exist;
             expect(JSON.stringify(api.hosts)).to.be(JSON.stringify(goodNetwork.hosts));
-            expect(api.type).to.be(goodNetwork.networkType);
             expect(api.url).to.be(goodNetwork.hosts[0]);
         })
         it('rejects arg not being an object', () => {
@@ -61,24 +60,6 @@ describe('Test Masternode API returns', () => {
                 new Masternode_API(networkInfo)
             } catch (e) {error = e}
             expect(error.message).to.be('Host String must include http:// or https://')
-        })
-        it('rejects missing type string', () => {
-            let error;
-            try{
-                let networkInfo = copyObject(goodNetwork)
-                networkInfo.type = ''
-                new Masternode_API(networkInfo)
-            } catch (e) {error = e}
-            expect(error.message).to.be('Network Type Required (Type: String)')
-        })
-        it('rejects invalid type string', () => {
-            let error;
-            try{
-                let networkInfo = copyObject(goodNetwork)
-                networkInfo.type = 'badtype'
-                new Masternode_API(networkInfo)
-            } catch (e) {error = e}
-            expect(error.message).to.be(`badtype not in Lamden Network Types: ["mockchain","testnet","mainnet"]`)
         })
     })
 

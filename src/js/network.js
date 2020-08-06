@@ -8,16 +8,14 @@ export class Network {
     //
     // networkInfo: {
     //      hosts: <array> list of masternode hostname/ip urls,
-    //      type: <string> "testnet", "mainnet" or "mockchain"
+    //      type: <string> "testnet", "mainnet" or "custom"
     //  },
     constructor(networkInfoObj){
-        const lamdenNetworkTypes = ['mockchain', 'testnet', 'mainnet']
         //Reject undefined or missing info
         if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
         if (!validateTypes.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
-        if (!validateTypes.isStringWithValue(networkInfoObj.type)) throw new Error(`Network Type Required (Type: String)`)
 
-        this.type = networkInfoObj.type.toLowerCase();
+        this.type = validateTypes.isStringWithValue(networkInfoObj.type) ? networkInfoObj.type.toLowerCase() : "custom";
         this.events = new EventEmitter()
         this.hosts = this.validateHosts(networkInfoObj.hosts);
         this.currencySymbol = validateTypes.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU'
@@ -31,15 +29,6 @@ export class Network {
         } catch (e) {
             throw new Error(e)
         }
-        
-        if (!lamdenNetworkTypes.includes(this.type)) {
-            throw new Error(`${this.type} not in Lamden Network Types: ${JSON.stringify(lamdenNetworkTypes)}`)
-        }
-        
-        this.mainnet = this.type === 'mainnet'
-        this.testnet = this.type === 'testnet'
-        this.mockchain = this.type === 'mockchain'
-
     }
     //This will throw an error if the protocol wasn't included in the host string
     vaidateProtocol(host){
@@ -69,9 +58,6 @@ export class Network {
             hosts: this.hosts,
             url: this.url,
             online: this.online,
-            mainnet: this.mainnet,
-            testnet: this.testnet,
-            mockchain: this.mockchain
         }
     }
 }

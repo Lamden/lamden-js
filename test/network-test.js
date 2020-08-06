@@ -24,38 +24,9 @@ describe('Test Netowrk class', () => {
             expect(network.type).to.be(goodNetwork.type);
             expect(network.name).to.be(goodNetwork.name);
             expect(network.lamden).to.be(goodNetwork.lamden);
-            expect(network.mainnet).to.be(false);
-            expect(network.testnet).to.be(true);
-            expect(network.mockchain).to.be(false);
             expect(network.blockExplorer).to.be(goodNetwork.blockExplorer);
         }) 
-        it('sets mainnet flag', () => {
-            let networkInfo = copyObject(goodNetwork)
-            networkInfo.type = 'mainnet'
-            let network = new Lamden.Network(networkInfo)
-            expect(network.mainnet).to.be(true);
-            expect(network.testnet).to.be(false);
-            expect(network.mockchain).to.be(false);
 
-        })
-        it('sets testnet flag', () => {
-            let networkInfo = copyObject(goodNetwork)
-            networkInfo.type = 'testnet'
-            let network = new Lamden.Network(networkInfo)
-            expect(network.mainnet).to.be(false);
-            expect(network.testnet).to.be(true);
-            expect(network.mockchain).to.be(false);
-
-        })
-        it('sets mockchain flag', () => {
-            let networkInfo = copyObject(goodNetwork)
-            networkInfo.type = 'mockchain'
-            let network = new Lamden.Network(networkInfo)
-            expect(network.mainnet).to.be(false);
-            expect(network.testnet).to.be(false);
-            expect(network.mockchain).to.be(true);
-
-        })
         it('rejects missing hosts Array', () => {
             let error;
             try{
@@ -75,23 +46,11 @@ describe('Test Netowrk class', () => {
             } catch (e) {error = e}
             expect(error.message).to.be('Host String must include http:// or https://')
         })
-        it('rejects missing type string', () => {
-            let error;
-            try{
-                let networkInfo = copyObject(goodNetwork)
-                networkInfo.type = ''
-                new Lamden.Network(networkInfo)
-            } catch (e) {error = e}
-            expect(error.message).to.be('Network Type Required (Type: String)')
-        })
-        it('rejects invalid type string', () => {
-            let error;
-            try{
-                let networkInfo = copyObject(goodNetwork)
-                networkInfo.type = 'badtype'
-                new Lamden.Network(networkInfo)
-            } catch (e) {error = e}
-            expect(error.message).to.be(`Error: badtype not in Lamden Network Types: ["mockchain","testnet","mainnet"]`)
+        it('defaults missing type to custom', () => {
+            let networkInfo = copyObject(goodNetwork)
+            networkInfo.type = ''
+            let network = new Lamden.Network(networkInfo)
+            expect(network.type).to.be("custom");
         })
         it('rejects arg not being an object', () => {
             let error;
