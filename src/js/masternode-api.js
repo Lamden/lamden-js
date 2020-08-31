@@ -1,6 +1,6 @@
 import validators from 'types-validate-assert'
 const { validateTypes } = validators;
-const fetch = require('node-fetch');
+const fetch = require('node-fetch').default;
 
 export class LamdenMasterNode_API{
     constructor(networkInfoObj){

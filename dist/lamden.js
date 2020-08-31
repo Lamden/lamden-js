@@ -2388,7 +2388,7 @@ class EventEmitter {
     }
 
 const { validateTypes } = validators;
-const fetch = require('node-fetch');
+const fetch = require('node-fetch').default;
 
 class LamdenMasterNode_API{
     constructor(networkInfoObj){
