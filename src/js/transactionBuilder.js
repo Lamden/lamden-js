@@ -265,7 +265,7 @@ export class TransactionBuilder extends Network {
     setPendingBlockInfo(){
         this.resultInfo =  {
             title: 'Transaction Pending',
-            subtitle: 'Your transaction was submitted and is is being processed',
+            subtitle: 'Your transaction was submitted and is being processed',
             message: `Tx Hash: ${this.txHash}`,
             type: 'success',
         }

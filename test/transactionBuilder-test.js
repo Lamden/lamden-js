@@ -180,7 +180,7 @@ describe('Test TransactionBuilder class', () => {
             let resultInfo = newTx1.resultInfo;
 
             expect(resultInfo.title).to.equal('Transaction Pending')
-            expect(resultInfo.subtitle).to.equal('Your transaction was submitted and is is being processed')
+            expect(resultInfo.subtitle).to.equal('Your transaction was submitted and is being processed')
             expect(resultInfo.message).to.equal(`Tx Hash: ${newTx1.txSendResult.hash}`)
             expect(resultInfo.type).to.equal('success')
         })
