@@ -2430,7 +2430,6 @@ class LamdenMasterNode_API{
                     return callback(json, undefined)
             })
             .catch(err => {
-                    console.log(err);
                     return callback(undefined, err.toString())
                 })
     }
@@ -2458,6 +2457,7 @@ class LamdenMasterNode_API{
 
         let path = `/contracts/${contract}/${variable}/`;
         return this.send('GET', path, {parms}, (res, err) => {
+            if (err) return null;
             try{
                 if (res.value) return res.value
             } catch (e){}
@@ -2489,8 +2489,10 @@ class LamdenMasterNode_API{
 
     async getCurrencyBalance(vk){
         let balanceRes = await this.getVariable('currency', 'balances', vk);
+        if (!balanceRes) return 0;
         if (isNaN(parseFloat(balanceRes))){
-            return 0;
+          if (balanceRes.__fixed__) return parseFloat(balanceRes.__fixed__)
+          return 0;
         }
         return parseFloat(balanceRes)
     }
@@ -2971,7 +2973,7 @@ const Encoder = (type, value) => {
     };
     const encodeFloat = () => {
         if (isNaN(parseFloat(value))) throwError();
-        else return parseFloat(value)
+        else return {"__fixed__": String(parseFloat(value))}
     };
     const encodeBool = () => {
         if (isBoolean()) return value

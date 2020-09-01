@@ -5,7 +5,7 @@ const { Masternode_API, wallet } = Lamden;
 let goodNetwork = {
     type: 'testnet',
     name: 'Lamden Public Testnet', 
-    hosts: ['http://167.172.126.5:18080']
+    hosts: ['https://testnet-master-1.lamden.io:443'] 
 }
 let goodNetwork_api = new Masternode_API(goodNetwork)
 
@@ -147,7 +147,7 @@ describe('Test Masternode API returns', () => {
         it('returns undefined if provided network is unresponsive', async () => {
             let key = keyPair.vk;
             let response = await badNetwork_api.getVariable('currency', 'balances', key)
-            expect(response).to.be(undefined);
+            expect(response).to.be(null);
         })
     })
 

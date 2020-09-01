@@ -51,13 +51,13 @@ describe('Test Type Encoder', () => {
     })
     context('Floats', () => {
         it('encodes a float from an float', () => {
-            expect( Encoder('float', 1.5) ).to.be( 1.5 )
+            expect( JSON.stringify(Encoder('float', 1.5)) ).to.be( JSON.stringify({"__fixed__": "1.5"}) )
         })
         it('encodes a float from a integer', () => {
-            expect( Encoder('float', 1 ) ).to.be( 1.0 )
+            expect( JSON.stringify(Encoder('float', 1 )) ).to.be( JSON.stringify({"__fixed__": "1"}) )
         })
         it('encodes a integer from a string', () => {
-            expect( Encoder('float', '1.5' ) ).to.be( 1.5 )
+            expect( JSON.stringify(Encoder('float', '1.5' )) ).to.be( JSON.stringify({"__fixed__": "1.5"}) )
         })
         it('fails to encode non-float values', () => {
             expect(() => Encoder('float', true)).to.throwError();

@@ -4,9 +4,9 @@ const Lamden = require('../dist/lamden');
 let goodNetwork = {
     type: 'testnet',
     name: 'Lamden Public Testnet', 
-    hosts: ['http://167.172.126.5:18080'],
+    hosts: ['https://testnet-master-1.lamden.io:443'] ,
     lamden: true,
-    blockExplorer: 'https://explorer.lamden.io'
+    blockExplorer: 'https://testnet.lamden.io'
 }
 
 function copyObject(object){

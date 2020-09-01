@@ -6,7 +6,7 @@ const Lamden = require('../dist/lamden');
 let goodNetwork = {
     type: 'testnet',
     name: 'Lamden Public Testnet', 
-    hosts: ['http://167.172.126.5:18080'] 
+    hosts: ['https://testnet-master-1.lamden.io:443'] 
 }
 
 let badNetwork = {
@@ -18,8 +18,8 @@ let badNetwork = {
 let uid = "randomUIDstring"
 
 const senderWallet = {
-    vk: "960c002a36c30c3aec8bc670e9b8b40eebcfd545f4e9237579fd7395a21ccebb",
-    sk: "c8a3c5333aa3b058c4fa16d48db52355ab62ddc8daa9a183706a912e522440b6"
+    vk: "d41b8ed0d747ca6dfacdc58b78e1dba86cd9616359014eebd5f3443509111120",
+    sk: "741bdfcaa503ab270dcf008d69211aa297197a12be286e92439ab092ee215d28"
 }
 let recieverWallet = Lamden.wallet.new_wallet()
 
@@ -71,7 +71,6 @@ describe('Test TransactionBuilder class', () => {
                 try{
                     return new Lamden.TransactionBuilder(networkInfo, txInfo)
                 }catch (e){
-                    console.log(`        o - ${e.message}`)
                     expect(e.message.includes(argName)).to.be(true);
                 }
             }
@@ -160,7 +159,7 @@ describe('Test TransactionBuilder class', () => {
         let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
 
         it('Sends a transaction and recevies a hash back', async function () {
-            await newTx1.getNonce(() => console.log('done nonce'));
+            await newTx1.getNonce();
             //Sign transaction
             newTx1.sign(senderWallet.sk)
 

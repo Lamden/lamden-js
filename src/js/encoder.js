@@ -23,7 +23,7 @@ const Encoder = (type, value) => {
     }
     const encodeFloat = () => {
         if (isNaN(parseFloat(value))) throwError()
-        else return parseFloat(value)
+        else return {"__fixed__": String(parseFloat(value))}
     }
     const encodeBool = () => {
         if (isBoolean()) return value
