@@ -169,18 +169,19 @@ export class TransactionBuilder extends Network {
         let timestamp =  new Date().toUTCString();
         this.nonceResult = await this.API.getNonce(this.sender)
         if (typeof this.nonceResult.nonce === 'undefined'){
-            throw new Error(`Unable to get nonce for ${this.sender} on network ${this.url}`)
+            throw new Error(this.nonceResult)
         }
         this.nonceResult.timestamp = timestamp;
         this.nonce = this.nonceResult.nonce;
         this.processor = this.nonceResult.processor;
+        this.nonceMasternode = this.nonceResult.masternode
         //Create payload object
         this.makePayload()
 
         if (!callback) return this.nonceResult;
         return callback(this.nonceResult)
     }
-    async send(sk = undefined, callback = undefined) {
+    async send(sk = undefined, masternode = undefined, callback = undefined) {
         //Error if transaction is not signed and no sk provided to the send method to sign it before sending
         if (!validateTypes.isStringWithValue(sk) && !this.transactionSigned){
             throw new Error(`Transation Not Signed: Private key needed or call sign(<private key>) first`);
@@ -196,7 +197,9 @@ export class TransactionBuilder extends Network {
             //Serialize transaction
             this.makeTransaction();
             //Send transaction to the masternode
-            let response = await this.API.sendTransaction(this.tx)
+            let masternodeURL = masternode
+            if (!masternodeURL && this.nonceMasternode) masternodeURL = this.nonceMasternode
+            let response = await this.API.sendTransaction(this.tx, masternodeURL)
             //Set error if txSendResult doesn't exist
             if (response === 'undefined' || validateTypes.isStringWithValue(response)){
                 this.txSendResult.errors = ['TypeError: Failed to fetch']

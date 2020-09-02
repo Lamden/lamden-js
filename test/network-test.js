@@ -55,7 +55,7 @@ describe('Test Netowrk class', () => {
         it('rejects arg not being an object', () => {
             let error;
             try{
-                new Lamden.Network('https://testnet.lamden.io:443')
+                new Lamden.Network('https://testnet-master-1.lamden.io:443')
             } catch (e) {error = e}
             expect(error.message).to.be('Expected Network Info Object and got Type: string')
         })

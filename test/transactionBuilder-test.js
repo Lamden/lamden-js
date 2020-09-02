@@ -26,7 +26,7 @@ let recieverWallet = Lamden.wallet.new_wallet()
 let senderVk = senderWallet.vk
 let contractName = 'currency'
 let methodName = 'transfer'
-let stampLimit = 100000
+let stampLimit = 100
 let nonce = 0;
 let processor = "0000000000000000000000000000000000000000000000000000000000000000";
 
@@ -116,7 +116,7 @@ describe('Test TransactionBuilder class', () => {
     })
 
     context('TransactionBuilder.getNonce()', () => {
-        it('can retieve nonce and processor from the masternode', async () => {
+        it('can retrieve nonce and processor from the masternode', async () => {
             let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
             expect(newTx.nonce).to.not.exist
             expect(newTx.processor).to.not.exist
@@ -130,6 +130,7 @@ describe('Test TransactionBuilder class', () => {
             expect(newTx.nonce).to.be(response.nonce)
             expect(newTx.processor).to.be(response.processor)
             expect(newTx.sender).to.be(response.sender)
+            expect(goodNetwork.hosts.includes(newTx.nonceMasternode)).to.be(true)
 
         })
         it('throws error if vk is not correct type, missing or invalid', async () => {
@@ -141,7 +142,7 @@ describe('Test TransactionBuilder class', () => {
                 } catch (e){
                     error = e.message
                 }
-                expect(error).to.be(`Unable to get nonce for ${newTx.sender} on network ${newTx.url}`)
+                expect(error).to.be(`${newTx.sender} is not a hex string.`)
         })
         it('throws error if provided network is unresponsive', async () => {
             let error = ''
@@ -158,7 +159,7 @@ describe('Test TransactionBuilder class', () => {
     context('TransactionBuilder.send()', () => {
         let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
 
-        it('Sends a transaction and recevies a hash back', async function () {
+        it('Sends a transaction and receives a hash back', async function () {
             await newTx1.getNonce();
             //Sign transaction
             newTx1.sign(senderWallet.sk)

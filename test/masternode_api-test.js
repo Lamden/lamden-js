@@ -24,7 +24,7 @@ function copyObject(object){
 let keyPair = wallet.new_wallet()
 
 const balanceCheckWallet = {
-    vk: 'd41b8ed0d747ca6dfacdc58b78e1dba86cd9616359014eebd5f3443509111120'
+    vk: '960c002a36c30c3aec8bc670e9b8b40eebcfd545f4e9237579fd7395a21ccebb'
 }
 
 describe('Test Masternode API returns', () => {
@@ -127,7 +127,7 @@ describe('Test Masternode API returns', () => {
         it('returns the value of the variable if the key exists', async () => {
             let key = balanceCheckWallet.vk;
             let response = await goodNetwork_api.getVariable('currency', 'balances', key)
-            expect(response).to.be.above(0);
+            expect(parseFloat(response.__fixed__)).to.be.above(0);
         })
         it('returns undefined if the key does not exist in the variable', async () => {
             let key = wallet.new_wallet().vk;
@@ -196,7 +196,7 @@ describe('Test Masternode API returns', () => {
         })
         it('returns an error message if provided network is unresponsive', async () => {
             let error = await badNetwork_api.getNonce(keyPair.vk)
-            expect(error.includes(`Unable to get nonce for "${keyPair.vk}"`)).to.be(true)
+            expect(error.includes(`Unable to get nonce for ${keyPair.vk}`)).to.be(true)
         })
     })
 })

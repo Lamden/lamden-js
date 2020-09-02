@@ -7,8 +7,8 @@
     "test": "npm run build && mocha",
     "tests": "npm run test",
     "test-network": "npm run build && mocha test/network-test.js",
-    "test-masternode_api": "npm run build && mocha test/masternode_api-test.js",
-    "test-transactionBuilder": "npm run build && mocha test/transactionBuilder-test.js --timeout 10000",
+    "test-masternode-api": "npm run build && mocha test/masternode_api-test.js",
+    "test-transaction-builder": "npm run build && mocha test/transactionBuilder-test.js --timeout 10000",
     "test-wallet": "npm run build && mocha test/wallet-test.js",
     "test-encoder": "npm run build && mocha test/encoder-test.js",
     "build": "rollup --config"

@@ -2406,9 +2406,11 @@ class LamdenMasterNode_API{
     validateHosts(hosts){
         return hosts.map(host => this.vaidateProtocol(host.toLowerCase()))
     }
+
     get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
     get url() {return this.host}
-    send(method, path, data, callback){
+
+    send(method, path, data, overrideURL, callback){
         let parms = '';
         if (Object.keys(data).includes('parms')) {
             parms = this.createParms(data.parms);
@@ -2422,7 +2424,7 @@ class LamdenMasterNode_API{
             options.body = data;
         }
 
-        return fetch(`${this.url}${path}${parms}`, options)
+        return fetch(`${overrideURL ? overrideURL : this.url}${path}${parms}`, options)
             .then(res => {
                 return res.json()
             } )
@@ -2445,7 +2447,7 @@ class LamdenMasterNode_API{
 
     async getContractInfo(contractName){
         let path = `/contracts/${contractName}`;
-        return this.send('GET', path, {}, (res, err) => {
+        return this.send('GET', path, {}, undefined, (res, err) => {
             if (err) return;
             return res
         })
@@ -2456,7 +2458,7 @@ class LamdenMasterNode_API{
         if (validateTypes.isStringWithValue(key)) parms.key = key;
 
         let path = `/contracts/${contract}/${variable}/`;
-        return this.send('GET', path, {parms}, (res, err) => {
+        return this.send('GET', path, {parms}, undefined, (res, err) => {
             if (err) return null;
             try{
                 if (res.value) return res.value
@@ -2467,7 +2469,7 @@ class LamdenMasterNode_API{
 
     async getContractMethods(contract){
         let path = `/contracts/${contract}/methods`;
-        return this.send('GET', path, {}, (res, err) => {
+        return this.send('GET', path, {}, undefined, (res, err) => {
             try{
                 if (res.methods) return res.methods
             } catch (e){}
@@ -2477,7 +2479,7 @@ class LamdenMasterNode_API{
     }
 
     async pingServer(){
-        return this.send('GET', '/ping', {}, (res, err) => {
+        return this.send('GET', '/ping', {}, undefined, (res, err) => {
             try { 
                 if (res.status === 'online') return true;
             } 
@@ -2499,7 +2501,7 @@ class LamdenMasterNode_API{
 
     async contractExists(contractName){
         let path = `/contracts/${contractName}`;
-        return this.send('GET', path, {}, (res, err) => {
+        return this.send('GET', path, {}, undefined, (res, err) => {
             try{
                 if (res.name) return true;
             } catch (e){}
@@ -2507,8 +2509,8 @@ class LamdenMasterNode_API{
         })
     }
 
-    async sendTransaction(data, callback){
-        return this.send('POST', '/', JSON.stringify(data), (res, err) => {
+    async sendTransaction(data, url = undefined, callback){
+        return this.send('POST', '/', JSON.stringify(data), url, (res, err) => {
             if (err){
                 if (callback) {
                     callback(undefined, err);
@@ -2527,14 +2529,16 @@ class LamdenMasterNode_API{
     async getNonce(sender, callback){
         if (!validateTypes.isStringHex(sender)) return `${sender} is not a hex string.`
         let path = `/nonce/${sender}`; 
-        return this.send('GET', path, {}, (res, err) => {
+        let url = this.host;
+        return this.send('GET', path, {}, url, (res, err) => {
             if (err){
                 if (callback) {
-                    callback(undefined, `Unable to get nonce for "${sender}". ${err}`);
+                    callback(undefined, `Unable to get nonce for ${sender} on network ${url}`);
                     return
                 } 
-                return `Unable to get nonce for "${sender}". ${err}`
+                return `Unable to get nonce for ${sender} on network ${url}`
             }
+            res.masternode = url;
             if (callback) {
                 callback(res, undefined);
                 return
@@ -2545,7 +2549,7 @@ class LamdenMasterNode_API{
 
     async checkTransaction(hash, callback){
         const parms = {hash};
-        return this.send('GET', '/tx', {parms}, (res, err) => {
+        return this.send('GET', '/tx', {parms}, undefined, (res, err) => {
             if (err){
                 if (callback) {
                     callback(undefined, err);
@@ -2791,18 +2795,19 @@ class TransactionBuilder extends Network {
         let timestamp =  new Date().toUTCString();
         this.nonceResult = await this.API.getNonce(this.sender);
         if (typeof this.nonceResult.nonce === 'undefined'){
-            throw new Error(`Unable to get nonce for ${this.sender} on network ${this.url}`)
+            throw new Error(this.nonceResult)
         }
         this.nonceResult.timestamp = timestamp;
         this.nonce = this.nonceResult.nonce;
         this.processor = this.nonceResult.processor;
+        this.nonceMasternode = this.nonceResult.masternode;
         //Create payload object
         this.makePayload();
 
         if (!callback) return this.nonceResult;
         return callback(this.nonceResult)
     }
-    async send(sk = undefined, callback = undefined) {
+    async send(sk = undefined, masternode = undefined, callback = undefined) {
         //Error if transaction is not signed and no sk provided to the send method to sign it before sending
         if (!validateTypes$2.isStringWithValue(sk) && !this.transactionSigned){
             throw new Error(`Transation Not Signed: Private key needed or call sign(<private key>) first`);
@@ -2818,7 +2823,9 @@ class TransactionBuilder extends Network {
             //Serialize transaction
             this.makeTransaction();
             //Send transaction to the masternode
-            let response = await this.API.sendTransaction(this.tx);
+            let masternodeURL = masternode;
+            if (!masternodeURL && this.nonceMasternode) masternodeURL = this.nonceMasternode;
+            let response = await this.API.sendTransaction(this.tx, masternodeURL);
             //Set error if txSendResult doesn't exist
             if (response === 'undefined' || validateTypes$2.isStringWithValue(response)){
                 this.txSendResult.errors = ['TypeError: Failed to fetch'];
