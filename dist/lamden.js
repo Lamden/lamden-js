@@ -3101,9 +3101,9 @@ const Encoder = (type, value) => {
         if (isNaN(parseFloat(value))) throwError();
 
         else {
-            let strFloat =  String(parseFloat(value));
-            if (countDecimals() === 0) strFloat = strFloat + ".0";
-            return {"__fixed__": strFloat}
+            value = parseFloat(value);
+            if (countDecimals() === 0) return parseInt(value)
+            else return {"__fixed__": String(parseFloat(value))}
         }
     };
     const encodeBool = () => {

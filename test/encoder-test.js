@@ -53,8 +53,11 @@ describe('Test Type Encoder', () => {
         it('encodes a float from an float', () => {
             expect( JSON.stringify(Encoder('float', 1.5)) ).to.be( JSON.stringify({"__fixed__": "1.5"}) )
         })
-        it('encodes a float from a integer', () => {
-            expect( JSON.stringify(Encoder('float', 1 )) ).to.be( JSON.stringify({"__fixed__": "1.0"}) )
+        it('encodes a float to integer', () => {
+            expect( Encoder('float', 1 ) ).to.be( 1 )
+        })
+        it('encodes a float with zeros as decimals to an integer', () => {
+            expect( Encoder('float', 1.00 ) ).to.be( 1 )
         })
         it('encodes a integer from a string', () => {
             expect( JSON.stringify(Encoder('float', '1.5' )) ).to.be( JSON.stringify({"__fixed__": "1.5"}) )
