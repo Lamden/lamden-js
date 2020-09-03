@@ -20,6 +20,15 @@ let recieverWallet = {
     vk: 'f16c130ceb7ed9bcebde301488cfd507717d5d511674bc269c39ad41fc15d780'
 }
 
+function sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+      currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
+  }
+  
+
 const makeTxList = (senderVK, receiver, amount) => {
     let txList = []
     for(i = 0; i <= (amount - 1); i++){
@@ -122,7 +131,8 @@ describe('Test TransactionBuilder class', () => {
         })
     })
     context('TransactionBatcher.sendBatch()', () => {
-        it('can send a batch of successful transactions', async () => {
+        it('can send a batch of successful transactions', async function () {
+            this.timeout(30000);
             let txb = new Lamden.TransactionBatcher(networkInfo)
             let response = await txb.getStartingNonce(senderWallet1.vk)
 
@@ -144,7 +154,9 @@ describe('Test TransactionBuilder class', () => {
     })
 
     context('TransactionBatcher.sendAllBatches()', () => {
-        it('Can send batches from all senders', async () => {
+        it('Can send batches from all senders', async function () {
+            this.timeout(30000);
+            sleep(1500)
             let txb = new Lamden.TransactionBatcher(networkInfo)
             const txList1 = makeTxList(senderWallet1.vk, recieverWallet.vk, 15)
             const txList2 = makeTxList(senderWallet2.vk, recieverWallet.vk, 15)
@@ -160,7 +172,9 @@ describe('Test TransactionBuilder class', () => {
 
             expect(txb.hasTransactions()).to.be(false)
         })
-        it('Can process overflow', async () => {
+        it('Can process overflow', async function () {
+            this.timeout(30000);
+            sleep(1500)
             let txb = new Lamden.TransactionBatcher(networkInfo)
             const txList1 = makeTxList(senderWallet1.vk, recieverWallet.vk, 1)
             const txList2 = makeTxList(senderWallet2.vk, recieverWallet.vk, 1)
@@ -178,7 +192,7 @@ describe('Test TransactionBuilder class', () => {
             expect(txb.hasTransactions()).to.be(true)
 
             let sentBatchs2 = await txb.sendAllBatches(keyList)
-
+            sleep(1500)
             sentBatchs2.forEach(txBuilder => {
                 if (!txBuilder.txSendResult.hash) console.log(txBuilder.nonce + ": " + txBuilder.txSendResult.errors)
                 expect(typeof txBuilder.txSendResult.hash === 'string').to.be(true)
