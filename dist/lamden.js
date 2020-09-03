@@ -3093,8 +3093,18 @@ const Encoder = (type, value) => {
         else return parseInt(value)
     };
     const encodeFloat = () => {
+        const countDecimals = () => {
+            if(Math.floor(value) === value) return 0;
+            return value.toString().split(".")[1].length || 0; 
+        };
+
         if (isNaN(parseFloat(value))) throwError();
-        else return {"__fixed__": String(parseFloat(value))}
+
+        else {
+            let strFloat =  String(parseFloat(value));
+            if (countDecimals() === 0) strFloat = strFloat + ".0";
+            return {"__fixed__": strFloat}
+        }
     };
     const encodeBool = () => {
         if (isBoolean()) return value

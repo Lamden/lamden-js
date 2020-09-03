@@ -54,7 +54,7 @@ describe('Test Type Encoder', () => {
             expect( JSON.stringify(Encoder('float', 1.5)) ).to.be( JSON.stringify({"__fixed__": "1.5"}) )
         })
         it('encodes a float from a integer', () => {
-            expect( JSON.stringify(Encoder('float', 1 )) ).to.be( JSON.stringify({"__fixed__": "1"}) )
+            expect( JSON.stringify(Encoder('float', 1 )) ).to.be( JSON.stringify({"__fixed__": "1.0"}) )
         })
         it('encodes a integer from a string', () => {
             expect( JSON.stringify(Encoder('float', '1.5' )) ).to.be( JSON.stringify({"__fixed__": "1.5"}) )
