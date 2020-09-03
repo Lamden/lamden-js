@@ -163,7 +163,6 @@ export class TransactionBuilder extends Network {
             orderedObj, 
             json: JSON.stringify(orderedObj)
         }
-
     }
     async getNonce(callback = undefined) {
         let timestamp =  new Date().toUTCString();
@@ -318,6 +317,7 @@ export class TransactionBuilder extends Network {
             uid: this.uid,
             txHash: this.txHash,
             signed: this.transactionSigned,
+            tx: this.tx,
             signature: this.signature,
             networkInfo: this.getNetworkInfo(),
             txInfo: this.getTxInfo(),
