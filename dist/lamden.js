@@ -3192,12 +3192,24 @@ const Encoder = (type, value) => {
     else throw new Error(`Error: ${type} is not a valid encoder type.`)
 };
 
-Encoder.stringify = (value) => {
+Encoder.encodeKwargs = (value) => {
     const encode = (key, value) => {
+        if (key === "datetime" || key === "datetime.datetime") return Encoder("datetime.datetime", value)
+        if (key === "timedelta" || key === "datetime.timedelta") return Encoder("datetime.timedelta", value)
         return Encoder(typeof value, value)
     };
 
-    return JSON.stringify(value, encode)
+    const fixDatetime = (key, value) => {
+        //console.log({key, value, numValueKeys:})
+        if (Object.keys(value).length === 1 && typeof value['datetime.datetime'] !== 'undefined') return value['datetime.datetime']
+        if (Object.keys(value).length === 1 && typeof value['datetime'] !== 'undefined') return value['datetime']
+        if (Object.keys(value).length === 1 && typeof value['datetime.timedelta'] !== 'undefined') return value['datetime.timedelta']
+        if (Object.keys(value).length === 1 && typeof value['timedelta'] !== 'undefined') return value['timedelta']
+        return value
+    };
+
+    let encodeValues = JSON.stringify(value, encode);
+    return JSON.parse(encodeValues, fixDatetime)
 };
 
 var encoder = {

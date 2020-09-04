@@ -35,6 +35,25 @@ let kwargs = {
     amount: 1
 }
 
+let valuesTxInfo = {
+    senderVk: senderWallet.vk,
+    contractName: 'con_values_testing',
+    methodName: 'test_values',
+    stampLimit: 100,
+    kwargs: {
+        UID: 'lamdenjs-testing',
+        Str: 'test string',
+        Int: 1,
+        Float: 1.01,
+        Bool: false,
+        Dict: {'s':'test', 'i': 1, 'f': 1.1, 'b': true,'d':{'f':1.1,'l':[1,1.1]},'l':[1,1.1]},
+        List: ['test', 1, 1.1, false, {'f':1.1,'l':[1,1.1]}, [1,1.1]],
+        ANY: {'f':1.1,'l':[1,1.1]},
+        DateTime: {'datetime': "2020-07-28T19:16:35.059Z"},
+        TimeDelta: {'timedelta':1000}
+    }
+}
+
 let txInfo_noNonce = {uid, senderVk, contractName, methodName, kwargs, stampLimit }
 let txInfo_withNonce = {uid, senderVk, contractName, methodName, kwargs, stampLimit, nonce, processor }
 
@@ -256,6 +275,20 @@ describe('Test TransactionBuilder class', () => {
             let response = await newTx.send(sender.sk);
             expect(response.errors.length > 0).to.be(true)
             expect(response.errors[0]).to.be('Transaction sender has too few stamps for this transaction.')
+        })
+        it('can encode and send all annotation types', async function () {
+            this.timeout(15000);
+            valuesTxInfo.kwargs = Lamden.Encoder.encodeKwargs(valuesTxInfo.kwargs)
+
+            let newTx = new Lamden.TransactionBuilder(goodNetwork, valuesTxInfo)
+
+            //Send Transaction
+            let response = await newTx.send(senderWallet.sk);
+            expect(response.success).to.be("Transaction successfully submitted to the network.")
+            
+            //Check Transaction
+            let check = await newTx.checkForTransactionResult()
+            expect(check.status).to.be(0)
         })
     })
 })    
