@@ -1,144 +1,161 @@
-const Encoder = (type, value) => {
-    const throwError = () => {
-        throw new Error(`Error encoding ${value} to ${type}`)
-    }
-    const isString = () => {
-        return typeof value === 'string' || value instanceof String;
-    }
-    const isArray = () => {
-        return value && typeof value === 'object' && value.constructor === Array;
-    }
-    const isObject = () => {
-        return value && typeof value === 'object' && value.constructor === Object;
-    }
-    const isDate = () => {
-        return value instanceof Date; 
-    }
-    const isBoolean = () => {
-        return typeof value === 'boolean';
-    }
-    const encodeInt = () => {
-        if (isNaN(parseInt(value))) throwError()
-        else return parseInt(value)
-    }
-    const encodeFloat = () => {
-        const countDecimals = () => {
-            if(Math.floor(value) === value) return 0;
-            return value.toString().split(".")[1].length || 0; 
-        }
 
-        if (isNaN(parseFloat(value))) throwError()
 
-        else {
-            value = parseFloat(value)
-            if (countDecimals() === 0) return parseInt(value)
-            else return {"__fixed__": String(parseFloat(value))}
-        }
+function Encoder (type, value) {
+    const throwError = (val) => {
+        throw new Error(`Error encoding ${val} to ${type}`)
     }
-    const encodeNumber = () => {
-        return encodeFloat();
+    const countDecimals = (n) => {
+        if(Math.floor(n) === n) return 0;
+        return n.toString().split(".")[1].length || 0; 
     }
-    const encodeBool = () => {
-        if (isBoolean()) return value
-        if (value === 'true' || value === 1) return true
-        if (value === 'false' || value === 0) return false
-        throwError()
+    const isString = (val) => typeof val === 'string' || val instanceof String;
+    const isArray = (val) => val && typeof val === 'object' && val.constructor === Array;
+    const isObject = (val) => val && typeof val === 'object' && val.constructor === Object;
+    const isDate = (val) => val instanceof Date;
+    const isBoolean = (val) => typeof val === 'boolean';
+
+    const isNumber = (val) => {
+        if (isArray(val)) return false
+        return !isNaN(parseFloat(val))
     }
-    const encodeStr = () => {
-        if (isString()) return value
-        if (isDate()) return value.toISOString()
-        return JSON.stringify(value)
+
+    const isInteger = (val) => {
+        if (!isNumber(val)) return false
+        if (countDecimals(val) === 0) return true
+        return false
     }
-    const encodeDateTime = () => {
-        value = !isDate() ? new Date(value) : value
-        if (!isDate()) throwError()
+    const encodeInt = (val) => {
+        if (!isNumber(val)) throwError(val)
+        else return parseInt(val)
+    }
+    const isFloat = (val) => {
+        if (!isNumber(val)) return false
+        if (countDecimals(val) === 0) return false
+        return true
+    }
+    const encodeFloat = (val) => {
+        if(!isNumber(val)) throwError(val)
+        if (isFloat(val)) return {"__fixed__": String(parseFloat(val))}
+        if (isInteger(val)) return parseInt(val)        
+    }
+    const encodeNumber = (val) => encodeFloat(val)
+
+    const encodeBool = (val) => {
+        if (isBoolean(val)) return val
+        if (val === 'true' || val === 1) return true
+        if (val === 'false' || val === 0) return false
+        throwError(val)
+    }
+    const encodeStr = (val) => {
+        if (isString(val)) return val
+        if (isDate(val)) return val.toISOString()
+        return JSON.stringify(val)
+    }
+    const encodeDateTime = (val) => {
+        val = !isDate(val) ? new Date(val) : val
+        if (!isDate(val)) throwError(val)
         return [
-            value.getUTCFullYear(), 
-            value.getUTCMonth(), 
-            value.getUTCDate(), 
-            value.getUTCHours(), 
-            value.getUTCMinutes(), 
-            value.getUTCSeconds(), 
-            value.getUTCMilliseconds()
+            val.getUTCFullYear(), 
+            val.getUTCMonth(), 
+            val.getUTCDate(), 
+            val.getUTCHours(), 
+            val.getUTCMinutes(), 
+            val.getUTCSeconds(), 
+            val.getUTCMilliseconds()
         ]
     }
-    const encodeTimeDelta = () => {
-        const time = isDate() ? value.getTime() : new Date(value).getTime()
+    const encodeTimeDelta = (val) => {
+        const time = isDate(val) ? val.getTime() : new Date(val).getTime()
         const days = parseInt(time  / 1000 / 60 / 60 / 24)
         const seconds = (time - (days * 24 * 60 * 60 * 1000)) / 1000
         return [days, seconds]
     }
 
-    const encodeList = () => {
-        if (isArray()) return value
+    const encodeList = (val) => {
+        if (isArray(val)) return parseObject(val)
         try{
-            value = JSON.parse(value)
+            val = JSON.parse(val)
         }catch(e){
-            throwError()
+            throwError(val)
         }
-        if (isArray()) return value
-        throwError()
+        if (isArray(val)) return parseObject(val)
+        throwError(val)
     }
 
-    const encodeDict = () => {
-        if (isObject()) return value
+    const encodeDict = (val) => {
+        if (isObject(val)) return parseObject(val)
         try{
-            value = JSON.parse(value)
+            val = JSON.parse(val)
         }catch(e){
-            throwError()
+            throwError(val)
         }
-        if (isObject()) return value
-        throwError()
+        if (isObject(val)) return parseObject(val)
+        throwError(val)
     }
 
-    const encodeObject = () => {
+    const encodeObject = (val) => {
         try {
-            return encodeList()
+            return encodeList(val)
         }catch(e){
-            return encodeDict()
+            return encodeDict(val)
         }
+    }
+
+    function parseObject (obj) {
+        const encode = (k, v) => {
+            if (k === "datetime" || k === "datetime.datetime") return Encoder("datetime.datetime", v)
+            if (k === "timedelta" || k === "datetime.timedelta") return Encoder("datetime.timedelta", v)
+            if (k !== "__fixed__" && isFloat(v)) return encodeFloat(v)
+            return v
+        }
+    
+        const fixDatetime = (k, v) => {
+            const isDatetimeObject = (val) => {
+                let datetimeTypes = ['datetime.datetime', 'datetime', 'datetime.timedelta', 'timedelta']
+                return Object.keys(val).length === 1 && datetimeTypes.filter(f => f === Object.keys(val)[0]).length > 0
+
+            }
+
+            if (v.constructor === Array) {
+                v.map(val => {
+                    if (Object.keys(val).length === 1 && isDatetimeObject(v)) return val[Object.keys(val)[0]]
+                    //if (isFloat(val)) return encodeFloat(val)
+                    return val
+                })
+            }
+            if (v.constructor === Object) {
+                if (Object.keys(v).length === 1 && isDatetimeObject(v)) return v[Object.keys(v)[0]]
+            }
+
+            //if (isFloat(v)) return encodeFloat(v)
+
+            return v
+        }
+    
+        let encodeValues = JSON.stringify(obj, encode)
+        return JSON.parse(encodeValues, fixDatetime)
     }
 
     const encoder = {
-        str: () => encodeStr(),
-        string:() => encodeStr(),
-        float: () => encodeFloat(),
-        int: () => encodeInt(),
-        bool: () => encodeBool(),
-        boolean: () => encodeBool(),
-        dict: () => encodeDict(),
-        list: () => encodeList(),
+        str: encodeStr,
+        string: encodeStr,
+        float: encodeFloat,
+        int: encodeInt,
+        bool: encodeBool,
+        boolean: encodeBool,
+        dict: encodeDict,
+        list: encodeList,
         Any: () => value,
-        "datetime.timedelta": () => encodeTimeDelta(), 
-        "datetime.datetime": () => encodeDateTime(),
-        timedelta: () => encodeTimeDelta(), 
-        datetime: () => encodeDateTime(),
-        number: () => encodeNumber(),
-        object: () => encodeObject()
+        "datetime.timedelta": encodeTimeDelta, 
+        "datetime.datetime": encodeDateTime,
+        timedelta: encodeTimeDelta, 
+        datetime: encodeDateTime,
+        number: encodeNumber,
+        object: encodeObject
     }
     
-    if (Object.keys(encoder).includes(type)) return encoder[type]()
+    if (Object.keys(encoder).includes(type)) return encoder[type](value)
     else throw new Error(`Error: ${type} is not a valid encoder type.`)
-}
-
-Encoder.encodeKwargs = (value) => {
-    const encode = (key, value) => {
-        if (key === "datetime" || key === "datetime.datetime") return Encoder("datetime.datetime", value)
-        if (key === "timedelta" || key === "datetime.timedelta") return Encoder("datetime.timedelta", value)
-        return Encoder(typeof value, value)
-    }
-
-    const fixDatetime = (key, value) => {
-        //console.log({key, value, numValueKeys:})
-        if (Object.keys(value).length === 1 && typeof value['datetime.datetime'] !== 'undefined') return value['datetime.datetime']
-        if (Object.keys(value).length === 1 && typeof value['datetime'] !== 'undefined') return value['datetime']
-        if (Object.keys(value).length === 1 && typeof value['datetime.timedelta'] !== 'undefined') return value['datetime.timedelta']
-        if (Object.keys(value).length === 1 && typeof value['timedelta'] !== 'undefined') return value['timedelta']
-        return value
-    }
-
-    let encodeValues = JSON.stringify(value, encode)
-    return JSON.parse(encodeValues, fixDatetime)
 }
 
 module.exports = {

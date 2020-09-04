@@ -278,7 +278,7 @@ describe('Test TransactionBuilder class', () => {
         })
         it('can encode and send all annotation types', async function () {
             this.timeout(15000);
-            valuesTxInfo.kwargs = Lamden.Encoder.encodeKwargs(valuesTxInfo.kwargs)
+            valuesTxInfo.kwargs = Lamden.Encoder('object', valuesTxInfo.kwargs)
 
             let newTx = new Lamden.TransactionBuilder(goodNetwork, valuesTxInfo)
 

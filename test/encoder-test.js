@@ -89,8 +89,17 @@ describe('Test Type Encoder', () => {
         it('encodes a dict from an Object', () => {
             expect( JSON.stringify(Encoder('dict', {})) ).to.be( JSON.stringify({}) )
         })
-        it('encodes a boolean from a string', () => {
+        it('encodes a dict from a string', () => {
             expect( JSON.stringify(Encoder('dict', '{}')) ).to.be( JSON.stringify({}) )
+        })
+        it('encodes datetime and float inside a dict from a string', () => {
+            expect( JSON.stringify(Encoder('dict', {'datetime':new Date(dateString), 'float': 1.1})) ).to.be( '{"datetime":[2020,6,28,19,16,35,59],"float":{"__fixed__":"1.1"}}' )
+        })
+        it('replaces datetime object with value in dict', () => {
+            expect( JSON.stringify( Encoder('dict', {'DateTime':{'datetime':new Date(dateString)}})) ).to.be('{"DateTime":[2020,6,28,19,16,35,59]}');
+        })
+        it('replaces timedelta object with value in dict', () => {
+            expect( JSON.stringify( Encoder('dict', {'TimeDelta':{'timedelta':1000}})) ).to.be('{"TimeDelta":[0,1]}');
         })
         it('fails to encode non-objects', () => {
             expect(() => Encoder('dict', undefined)).to.throwError();
@@ -103,6 +112,15 @@ describe('Test Type Encoder', () => {
         })
         it('encodes a list from a string', () => {
             expect( JSON.stringify(Encoder('list', '[]')) ).to.be( JSON.stringify([]) )
+        })
+        it('encodes fixed and datetime values in the list', () => {
+            expect( JSON.stringify(Encoder('list', [ 1.1, {'datetime':new Date(dateString)}] )) )
+            .to.be( '[{"__fixed__":"1.1"},[2020,6,28,19,16,35,59]]' )
+        })
+        it('encodes a list of all values and encodes accordingly', () => {
+            let testList = [1, 1.1, "string", {'datetime':new Date(dateString)}, {'timedelta':1000}, {'TimeDelta':{'timedelta':1000}}, true, [1.1]]
+            expect( JSON.stringify(Encoder('list',  testList)) )
+            .to.be( '[1,{"__fixed__":"1.1"},"string",[2020,6,28,19,16,35,59],[0,1],{"TimeDelta":[0,1]},true,[{"__fixed__":"1.1"}]]' )
         })
         it('fails to encode non-list', () => {
             expect(() => Encoder('list', {})).to.throwError();
@@ -153,7 +171,7 @@ describe('Test Type Encoder', () => {
             'datetime.timedelta': millisecondsDelta
         }
         testObj.dict = JSON.parse(JSON.stringify(testObj))
-        let encodedObj = JSON.stringify(Encoder.encodeKwargs(testObj))
+        let encodedObj = JSON.stringify(Encoder('object', testObj))
 
         it('encodes an string', () => {
             expect( encodedObj.includes('"str":"this is a string"') ).to.be(true)
