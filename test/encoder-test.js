@@ -59,7 +59,7 @@ describe('Test Type Encoder', () => {
         it('encodes a float with zeros as decimals to an integer', () => {
             expect( Encoder('float', 1.00 ) ).to.be( 1 )
         })
-        it('encodes a integer from a string', () => {
+        it('encodes a float from a string', () => {
             expect( JSON.stringify(Encoder('float', '1.5' )) ).to.be( JSON.stringify({"__fixed__": "1.5"}) )
         })
         it('fails to encode non-float values', () => {
@@ -139,6 +139,51 @@ describe('Test Type Encoder', () => {
         })
         it('Encodes a millisenconds into days seconds', () => {
             expect( JSON.stringify(Encoder('datetime.timedelta', millisecondsDelta)) ).to.be(JSON.stringify([5, 43200]))
+        })
+    })
+
+    context('Stringify()- Parses object and encodes all values', () => {
+        let testObj = {
+            'integer': 1,
+            'float': 1.1,
+            'list': [1, 1.1, "this is a string", true, [1,2,3,4,5,6,7], [0, 1234567], [1.1], {fixed: 1.1}],
+            'str': "this is a string",
+            'bool': true,
+            'datetime': [1,2,3,4,5,6,7],
+            'timedelta': [0, 1234567]
+        }
+        testObj.dict = JSON.parse(JSON.stringify(testObj))
+        let encodedObj = Encoder.stringify(testObj)
+
+        it('encodes an string', () => {
+            expect( encodedObj.includes('"str":"this is a string"') ).to.be(true)
+        })
+        it('encodes an integer', () => {
+            expect( encodedObj.includes('"integer":1') ).to.be(true)
+        })
+        it('encodes a float', () => {
+            expect( encodedObj.includes('"float":{"__fixed__":"1.1"}') ).to.be(true)
+        })
+        it('encodes an bool', () => {
+            expect( encodedObj.includes('"bool":true') ).to.be(true)
+        })
+        it('encodes an datetime', () => {
+            expect( encodedObj.includes('"datetime":[1,2,3,4,5,6,7]') ).to.be(true)
+        })
+        it('encodes an timedelta', () => {
+            expect( encodedObj.includes('"timedelta":[0,1234567]') ).to.be(true)
+        })
+        it('encodes an list', () => {
+            expect( 
+                encodedObj
+                    .includes('"list":[1,{"__fixed__":"1.1"},"this is a string",true,[1,2,3,4,5,6,7],[0,1234567],[{"__fixed__":"1.1"}],{"fixed":{"__fixed__":"1.1"}}]') )
+                    .to.be(true)
+        })
+        it('encodes a dict/object', () => {
+            expect( 
+                encodedObj
+                    .includes('"dict":{"integer":1,"float":{"__fixed__":"1.1"},"list":[1,{"__fixed__":"1.1"},"this is a string",true,[1,2,3,4,5,6,7],[0,1234567],[{"__fixed__":"1.1"}],{"fixed":{"__fixed__":"1.1"}}],"str":"this is a string","bool":true,"datetime":[1,2,3,4,5,6,7],"timedelta":[0,1234567]}') )
+                    .to.be(true)
         })
     })
 })

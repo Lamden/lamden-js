@@ -3106,6 +3106,9 @@ const Encoder = (type, value) => {
             else return {"__fixed__": String(parseFloat(value))}
         }
     };
+    const encodeNumber = () => {
+        return encodeFloat();
+    };
     const encodeBool = () => {
         if (isBoolean()) return value
         if (value === 'true' || value === 1) return true
@@ -3159,11 +3162,21 @@ const Encoder = (type, value) => {
         throwError();
     };
 
+    const encodeObject = () => {
+        try {
+            return encodeList()
+        }catch(e){
+            return encodeDict()
+        }
+    };
+
     const encoder = {
         str: () => encodeStr(),
+        string:() => encodeStr(),
         float: () => encodeFloat(),
         int: () => encodeInt(),
         bool: () => encodeBool(),
+        boolean: () => encodeBool(),
         dict: () => encodeDict(),
         list: () => encodeList(),
         Any: () => value,
@@ -3171,10 +3184,20 @@ const Encoder = (type, value) => {
         "datetime.datetime": () => encodeDateTime(),
         timedelta: () => encodeTimeDelta(), 
         datetime: () => encodeDateTime(),
+        number: () => encodeNumber(),
+        object: () => encodeObject()
     };
-
+    
     if (Object.keys(encoder).includes(type)) return encoder[type]()
     else throw new Error(`Error: ${type} is not a valid encoder type.`)
+};
+
+Encoder.stringify = (value) => {
+    const encode = (key, value) => {
+        return Encoder(typeof value, value)
+    };
+
+    return JSON.stringify(value, encode)
 };
 
 var encoder = {
