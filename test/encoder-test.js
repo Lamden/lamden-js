@@ -12,6 +12,12 @@ describe('Test Type Encoder', () => {
         })
     })
 
+    context('BigNumber', () => {
+        it('Encoder can call BigNumber', () => {
+            expect(Encoder.BigNumber.sum(1,2).toString()).to.be( '3' )
+        })
+    })
+
     context('Strings', () => {
         it('encodes a string from a string', () => {
             expect( Encoder('str', 'string') ).to.be( 'string' )

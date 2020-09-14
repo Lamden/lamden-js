@@ -173,6 +173,8 @@ function Encoder (type, value) {
     else throw new Error(`Error: ${type} is not a valid encoder type.`)
 }
 
+Encoder.BigNumber = BigNumber
+
 module.exports = {
     Encoder
 }
