@@ -1,4 +1,6 @@
-
+const BigNumber = require('bignumber.js');
+BigNumber.config({ RANGE: [-30, 30], EXPONENTIAL_AT: 1e+9 })
+BigNumber.set({ DECIMAL_PLACES: 30, ROUNDING_MODE: BigNumber.ROUND_DOWN })    // equivalent
 
 function Encoder (type, value) {
     const throwError = (val) => {
@@ -35,10 +37,22 @@ function Encoder (type, value) {
     }
     const encodeFloat = (val) => {
         if(!isNumber(val)) throwError(val)
-        if (isFloat(val)) return {"__fixed__": String(parseFloat(val))}
-        if (isInteger(val)) return parseInt(val)        
+        if (!BigNumber.isBigNumber(val)) val = new BigNumber(val)
+
+        return {"__fixed__": val.toFixed(30).replace(/^0+(\d)|(\d)0+$/gm, '$1$2')}
     }
-    const encodeNumber = (val) => encodeFloat(val)
+    const encodeNumber = (val) => {
+        if(!isNumber(val)) throwError(val)
+        if (isFloat(val)) {
+            if (!BigNumber.isBigNumber(val)) val = new BigNumber(val)
+            return {"__fixed__": val.toFixed(30).replace(/^0+(\d)|(\d)0+$/gm, '$1$2')}
+        }
+        if (isInteger(val)) return parseInt(val)   
+    }
+    const encodeBigNumber = (val) => {
+        if (!BigNumber.isBigNumber(val)) val = new BigNumber(val)
+        return val
+    }
 
     const encodeBool = (val) => {
         if (isBoolean(val)) return val
@@ -151,7 +165,8 @@ function Encoder (type, value) {
         timedelta: encodeTimeDelta, 
         datetime: encodeDateTime,
         number: encodeNumber,
-        object: encodeObject
+        object: encodeObject,
+        bigNumber: encodeBigNumber,
     }
     
     if (Object.keys(encoder).includes(type)) return encoder[type](value)

@@ -1,7 +1,5 @@
 const expect = require('expect.js');
 const Lamden = require('../dist/lamden');
-const validators = require('types-validate-assert')
-const { validateTypes } = validators;
 const { Encoder } = Lamden;
 
 const dateString = "2020-07-28T19:16:35.059Z"
@@ -50,17 +48,27 @@ describe('Test Type Encoder', () => {
         })
     })
     context('Floats', () => {
-        it('encodes a float from an float', () => {
+        it('encodes a __fixed__ object from an float', () => {
             expect( JSON.stringify(Encoder('float', 1.5)) ).to.be( JSON.stringify({"__fixed__": "1.5"}) )
         })
-        it('encodes a float to integer', () => {
-            expect( Encoder('float', 1 ) ).to.be( 1 )
+        it('encodes a __fixed__ object to integer', () => {
+            expect( JSON.stringify(Encoder('float', 1 )) ).to.be( JSON.stringify({"__fixed__": "1.0"}) )
         })
-        it('encodes a float with zeros as decimals to an integer', () => {
-            expect( Encoder('float', 1.00 ) ).to.be( 1 )
+        it('encodes a __fixed__ object with zeros as decimals to an integer', () => {
+            expect( JSON.stringify(Encoder('float', 1.00 )) ).to.be( JSON.stringify({"__fixed__": "1.0"}) )
         })
-        it('encodes a float from a string', () => {
+        it('encodes a __fixed__ object from a string', () => {
             expect( JSON.stringify(Encoder('float', '1.5' )) ).to.be( JSON.stringify({"__fixed__": "1.5"}) )
+        })
+        it('encodes a __fixed__ object from a float and loses percision', () => {
+            expect( JSON.stringify(Encoder('float', 0.9999999999999999999999999999999 )) ).to.be( JSON.stringify({"__fixed__": "1.0"}) )
+        })
+        it('encodes __fixed__ object float from a string and retains precision', () => {
+            expect( JSON.stringify(Encoder('float', '0.9999999999999999999999999999999' )) ).to.be( JSON.stringify({"__fixed__": "0.999999999999999999999999999999"}) )
+        })
+        it('encodes __fixed__ object float from a bigNumber Object and retains precision', () => {
+            let bn = Encoder('bigNumber', '0.9999999999999999999999999999999')
+            expect( JSON.stringify(Encoder('float', bn )) ).to.be( JSON.stringify({"__fixed__": "0.999999999999999999999999999999"}) )
         })
         it('fails to encode non-float values', () => {
             expect(() => Encoder('float', true)).to.throwError();
