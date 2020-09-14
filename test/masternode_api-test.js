@@ -27,7 +27,7 @@ const balanceCheckWallet = {
     vk: '960c002a36c30c3aec8bc670e9b8b40eebcfd545f4e9237579fd7395a21ccebb'
 }
 
-describe('Test Masternode API returns', () => {
+describe('Test Masternode API returns', () => {/*
     context('constructor', () => {
         it('can create an instance', () => {
             let api = new Masternode_API(goodNetwork)
@@ -74,22 +74,24 @@ describe('Test Masternode API returns', () => {
             expect(response).to.be(false);
         })
     })
-
+*/
     context('Masternode_API.getCurrencyBalance()', () => {
         it('returns the balance for a vk', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(balanceCheckWallet.vk)
-            expect(response).to.be.above(0);
+            expect(response.toNumber()).to.be.above(0);
         })
         it('returns 0 if the vk does not exist yet', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(wallet.new_wallet().vk)
-            expect(response).to.be(0);
+            console.log(response)
+            expect(response.toNumber()).to.be(0);
         })
         it('returns 0 if provided network is unresponsive',  async () => {
             let response = await badNetwork_api.getCurrencyBalance()
-            expect(response).to.be(0);
+            console.log(response)
+            expect(response.toNumber()).to.be(0);
         })
     })
-
+/*
     context('Masternode_API.contractExists()', () => {
         it('returns true if a contract exists on the blockchain', async () => {
             let response = await goodNetwork_api.contractExists('currency')
@@ -161,28 +163,7 @@ describe('Test Masternode API returns', () => {
             let response = await badNetwork_api.getContractInfo('currency')
             expect(response).to.be(undefined);
         })
-    })/*
-    /// Depreciated, no more mockchain
-    context('Masternode_API.lintCode()', () => {
-        it('returns null when no vilations exist', async () => {
-            let response = await goodNetwork_api.lintCode('testing', goodCode)
-            expect(response.violations).to.be(null);
-        })
-        it('returns python syntax errors', async () => {
-            let response = await goodNetwork_api.lintCode('testing', syntaxErrors)
-            expect(response.violations.msg).to.be('invalid syntax');
-        })
-        it('returns lamden contracting errors errors', async () => {
-            let response = await goodNetwork_api.lintCode('testing', lamdenErrors)
-            expect(response.violations.length > 0).to.be(true);
-            expect(response.violations[0]).to.be('Line 0: S13- No valid contracting decorator found');
-        })
-        it('returns an error message if provided network is unresponsive', async () => {
-            
-            let response = await badNetwork_api.lintCode('testing', goodCode)
-            expect(response.includes('FetchError:')).to.be(true);
-        })
-    })*/
+    })
     context('Masternode_API.getNonce()', () => {
         it('returns a nonce and processor value for a vk', async () => {
             let response = await goodNetwork_api.getNonce(keyPair.vk)
@@ -198,5 +179,5 @@ describe('Test Masternode API returns', () => {
             let error = await badNetwork_api.getNonce(keyPair.vk)
             expect(error.includes(`Unable to get nonce for ${keyPair.vk}`)).to.be(true)
         })
-    })
+    })*/
 })

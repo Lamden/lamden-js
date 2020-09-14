@@ -1,6 +1,7 @@
 import validators from 'types-validate-assert'
 const { validateTypes } = validators;
 const fetch = require('node-fetch').default;
+import { Encoder } from './encoder'
 
 export class LamdenMasterNode_API{
     constructor(networkInfoObj){
@@ -103,12 +104,9 @@ export class LamdenMasterNode_API{
 
     async getCurrencyBalance(vk){
         let balanceRes = await this.getVariable('currency', 'balances', vk);
-        if (!balanceRes) return 0;
-        if (isNaN(parseFloat(balanceRes))){
-          if (balanceRes.__fixed__) return parseFloat(balanceRes.__fixed__)
-          return 0;
-        }
-        return parseFloat(balanceRes)
+        if (!balanceRes) return Encoder('bigNumber', 0);
+        if (balanceRes.__fixed__) return Encoder('bigNumber', balanceRes.__fixed__)
+        return Encoder('bigNumber', 0);
     }
 
     async contractExists(contractName){

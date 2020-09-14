@@ -2391,689 +2391,6 @@ class EventEmitter {
         }
     }
 
-const { validateTypes } = validators;
-const fetch = require('node-fetch').default;
-
-class LamdenMasterNode_API{
-    constructor(networkInfoObj){
-        if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`)
-        if (!validateTypes.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
-
-        this.hosts = this.validateHosts(networkInfoObj.hosts);        
-    }
-    //This will throw an error if the protocol wasn't included in the host string
-    vaidateProtocol(host){
-        let protocols = ['https://', 'http://'];
-        if (protocols.map(protocol => host.includes(protocol)).includes(true)) return host
-        throw new Error('Host String must include http:// or https://')
-    }
-    validateHosts(hosts){
-        return hosts.map(host => this.vaidateProtocol(host.toLowerCase()))
-    }
-
-    get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
-    get url() {return this.host}
-
-    send(method, path, data, overrideURL, callback){
-        let parms = '';
-        if (Object.keys(data).includes('parms')) {
-            parms = this.createParms(data.parms);
-        }
-
-        let options = {};
-        if (method === 'POST'){
-            let headers = {'Content-Type': 'application/json'};
-            options.method = method;
-            options.headers = headers;
-            options.body = data;
-        }
-
-        return fetch(`${overrideURL ? overrideURL : this.url}${path}${parms}`, options)
-            .then(res => {
-                return res.json()
-            } )
-            .then(json => {
-                    return callback(json, undefined)
-            })
-            .catch(err => {
-                    return callback(undefined, err.toString())
-                })
-    }
-
-    createParms(parms){
-        if (Object.keys(parms).length === 0) return ''
-        let parmString = '?';
-        Object.keys(parms).forEach(key => {
-            parmString = `${parmString}${key}=${parms[key]}&`;
-        });
-        return parmString.slice(0, -1);
-    }
-
-    async getContractInfo(contractName){
-        let path = `/contracts/${contractName}`;
-        return this.send('GET', path, {}, undefined, (res, err) => {
-            if (err) return;
-            return res
-        })
-    }
-
-    async getVariable(contract, variable, key = ''){
-        let parms = {};
-        if (validateTypes.isStringWithValue(key)) parms.key = key;
-
-        let path = `/contracts/${contract}/${variable}/`;
-        return this.send('GET', path, {parms}, undefined, (res, err) => {
-            if (err) return null;
-            try{
-                if (res.value) return res.value
-            } catch (e){}
-            return;
-        })
-    }
-
-    async getContractMethods(contract){
-        let path = `/contracts/${contract}/methods`;
-        return this.send('GET', path, {}, undefined, (res, err) => {
-            try{
-                if (res.methods) return res.methods
-            } catch (e){}
-            return [];
-        })
-        
-    }
-
-    async pingServer(){
-        return this.send('GET', '/ping', {}, undefined, (res, err) => {
-            try { 
-                if (res.status === 'online') return true;
-            } 
-            catch (e) {
-                return false;
-            }
-        })
-    }
-
-    async getCurrencyBalance(vk){
-        let balanceRes = await this.getVariable('currency', 'balances', vk);
-        if (!balanceRes) return 0;
-        if (isNaN(parseFloat(balanceRes))){
-          if (balanceRes.__fixed__) return parseFloat(balanceRes.__fixed__)
-          return 0;
-        }
-        return parseFloat(balanceRes)
-    }
-
-    async contractExists(contractName){
-        let path = `/contracts/${contractName}`;
-        return this.send('GET', path, {}, undefined, (res, err) => {
-            try{
-                if (res.name) return true;
-            } catch (e){}
-            return false;
-        })
-    }
-
-    async sendTransaction(data, url = undefined, callback){
-        return this.send('POST', '/', JSON.stringify(data), url, (res, err) => {
-            if (err){
-                if (callback) {
-                    callback(undefined, err);
-                    return;
-                } 
-                else return err
-            }
-            if (callback) {
-                callback(res, undefined);
-                return
-            }
-            return res;
-        })   
-    }
-
-    async getNonce(sender, callback){
-        if (!validateTypes.isStringHex(sender)) return `${sender} is not a hex string.`
-        let path = `/nonce/${sender}`; 
-        let url = this.host;
-        return this.send('GET', path, {}, url, (res, err) => {
-            if (err){
-                if (callback) {
-                    callback(undefined, `Unable to get nonce for ${sender} on network ${url}`);
-                    return
-                } 
-                return `Unable to get nonce for ${sender} on network ${url}`
-            }
-            res.masternode = url;
-            if (callback) {
-                callback(res, undefined);
-                return
-            }
-            else return res;
-        })
-    }
-
-    async checkTransaction(hash, callback){
-        const parms = {hash};
-        return this.send('GET', '/tx', {parms}, undefined, (res, err) => {
-            if (err){
-                if (callback) {
-                    callback(undefined, err);
-                    return;
-                }
-                else return err
-            }
-            if (callback) {
-                callback(res, undefined);
-                return
-            }
-            return res;
-        })  
-    }
-}
-
-const { validateTypes: validateTypes$1 } = validators;
-
-class Network {
-    // Constructor needs an Object with the following information to build Class.
-    //
-    // networkInfo: {
-    //      hosts: <array> list of masternode hostname/ip urls,
-    //      type: <string> "testnet", "mainnet" or "custom"
-    //  },
-    constructor(networkInfoObj){
-        //Reject undefined or missing info
-        if (!validateTypes$1.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
-        if (!validateTypes$1.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
-
-        this.type = validateTypes$1.isStringWithValue(networkInfoObj.type) ? networkInfoObj.type.toLowerCase() : "custom";
-        this.events = new EventEmitter();
-        this.hosts = this.validateHosts(networkInfoObj.hosts);
-        this.currencySymbol = validateTypes$1.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU';
-        this.name = validateTypes$1.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : 'lamden network';
-        this.lamden = validateTypes$1.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : false;
-        this.blockExplorer = validateTypes$1.isStringWithValue(networkInfoObj.blockExplorer) ? networkInfoObj.blockExplorer : undefined;
-    
-        this.online = false;
-        try{
-            this.API = new LamdenMasterNode_API(networkInfoObj);
-        } catch (e) {
-            throw new Error(e)
-        }
-    }
-    //This will throw an error if the protocol wasn't included in the host string
-    vaidateProtocol(host){
-        let protocols = ['https://', 'http://'];
-        if (protocols.map(protocol => host.includes(protocol)).includes(true)) return host
-        throw new Error('Host String must include http:// or https://')
-    }
-    validateHosts(hosts){
-        return hosts.map(host => this.vaidateProtocol(host.toLowerCase()))
-    }
-    //Check if the network is online
-    //Emits boolean as 'online' event
-    //Also returns status as well as passes status to a callback
-    async ping(callback = undefined){
-        this.online = await this.API.pingServer();
-        this.events.emit('online', this.online);
-        if (validateTypes$1.isFunction(callback)) callback(this.online);
-        return this.online
-    }
-    get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
-    get url() {return this.host}
-    getNetworkInfo(){
-        return {
-            name: this.name,
-            lamden: this.lamden,
-            type: this.type,
-            hosts: this.hosts,
-            url: this.url,
-            online: this.online,
-        }
-    }
-}
-
-const { validateTypes: validateTypes$2 } = validators;
-
-class TransactionBuilder extends Network {
-    // Constructor needs an Object with the following information to build Class.
-    //  
-    // arg[0] (networkInfo): {  //Can also accpet a Lamden "Network Class"
-    //      host: <string> masternode webserver hostname/ip,
-    //      type: <string> "testnet", "mainnet" or "mockchain"
-    //  }
-    //  arg[1] (txInfo): {
-    //      uid: [Optional] <string> unique ID for tracking purposes, 
-    //      senderVk: <hex string> public key of the transaction sender,
-    //      contractName: <string> name of lamden smart contract,
-    //      methodName: <string> name of method to call in contractName,
-    //      kwargs: <object> key/values of args to pass to methodName
-    //              example: kwargs.to = "270add00fc708791c97aeb5255107c770434bd2ab71c2e103fbee75e202aa15e"
-    //                       kwargs.amount = 1000
-    //      stampLimit: <integer> the max amount of stamps the tx should use.  tx could use less. if tx needs more the tx will fail.
-    //      nonce: [Optional] <integer> send() will attempt to retrieve this info automatically
-    //      processor [Optional] <string> send() will attempt to retrieve this info automatically
-    //  }
-    //  arg[2] (txData): [Optional] state hydrating data
-    constructor(networkInfo, txInfo, txData) {
-        if (validateTypes$2.isSpecificClass(networkInfo, 'Network'))
-            super(networkInfo.getNetworkInfo());
-        else super(networkInfo);
-
-        //Validate arguments
-        if(!validateTypes$2.isObjectWithKeys(txInfo)) throw new Error(`txInfo object not found`)
-        if(!validateTypes$2.isStringHex(txInfo.senderVk)) throw new Error(`Sender Public Key Required (Type: Hex String)`)
-        if(!validateTypes$2.isStringWithValue(txInfo.contractName)) throw new Error(`Contract Name Required (Type: String)`)
-        if(!validateTypes$2.isStringWithValue(txInfo.methodName)) throw new Error(`Method Required (Type: String)`)
-        if(!validateTypes$2.isInteger(txInfo.stampLimit)) throw new Error(`Stamps Limit Required (Type: Integer)`)        
-
-        //Store variables in self for reference
-        this.uid = validateTypes$2.isStringWithValue(txInfo.uid) ? txInfo.uid : undefined;
-        this.sender = txInfo.senderVk;
-        this.contract = txInfo.contractName;
-        this.method = txInfo.methodName;
-        this.kwargs = {};
-        if(validateTypes$2.isObject(txInfo.kwargs)) this.kwargs = txInfo.kwargs;
-        this.stampLimit = txInfo.stampLimit;
-
-        //validate and set nonce and processor if user provided them
-        if (typeof txInfo.nonce !== 'undefined'){
-            if(!validateTypes$2.isInteger(txInfo.nonce)) throw new Error(`arg[6] Nonce is required to be an Integer, type ${typeof txInfo.none} was given`)
-            this.nonce = txInfo.nonce;
-        }
-        if (typeof txInfo.processor !== 'undefined'){
-            if(!validateTypes$2.isStringWithValue(txInfo.processor)) throw new Error(`arg[7] Processor is required to be a String, type ${typeof txInfo.processor} was given`)
-            this.processor = txInfo.processor;
-        }
-        
-        this.signature;
-        this.transactionSigned = false;
-
-        //Transaction result information
-        this.nonceResult = {};
-        this.txSendResult = {errors:[]};
-        this.txBlockResult = {};
-        this.txHash;
-        this.txCheckResult = {};
-        this.txCheckAttempts = 0;
-        this.txCheckLimit = 10;
-        
-        //Hydrate other items if passed
-        if (txData){
-            if (txData.uid) this.uid = txData.uid;
-            if (validateTypes$2.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
-            if (validateTypes$2.isObjectWithKeys(txData.nonceResult)){
-                this.nonceResult = txData.nonceResult;
-                if (validateTypes$2.isInteger(this.nonceResult.nonce)) this.nonce = this.nonceResult.nonce;
-                if (validateTypes$2.isStringWithValue(this.nonceResult.processor)) this.processor = this.nonceResult.processor;
-            }
-            if (validateTypes$2.isObjectWithKeys(txData.txSendResult)){
-                this.txSendResult = txData.txSendResult;
-                if (this.txSendResult.hash) this.txHash = this.txSendResult.hash;
-            } 
-            if (validateTypes$2.isObjectWithKeys(txData.txBlockResult)) this.txBlockResult = txData.txBlockResult;
-            if (validateTypes$2.isObjectWithKeys(txData.resultInfo)) this.resultInfo = txData.resultInfo;
-        }
-        //Create Capnp messages and transactionMessages
-        this.makePayload();
-    }
-    makePayload(){
-        this.payload = {
-            contract: this.contract,
-            function: this.method,
-            kwargs: this.kwargs,
-            nonce: this.nonce,
-            processor: this.processor,
-            sender: this.sender,
-            stamps_supplied: this.stampLimit
-        };
-        this.sortedPayload = this.sortObject(this.payload);
-
-    }
-    makeTransaction(){
-        this.tx = {
-            metadata: {
-                signature: this.signature,
-                timestamp: parseInt(+new Date / 1000),
-            },
-            payload: this.sortedPayload.orderedObj
-        };
-    }
-    verifySignature(){
-        //Verify the signature is correct
-        if (!this.transactionSigned) throw new Error('Transaction has not be been signed. Use the sign(<private key>) method first.')
-        const stringBuffer = Buffer.from(this.sortedPayload.json);
-        const stringArray = new Uint8Array(stringBuffer);
-        return verify(this.sender, stringArray, this.signature)
-    }
-    sign(sk){
-        const stringBuffer = Buffer.from(this.sortedPayload.json);
-        const stringArray = new Uint8Array(stringBuffer);
-        this.signature = sign(sk, stringArray);
-        this.transactionSigned = true;
-    }
-    sortObject(object){
-        const processObj = (obj) => {
-            const getType = (value) => {
-             return Object.prototype.toString.call(value)
-            };
-            const isArray = (value) => {
-             if(getType(value) === "[object Array]") return true;
-             return false;  
-            };
-            const isObject = (value) => {
-             if(getType(value) === "[object Object]") return true;
-             return false;  
-            };
-        
-            const sortObjKeys = (unsorted) => {
-                const sorted = {};
-                Object.keys(unsorted).sort().forEach(key => sorted[key] = unsorted[key]);
-                return sorted
-            };
-        
-            const formatKeys = (unformatted) => {
-                Object.keys(unformatted).forEach(key => {
-                        if (isArray(unformatted[key])) unformatted[key] = unformatted[key].map(item => {
-                        if (isObject(item)) return formatKeys(item)
-                        return item
-                    });
-                    if (isObject(unformatted[key])) unformatted[key] = formatKeys(unformatted[key]);
-                });
-                return sortObjKeys(unformatted)
-            };
-        
-            if (!isObject(obj)) throw new TypeError('Not a valid Object')
-                try{
-                    obj = JSON.parse(JSON.stringify(obj));
-                } catch (e) {
-                    throw new TypeError('Not a valid JSON Object')
-                }
-            return formatKeys(obj)
-        };
-        const orderedObj = processObj(object);
-        return { 
-            orderedObj, 
-            json: JSON.stringify(orderedObj)
-        }
-    }
-    async getNonce(callback = undefined) {
-        let timestamp =  new Date().toUTCString();
-        this.nonceResult = await this.API.getNonce(this.sender);
-        if (typeof this.nonceResult.nonce === 'undefined'){
-            throw new Error(this.nonceResult)
-        }
-        this.nonceResult.timestamp = timestamp;
-        this.nonce = this.nonceResult.nonce;
-        this.processor = this.nonceResult.processor;
-        this.nonceMasternode = this.nonceResult.masternode;
-        //Create payload object
-        this.makePayload();
-
-        if (!callback) return this.nonceResult;
-        return callback(this.nonceResult)
-    }
-    async send(sk = undefined, masternode = undefined, callback = undefined) {
-        //Error if transaction is not signed and no sk provided to the send method to sign it before sending
-        if (!validateTypes$2.isStringWithValue(sk) && !this.transactionSigned){
-            throw new Error(`Transation Not Signed: Private key needed or call sign(<private key>) first`);
-        }
-
-        let timestamp =  new Date().toUTCString();
-
-        try{
-            //If the nonce isn't set attempt to get it
-            if (isNaN(this.nonce) || !validateTypes$2.isStringWithValue(this.processor)) await this.getNonce();
-            //if the sk is provided then sign the transaction
-            if (validateTypes$2.isStringWithValue(sk)) this.sign(sk);
-            //Serialize transaction
-            this.makeTransaction();
-            //Send transaction to the masternode
-            let masternodeURL = masternode;
-            if (!masternodeURL && this.nonceMasternode) masternodeURL = this.nonceMasternode;
-            let response = await this.API.sendTransaction(this.tx, masternodeURL);
-            //Set error if txSendResult doesn't exist
-            if (response === 'undefined' || validateTypes$2.isStringWithValue(response)){
-                this.txSendResult.errors = ['TypeError: Failed to fetch'];
-            }else{
-                if (response.error) this.txSendResult.errors = [response.error];
-                else this.txSendResult = response;
-            }
-        } catch (e){
-            this.txSendResult.errors = [e.message];
-        }
-        this.txSendResult.timestamp = timestamp;
-        return this.handleMasterNodeResponse(this.txSendResult, callback)
-    }
-    checkForTransactionResult(callback = undefined){
-        return new Promise((resolve) => {
-            let timerId = setTimeout(async function checkTx() {
-                this.txCheckAttempts = this.txCheckAttempts + 1;
-                const res = await this.API.checkTransaction(this.txHash);
-                let checkAgain = false;
-                const timestamp =  new Date().toUTCString();
-                if (typeof res === 'undefined'){
-                    this.txCheckResult.error = 'TypeError: Failed to fetch';
-                }else{
-                    if (res.error){
-                        if (res.error === 'Transaction not found.'){
-                            if (this.txCheckAttempts < this.txCheckLimit){
-                                checkAgain = true;
-                            }else{
-                                this.txCheckResult.errors = [res.error, `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`];
-                            }
-                        }else{
-                            this.txCheckResult.errors = [res.error];
-                        }
-                    }else{
-                        this.txCheckResult = res;
-                    }
-                }
-                if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
-                else{
-                    if (validateTypes$2.isNumber(this.txCheckResult.status)){
-                        if (this.txCheckResult.status > 0){
-                            if (!validateTypes$2.isArray(this.txCheckResult.errors)) this.txCheckResult.errors = [];
-                            this.txCheckResult.errors.push('This transaction returned a non-zero status code');
-                        }
-                    }
-                    this.txCheckResult.timestamp = timestamp;
-                    clearTimeout(timerId);
-                    resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
-                }
-            }.bind(this), 1000);
-        })
-    }
-    handleMasterNodeResponse(result, callback = undefined){
-        //Check to see if this is a successful transacation submission
-        if (validateTypes$2.isStringWithValue(result.hash) && validateTypes$2.isStringWithValue(result.success)){
-            this.txHash = result.hash;
-            this.setPendingBlockInfo();
-        }else{
-            this.setBlockResultInfo(result);
-            this.txBlockResult = result;
-        }
-        this.events.emit('response', result, this.resultInfo.subtitle);
-        if (validateTypes$2.isFunction(callback)) callback(result);
-        return result
-    }
-    setPendingBlockInfo(){
-        this.resultInfo =  {
-            title: 'Transaction Pending',
-            subtitle: 'Your transaction was submitted and is being processed',
-            message: `Tx Hash: ${this.txHash}`,
-            type: 'success',
-        };
-        return this.resultInfo;
-    }
-    setBlockResultInfo(result){
-        let erroredTx = false;
-        let errorText = `returned an error and `;
-        let statusCode = validateTypes$2.isNumber(result.status) ? result.status : undefined;
-        let stamps = (result.stampsUsed || result.stamps_used) || 0;
-        let message = '';
-        if(validateTypes$2.isArrayWithValues(result.errors)){
-            erroredTx = true;
-            message = `This transaction returned ${result.errors.length} errors.`;
-            if (result.result){
-                if (result.result.includes('AssertionError')) result.errors.push(result.result);
-            }
-        }
-        if (statusCode && erroredTx) errorText = `returned status code ${statusCode} and `;
-          
-        this.resultInfo = {
-            title: `Transaction ${erroredTx ? 'Failed' : 'Successful'}`,
-            subtitle: `Your transaction ${erroredTx ? `${errorText} ` : ''}used ${stamps} stamps`,
-            message,
-            type: `${erroredTx ? 'error' : 'success'}`,
-            errorInfo: erroredTx ? result.errors : undefined,
-            returnResult: result.result || "",
-            stampsUsed: stamps,
-            statusCode
-        };
-        return this.resultInfo;
-    }
-    getResultInfo(){
-        return this.resultInfo;
-    }
-    getTxInfo(){
-        return {
-            senderVk: this.sender,
-            contractName: this.contract,
-            methodName: this.method,
-            kwargs: this.kwargs,
-            stampLimit: this.stampLimit
-        }
-    }
-    getAllInfo(){
-        return {
-            uid: this.uid,
-            txHash: this.txHash,
-            signed: this.transactionSigned,
-            tx: this.tx,
-            signature: this.signature,
-            networkInfo: this.getNetworkInfo(),
-            txInfo: this.getTxInfo(),
-            txSendResult: this.txSendResult,
-            txBlockResult: this.txBlockResult,
-            resultInfo: this.getResultInfo(),
-            nonceResult: this.nonceResult
-        }
-    }
-}
-
-const { validateTypes: validateTypes$3 } = validators;
-
-class TransactionBatcher extends Network {
-    constructor(networkInfo) {
-        if (validateTypes$3.isSpecificClass(networkInfo, 'Network'))
-            super(networkInfo.getNetworkInfo());
-        else super(networkInfo);
-
-        this.txBatches = {};
-        this.overflow = [];
-        this.nonceResults = {};
-        this.running = false;
-    }
-    addTransaction(txInfo){
-        if (this.running) {
-            this.overflow.push(txInfo);
-            return
-        }
-        this.validateTransactionInfo(txInfo);
-        if (!this.txBatches[txInfo.senderVk]) this.txBatches[txInfo.senderVk] = [];
-        this.txBatches[txInfo.senderVk].push(txInfo);
-    }
-    addTransactionList(txList){
-        txList.forEach(txInfo => this.addTransaction(txInfo));
-    }
-    processOverflow(){
-        const overflow = this.overflow;
-        this.overflow = [];
-        overflow.forEach(txInfo => this.addTransaction(txInfo));
-    }
-    hasTransactions(){
-        let test = Object.keys(this.txBatches).map(senderVk => this.txBatches[senderVk].length);
-        test.filter(f => f === 0);
-        if (test.length > 0 ) return true
-        return false
-    }
-    validateTransactionInfo(txInfo){
-        try{
-            new TransactionBuilder(txInfo);
-        }catch(e){
-            return false
-        }
-        return true
-    }
-    async getStartingNonce(senderVk, callback = undefined){
-        let timestamp =  new Date().toUTCString();
-        let response = await this.API.getNonce(senderVk);
-        if (typeof response.nonce === 'undefined'){
-            throw new Error(response)
-        }
-        response.timestamp = timestamp;
-        this.nonceResults[senderVk] = response;
-
-        if (callback) callback(response);
-        return response;
-    }
-    async sendAllBatches(keyDict){
-        if (this.running) return
-        let sentTransactions = [];
-        this.running = true;
-        
-        await Promise.all(Object.keys(this.txBatches).map((senderVk) => {
-            const senderBatch = this.txBatches[senderVk].splice(0,15);
-            if (senderBatch.length <= 15) delete this.txBatches[senderVk];
-            
-            return new Promise(async (resolver) => {
-                if (senderBatch.length === 0 ) resolver();
-
-                if (!keyDict[senderVk]) throw new Error(`Cannot sign batch for ${senderVk}. No signing key provided.`)
-                let nonceResponse = await this.getStartingNonce(senderVk);
-                let txBatch = this.setBatchNonces(nonceResponse, senderBatch);
-                this.signBatch(txBatch, keyDict[senderVk]);
-                this.sendBatch(txBatch).then(sentList => {
-                    sentTransactions = [...sentTransactions, ...sentList];
-                    resolver();
-                });                
-            })
-        }));
-
-        try{
-            return Promise.all(sentTransactions)
-        }catch (e){}
-        finally{
-            this.running = false;
-            this.processOverflow();
-        }
-    }
-    setBatchNonces(nonceResult, txList){
-        return txList.map((txInfo, index) => {
-            txInfo.nonce = nonceResult.nonce + index;
-            txInfo.processor = nonceResult.processor;
-            return new TransactionBuilder({hosts: [nonceResult.masternode]}, txInfo)
-        }).sort((a, b) => a.nonce - b.nonce)
-    }
-    signBatch(txBatch, key){
-        txBatch.forEach(txBuilder => txBuilder.sign(key));
-    }
-    sendBatch(txBatch){
-        let resolvedTransactions = [];
-        return new Promise(resolver => {
-            const resolve = (index) => {
-                if ((index + 1) === txBatch.length) resolver(resolvedTransactions);
-            };
-            txBatch.forEach((txBuilder, index) => {
-                const delayedSend = () => {
-                    resolvedTransactions[index] = txBuilder.send().then(() => {return txBuilder});
-                    resolve(index);
-                };
-                setTimeout(delayedSend, 1200 * index);
-            });
-        })
-    }
-}
-
 /*
  *      bignumber.js v9.0.0
  *      A JavaScript library for arbitrary-precision arithmetic.
@@ -5980,7 +5297,6 @@ function Encoder (type, value) {
         if(Math.floor(n) === n) return 0;
         return n.toString().split(".")[1].length || 0; 
     };
-    
     const isString = (val) => typeof val === 'string' || val instanceof String;
     const isArray = (val) => val && typeof val === 'object' && val.constructor === Array;
     const isObject = (val) => val && typeof val === 'object' && val.constructor === Object;
@@ -6148,6 +5464,685 @@ var encoder = {
     Encoder
 };
 var encoder_1 = encoder.Encoder;
+
+const { validateTypes } = validators;
+const fetch = require('node-fetch').default;
+
+class LamdenMasterNode_API{
+    constructor(networkInfoObj){
+        if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`)
+        if (!validateTypes.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
+
+        this.hosts = this.validateHosts(networkInfoObj.hosts);        
+    }
+    //This will throw an error if the protocol wasn't included in the host string
+    vaidateProtocol(host){
+        let protocols = ['https://', 'http://'];
+        if (protocols.map(protocol => host.includes(protocol)).includes(true)) return host
+        throw new Error('Host String must include http:// or https://')
+    }
+    validateHosts(hosts){
+        return hosts.map(host => this.vaidateProtocol(host.toLowerCase()))
+    }
+
+    get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
+    get url() {return this.host}
+
+    send(method, path, data, overrideURL, callback){
+        let parms = '';
+        if (Object.keys(data).includes('parms')) {
+            parms = this.createParms(data.parms);
+        }
+
+        let options = {};
+        if (method === 'POST'){
+            let headers = {'Content-Type': 'application/json'};
+            options.method = method;
+            options.headers = headers;
+            options.body = data;
+        }
+
+        return fetch(`${overrideURL ? overrideURL : this.url}${path}${parms}`, options)
+            .then(res => {
+                return res.json()
+            } )
+            .then(json => {
+                    return callback(json, undefined)
+            })
+            .catch(err => {
+                    return callback(undefined, err.toString())
+                })
+    }
+
+    createParms(parms){
+        if (Object.keys(parms).length === 0) return ''
+        let parmString = '?';
+        Object.keys(parms).forEach(key => {
+            parmString = `${parmString}${key}=${parms[key]}&`;
+        });
+        return parmString.slice(0, -1);
+    }
+
+    async getContractInfo(contractName){
+        let path = `/contracts/${contractName}`;
+        return this.send('GET', path, {}, undefined, (res, err) => {
+            if (err) return;
+            return res
+        })
+    }
+
+    async getVariable(contract, variable, key = ''){
+        let parms = {};
+        if (validateTypes.isStringWithValue(key)) parms.key = key;
+
+        let path = `/contracts/${contract}/${variable}/`;
+        return this.send('GET', path, {parms}, undefined, (res, err) => {
+            if (err) return null;
+            try{
+                if (res.value) return res.value
+            } catch (e){}
+            return;
+        })
+    }
+
+    async getContractMethods(contract){
+        let path = `/contracts/${contract}/methods`;
+        return this.send('GET', path, {}, undefined, (res, err) => {
+            try{
+                if (res.methods) return res.methods
+            } catch (e){}
+            return [];
+        })
+        
+    }
+
+    async pingServer(){
+        return this.send('GET', '/ping', {}, undefined, (res, err) => {
+            try { 
+                if (res.status === 'online') return true;
+            } 
+            catch (e) {
+                return false;
+            }
+        })
+    }
+
+    async getCurrencyBalance(vk){
+        let balanceRes = await this.getVariable('currency', 'balances', vk);
+        if (!balanceRes) return encoder_1('bigNumber', 0);
+        if (balanceRes.__fixed__) return encoder_1('bigNumber', balanceRes.__fixed__)
+        return encoder_1('bigNumber', 0);
+    }
+
+    async contractExists(contractName){
+        let path = `/contracts/${contractName}`;
+        return this.send('GET', path, {}, undefined, (res, err) => {
+            try{
+                if (res.name) return true;
+            } catch (e){}
+            return false;
+        })
+    }
+
+    async sendTransaction(data, url = undefined, callback){
+        return this.send('POST', '/', JSON.stringify(data), url, (res, err) => {
+            if (err){
+                if (callback) {
+                    callback(undefined, err);
+                    return;
+                } 
+                else return err
+            }
+            if (callback) {
+                callback(res, undefined);
+                return
+            }
+            return res;
+        })   
+    }
+
+    async getNonce(sender, callback){
+        if (!validateTypes.isStringHex(sender)) return `${sender} is not a hex string.`
+        let path = `/nonce/${sender}`; 
+        let url = this.host;
+        return this.send('GET', path, {}, url, (res, err) => {
+            if (err){
+                if (callback) {
+                    callback(undefined, `Unable to get nonce for ${sender} on network ${url}`);
+                    return
+                } 
+                return `Unable to get nonce for ${sender} on network ${url}`
+            }
+            res.masternode = url;
+            if (callback) {
+                callback(res, undefined);
+                return
+            }
+            else return res;
+        })
+    }
+
+    async checkTransaction(hash, callback){
+        const parms = {hash};
+        return this.send('GET', '/tx', {parms}, undefined, (res, err) => {
+            if (err){
+                if (callback) {
+                    callback(undefined, err);
+                    return;
+                }
+                else return err
+            }
+            if (callback) {
+                callback(res, undefined);
+                return
+            }
+            return res;
+        })  
+    }
+}
+
+const { validateTypes: validateTypes$1 } = validators;
+
+class Network {
+    // Constructor needs an Object with the following information to build Class.
+    //
+    // networkInfo: {
+    //      hosts: <array> list of masternode hostname/ip urls,
+    //      type: <string> "testnet", "mainnet" or "custom"
+    //  },
+    constructor(networkInfoObj){
+        //Reject undefined or missing info
+        if (!validateTypes$1.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
+        if (!validateTypes$1.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
+
+        this.type = validateTypes$1.isStringWithValue(networkInfoObj.type) ? networkInfoObj.type.toLowerCase() : "custom";
+        this.events = new EventEmitter();
+        this.hosts = this.validateHosts(networkInfoObj.hosts);
+        this.currencySymbol = validateTypes$1.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU';
+        this.name = validateTypes$1.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : 'lamden network';
+        this.lamden = validateTypes$1.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : false;
+        this.blockExplorer = validateTypes$1.isStringWithValue(networkInfoObj.blockExplorer) ? networkInfoObj.blockExplorer : undefined;
+    
+        this.online = false;
+        try{
+            this.API = new LamdenMasterNode_API(networkInfoObj);
+        } catch (e) {
+            throw new Error(e)
+        }
+    }
+    //This will throw an error if the protocol wasn't included in the host string
+    vaidateProtocol(host){
+        let protocols = ['https://', 'http://'];
+        if (protocols.map(protocol => host.includes(protocol)).includes(true)) return host
+        throw new Error('Host String must include http:// or https://')
+    }
+    validateHosts(hosts){
+        return hosts.map(host => this.vaidateProtocol(host.toLowerCase()))
+    }
+    //Check if the network is online
+    //Emits boolean as 'online' event
+    //Also returns status as well as passes status to a callback
+    async ping(callback = undefined){
+        this.online = await this.API.pingServer();
+        this.events.emit('online', this.online);
+        if (validateTypes$1.isFunction(callback)) callback(this.online);
+        return this.online
+    }
+    get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
+    get url() {return this.host}
+    getNetworkInfo(){
+        return {
+            name: this.name,
+            lamden: this.lamden,
+            type: this.type,
+            hosts: this.hosts,
+            url: this.url,
+            online: this.online,
+        }
+    }
+}
+
+const { validateTypes: validateTypes$2 } = validators;
+
+class TransactionBuilder extends Network {
+    // Constructor needs an Object with the following information to build Class.
+    //  
+    // arg[0] (networkInfo): {  //Can also accpet a Lamden "Network Class"
+    //      host: <string> masternode webserver hostname/ip,
+    //      type: <string> "testnet", "mainnet" or "mockchain"
+    //  }
+    //  arg[1] (txInfo): {
+    //      uid: [Optional] <string> unique ID for tracking purposes, 
+    //      senderVk: <hex string> public key of the transaction sender,
+    //      contractName: <string> name of lamden smart contract,
+    //      methodName: <string> name of method to call in contractName,
+    //      kwargs: <object> key/values of args to pass to methodName
+    //              example: kwargs.to = "270add00fc708791c97aeb5255107c770434bd2ab71c2e103fbee75e202aa15e"
+    //                       kwargs.amount = 1000
+    //      stampLimit: <integer> the max amount of stamps the tx should use.  tx could use less. if tx needs more the tx will fail.
+    //      nonce: [Optional] <integer> send() will attempt to retrieve this info automatically
+    //      processor [Optional] <string> send() will attempt to retrieve this info automatically
+    //  }
+    //  arg[2] (txData): [Optional] state hydrating data
+    constructor(networkInfo, txInfo, txData) {
+        if (validateTypes$2.isSpecificClass(networkInfo, 'Network'))
+            super(networkInfo.getNetworkInfo());
+        else super(networkInfo);
+
+        //Validate arguments
+        if(!validateTypes$2.isObjectWithKeys(txInfo)) throw new Error(`txInfo object not found`)
+        if(!validateTypes$2.isStringHex(txInfo.senderVk)) throw new Error(`Sender Public Key Required (Type: Hex String)`)
+        if(!validateTypes$2.isStringWithValue(txInfo.contractName)) throw new Error(`Contract Name Required (Type: String)`)
+        if(!validateTypes$2.isStringWithValue(txInfo.methodName)) throw new Error(`Method Required (Type: String)`)
+        if(!validateTypes$2.isInteger(txInfo.stampLimit)) throw new Error(`Stamps Limit Required (Type: Integer)`)        
+
+        //Store variables in self for reference
+        this.uid = validateTypes$2.isStringWithValue(txInfo.uid) ? txInfo.uid : undefined;
+        this.sender = txInfo.senderVk;
+        this.contract = txInfo.contractName;
+        this.method = txInfo.methodName;
+        this.kwargs = {};
+        if(validateTypes$2.isObject(txInfo.kwargs)) this.kwargs = txInfo.kwargs;
+        this.stampLimit = txInfo.stampLimit;
+
+        //validate and set nonce and processor if user provided them
+        if (typeof txInfo.nonce !== 'undefined'){
+            if(!validateTypes$2.isInteger(txInfo.nonce)) throw new Error(`arg[6] Nonce is required to be an Integer, type ${typeof txInfo.none} was given`)
+            this.nonce = txInfo.nonce;
+        }
+        if (typeof txInfo.processor !== 'undefined'){
+            if(!validateTypes$2.isStringWithValue(txInfo.processor)) throw new Error(`arg[7] Processor is required to be a String, type ${typeof txInfo.processor} was given`)
+            this.processor = txInfo.processor;
+        }
+        
+        this.signature;
+        this.transactionSigned = false;
+
+        //Transaction result information
+        this.nonceResult = {};
+        this.txSendResult = {errors:[]};
+        this.txBlockResult = {};
+        this.txHash;
+        this.txCheckResult = {};
+        this.txCheckAttempts = 0;
+        this.txCheckLimit = 10;
+        
+        //Hydrate other items if passed
+        if (txData){
+            if (txData.uid) this.uid = txData.uid;
+            if (validateTypes$2.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
+            if (validateTypes$2.isObjectWithKeys(txData.nonceResult)){
+                this.nonceResult = txData.nonceResult;
+                if (validateTypes$2.isInteger(this.nonceResult.nonce)) this.nonce = this.nonceResult.nonce;
+                if (validateTypes$2.isStringWithValue(this.nonceResult.processor)) this.processor = this.nonceResult.processor;
+            }
+            if (validateTypes$2.isObjectWithKeys(txData.txSendResult)){
+                this.txSendResult = txData.txSendResult;
+                if (this.txSendResult.hash) this.txHash = this.txSendResult.hash;
+            } 
+            if (validateTypes$2.isObjectWithKeys(txData.txBlockResult)) this.txBlockResult = txData.txBlockResult;
+            if (validateTypes$2.isObjectWithKeys(txData.resultInfo)) this.resultInfo = txData.resultInfo;
+        }
+        //Create Capnp messages and transactionMessages
+        this.makePayload();
+    }
+    makePayload(){
+        this.payload = {
+            contract: this.contract,
+            function: this.method,
+            kwargs: this.kwargs,
+            nonce: this.nonce,
+            processor: this.processor,
+            sender: this.sender,
+            stamps_supplied: this.stampLimit
+        };
+        this.sortedPayload = this.sortObject(this.payload);
+    }
+    makeTransaction(){
+        this.tx = {
+            metadata: {
+                signature: this.signature,
+                timestamp: parseInt(+new Date / 1000),
+            },
+            payload: this.sortedPayload.orderedObj
+        };
+    }
+    verifySignature(){
+        //Verify the signature is correct
+        if (!this.transactionSigned) throw new Error('Transaction has not be been signed. Use the sign(<private key>) method first.')
+        const stringBuffer = Buffer.from(this.sortedPayload.json);
+        const stringArray = new Uint8Array(stringBuffer);
+        return verify(this.sender, stringArray, this.signature)
+    }
+    sign(sk){
+        const stringBuffer = Buffer.from(this.sortedPayload.json);
+        const stringArray = new Uint8Array(stringBuffer);
+        this.signature = sign(sk, stringArray);
+        this.transactionSigned = true;
+    }
+    sortObject(object){
+        const processObj = (obj) => {
+            const getType = (value) => {
+             return Object.prototype.toString.call(value)
+            };
+            const isArray = (value) => {
+             if(getType(value) === "[object Array]") return true;
+             return false;  
+            };
+            const isObject = (value) => {
+             if(getType(value) === "[object Object]") return true;
+             return false;  
+            };
+        
+            const sortObjKeys = (unsorted) => {
+                const sorted = {};
+                Object.keys(unsorted).sort().forEach(key => sorted[key] = unsorted[key]);
+                return sorted
+            };
+        
+            const formatKeys = (unformatted) => {
+                Object.keys(unformatted).forEach(key => {
+                        if (isArray(unformatted[key])) unformatted[key] = unformatted[key].map(item => {
+                        if (isObject(item)) return formatKeys(item)
+                        return item
+                    });
+                    if (isObject(unformatted[key])) unformatted[key] = formatKeys(unformatted[key]);
+                });
+                return sortObjKeys(unformatted)
+            };
+        
+            if (!isObject(obj)) throw new TypeError('Not a valid Object')
+                try{
+                    obj = JSON.parse(JSON.stringify(obj));
+                } catch (e) {
+                    throw new TypeError('Not a valid JSON Object')
+                }
+            return formatKeys(obj)
+        };
+        const orderedObj = processObj(object);
+        return { 
+            orderedObj, 
+            json: JSON.stringify(orderedObj)
+        }
+    }
+    async getNonce(callback = undefined) {
+        let timestamp =  new Date().toUTCString();
+        this.nonceResult = await this.API.getNonce(this.sender);
+        if (typeof this.nonceResult.nonce === 'undefined'){
+            throw new Error(this.nonceResult)
+        }
+        this.nonceResult.timestamp = timestamp;
+        this.nonce = this.nonceResult.nonce;
+        this.processor = this.nonceResult.processor;
+        this.nonceMasternode = this.nonceResult.masternode;
+        //Create payload object
+        this.makePayload();
+
+        if (!callback) return this.nonceResult;
+        return callback(this.nonceResult)
+    }
+    async send(sk = undefined, masternode = undefined, callback = undefined) {
+        //Error if transaction is not signed and no sk provided to the send method to sign it before sending
+        if (!validateTypes$2.isStringWithValue(sk) && !this.transactionSigned){
+            throw new Error(`Transation Not Signed: Private key needed or call sign(<private key>) first`);
+        }
+
+        let timestamp =  new Date().toUTCString();
+
+        try{
+            //If the nonce isn't set attempt to get it
+            if (isNaN(this.nonce) || !validateTypes$2.isStringWithValue(this.processor)) await this.getNonce();
+            //if the sk is provided then sign the transaction
+            if (validateTypes$2.isStringWithValue(sk)) this.sign(sk);
+            //Serialize transaction
+            this.makeTransaction();
+            //Send transaction to the masternode
+            let masternodeURL = masternode;
+            if (!masternodeURL && this.nonceMasternode) masternodeURL = this.nonceMasternode;
+            let response = await this.API.sendTransaction(this.tx, masternodeURL);
+            //Set error if txSendResult doesn't exist
+            if (response === 'undefined' || validateTypes$2.isStringWithValue(response)){
+                this.txSendResult.errors = ['TypeError: Failed to fetch'];
+            }else{
+                if (response.error) this.txSendResult.errors = [response.error];
+                else this.txSendResult = response;
+            }
+        } catch (e){
+            this.txSendResult.errors = [e.message];
+        }
+        this.txSendResult.timestamp = timestamp;
+        return this.handleMasterNodeResponse(this.txSendResult, callback)
+    }
+    checkForTransactionResult(callback = undefined){
+        return new Promise((resolve) => {
+            let timerId = setTimeout(async function checkTx() {
+                this.txCheckAttempts = this.txCheckAttempts + 1;
+                const res = await this.API.checkTransaction(this.txHash);
+                let checkAgain = false;
+                const timestamp =  new Date().toUTCString();
+                if (typeof res === 'undefined'){
+                    this.txCheckResult.error = 'TypeError: Failed to fetch';
+                }else{
+                    if (res.error){
+                        if (res.error === 'Transaction not found.'){
+                            if (this.txCheckAttempts < this.txCheckLimit){
+                                checkAgain = true;
+                            }else{
+                                this.txCheckResult.errors = [res.error, `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`];
+                            }
+                        }else{
+                            this.txCheckResult.errors = [res.error];
+                        }
+                    }else{
+                        this.txCheckResult = res;
+                    }
+                }
+                if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
+                else{
+                    if (validateTypes$2.isNumber(this.txCheckResult.status)){
+                        if (this.txCheckResult.status > 0){
+                            if (!validateTypes$2.isArray(this.txCheckResult.errors)) this.txCheckResult.errors = [];
+                            this.txCheckResult.errors.push('This transaction returned a non-zero status code');
+                        }
+                    }
+                    this.txCheckResult.timestamp = timestamp;
+                    clearTimeout(timerId);
+                    resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+                }
+            }.bind(this), 1000);
+        })
+    }
+    handleMasterNodeResponse(result, callback = undefined){
+        //Check to see if this is a successful transacation submission
+        if (validateTypes$2.isStringWithValue(result.hash) && validateTypes$2.isStringWithValue(result.success)){
+            this.txHash = result.hash;
+            this.setPendingBlockInfo();
+        }else{
+            this.setBlockResultInfo(result);
+            this.txBlockResult = result;
+        }
+        this.events.emit('response', result, this.resultInfo.subtitle);
+        if (validateTypes$2.isFunction(callback)) callback(result);
+        return result
+    }
+    setPendingBlockInfo(){
+        this.resultInfo =  {
+            title: 'Transaction Pending',
+            subtitle: 'Your transaction was submitted and is being processed',
+            message: `Tx Hash: ${this.txHash}`,
+            type: 'success',
+        };
+        return this.resultInfo;
+    }
+    setBlockResultInfo(result){
+        let erroredTx = false;
+        let errorText = `returned an error and `;
+        let statusCode = validateTypes$2.isNumber(result.status) ? result.status : undefined;
+        let stamps = (result.stampsUsed || result.stamps_used) || 0;
+        let message = '';
+        if(validateTypes$2.isArrayWithValues(result.errors)){
+            erroredTx = true;
+            message = `This transaction returned ${result.errors.length} errors.`;
+            if (result.result){
+                if (result.result.includes('AssertionError')) result.errors.push(result.result);
+            }
+        }
+        if (statusCode && erroredTx) errorText = `returned status code ${statusCode} and `;
+          
+        this.resultInfo = {
+            title: `Transaction ${erroredTx ? 'Failed' : 'Successful'}`,
+            subtitle: `Your transaction ${erroredTx ? `${errorText} ` : ''}used ${stamps} stamps`,
+            message,
+            type: `${erroredTx ? 'error' : 'success'}`,
+            errorInfo: erroredTx ? result.errors : undefined,
+            returnResult: result.result || "",
+            stampsUsed: stamps,
+            statusCode
+        };
+        return this.resultInfo;
+    }
+    getResultInfo(){
+        return this.resultInfo;
+    }
+    getTxInfo(){
+        return {
+            senderVk: this.sender,
+            contractName: this.contract,
+            methodName: this.method,
+            kwargs: this.kwargs,
+            stampLimit: this.stampLimit
+        }
+    }
+    getAllInfo(){
+        return {
+            uid: this.uid,
+            txHash: this.txHash,
+            signed: this.transactionSigned,
+            tx: this.tx,
+            signature: this.signature,
+            networkInfo: this.getNetworkInfo(),
+            txInfo: this.getTxInfo(),
+            txSendResult: this.txSendResult,
+            txBlockResult: this.txBlockResult,
+            resultInfo: this.getResultInfo(),
+            nonceResult: this.nonceResult
+        }
+    }
+}
+
+const { validateTypes: validateTypes$3 } = validators;
+
+class TransactionBatcher extends Network {
+    constructor(networkInfo) {
+        if (validateTypes$3.isSpecificClass(networkInfo, 'Network'))
+            super(networkInfo.getNetworkInfo());
+        else super(networkInfo);
+
+        this.txBatches = {};
+        this.overflow = [];
+        this.nonceResults = {};
+        this.running = false;
+    }
+    addTransaction(txInfo){
+        if (this.running) {
+            this.overflow.push(txInfo);
+            return
+        }
+        this.validateTransactionInfo(txInfo);
+        if (!this.txBatches[txInfo.senderVk]) this.txBatches[txInfo.senderVk] = [];
+        this.txBatches[txInfo.senderVk].push(txInfo);
+    }
+    addTransactionList(txList){
+        txList.forEach(txInfo => this.addTransaction(txInfo));
+    }
+    processOverflow(){
+        const overflow = this.overflow;
+        this.overflow = [];
+        overflow.forEach(txInfo => this.addTransaction(txInfo));
+    }
+    hasTransactions(){
+        let test = Object.keys(this.txBatches).map(senderVk => this.txBatches[senderVk].length);
+        test.filter(f => f === 0);
+        if (test.length > 0 ) return true
+        return false
+    }
+    validateTransactionInfo(txInfo){
+        try{
+            new TransactionBuilder(txInfo);
+        }catch(e){
+            return false
+        }
+        return true
+    }
+    async getStartingNonce(senderVk, callback = undefined){
+        let timestamp =  new Date().toUTCString();
+        let response = await this.API.getNonce(senderVk);
+        if (typeof response.nonce === 'undefined'){
+            throw new Error(response)
+        }
+        response.timestamp = timestamp;
+        this.nonceResults[senderVk] = response;
+
+        if (callback) callback(response);
+        return response;
+    }
+    async sendAllBatches(keyDict){
+        if (this.running) return
+        let sentTransactions = [];
+        this.running = true;
+        
+        await Promise.all(Object.keys(this.txBatches).map((senderVk) => {
+            const senderBatch = this.txBatches[senderVk].splice(0,15);
+            if (senderBatch.length <= 15) delete this.txBatches[senderVk];
+            
+            return new Promise(async (resolver) => {
+                if (senderBatch.length === 0 ) resolver();
+
+                if (!keyDict[senderVk]) throw new Error(`Cannot sign batch for ${senderVk}. No signing key provided.`)
+                let nonceResponse = await this.getStartingNonce(senderVk);
+                let txBatch = this.setBatchNonces(nonceResponse, senderBatch);
+                this.signBatch(txBatch, keyDict[senderVk]);
+                this.sendBatch(txBatch).then(sentList => {
+                    sentTransactions = [...sentTransactions, ...sentList];
+                    resolver();
+                });                
+            })
+        }));
+
+        try{
+            return Promise.all(sentTransactions)
+        }catch (e){}
+        finally{
+            this.running = false;
+            this.processOverflow();
+        }
+    }
+    setBatchNonces(nonceResult, txList){
+        return txList.map((txInfo, index) => {
+            txInfo.nonce = nonceResult.nonce + index;
+            txInfo.processor = nonceResult.processor;
+            return new TransactionBuilder({hosts: [nonceResult.masternode]}, txInfo)
+        }).sort((a, b) => a.nonce - b.nonce)
+    }
+    signBatch(txBatch, key){
+        txBatch.forEach(txBuilder => txBuilder.sign(key));
+    }
+    sendBatch(txBatch){
+        let resolvedTransactions = [];
+        return new Promise(resolver => {
+            const resolve = (index) => {
+                if ((index + 1) === txBatch.length) resolver(resolvedTransactions);
+            };
+            txBatch.forEach((txBuilder, index) => {
+                const delayedSend = () => {
+                    resolvedTransactions[index] = txBuilder.send().then(() => {return txBuilder});
+                    resolve(index);
+                };
+                setTimeout(delayedSend, 1200 * index);
+            });
+        })
+    }
+}
 
 var index = {
     TransactionBuilder,
