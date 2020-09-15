@@ -104,7 +104,7 @@ describe('Test Type Encoder', () => {
             expect( JSON.stringify(Encoder('dict', {})) ).to.be( JSON.stringify({}) )
         })
         it('encodes a dict from a string', () => {
-            expect( JSON.stringify(Encoder('dict', '{}')) ).to.be( JSON.stringify({}) )
+            expect( JSON.stringify(Encoder('dict', '{"vk":"833f3f66de0da4599ca60ae7854256f37404f543cf7a97c328d38aff9d3f8ac7"}')) ).to.be( JSON.stringify({vk:"833f3f66de0da4599ca60ae7854256f37404f543cf7a97c328d38aff9d3f8ac7"}) )
         })
         it('encodes datetime and float inside a dict from a string', () => {
             expect( JSON.stringify(Encoder('dict', {'datetime':new Date(dateString), 'float': 1.1})) ).to.be( '{"datetime":[2020,6,28,19,16,35,59],"float":{"__fixed__":"1.1"}}' )

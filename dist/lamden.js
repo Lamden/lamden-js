@@ -5305,7 +5305,7 @@ function Encoder (type, value) {
 
     const isNumber = (val) => {
         if (isArray(val)) return false
-        return !isNaN(parseFloat(val))
+        return !isNaN(encodeBigNumber(val).toNumber())
     };
 
     const isInteger = (val) => {
