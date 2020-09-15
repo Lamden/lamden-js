@@ -25,7 +25,7 @@ let keyPair = wallet.new_wallet()
 
 const balanceCheckWallet = {
     float: '960c002a36c30c3aec8bc670e9b8b40eebcfd545f4e9237579fd7395a21ccebb',
-    int: 'b29c815a58cd80109dfeebd4dadd9bb6d23aaf2a8f2b267fb97101c367539839'
+    int: '01930f6472916ae53c9ebbe7d3faf8979c24cac33d68041aa4ab986401bbf7c3'
 }
 
 describe('Test Masternode API returns', () => {
@@ -83,7 +83,8 @@ describe('Test Masternode API returns', () => {
         })
         it('returns the int balance for a vk', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(balanceCheckWallet.int)
-            expect(response.toNumber()).to.be.above(0);
+            console.log(response)
+            expect(response.toFixed(8)).to.be.above(0);
         })
         it('returns 0 if the vk does not exist yet', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(wallet.new_wallet().vk)
