@@ -24,10 +24,11 @@ function copyObject(object){
 let keyPair = wallet.new_wallet()
 
 const balanceCheckWallet = {
-    vk: '960c002a36c30c3aec8bc670e9b8b40eebcfd545f4e9237579fd7395a21ccebb'
+    float: '960c002a36c30c3aec8bc670e9b8b40eebcfd545f4e9237579fd7395a21ccebb',
+    int: 'b29c815a58cd80109dfeebd4dadd9bb6d23aaf2a8f2b267fb97101c367539839'
 }
 
-describe('Test Masternode API returns', () => {/*
+describe('Test Masternode API returns', () => {
     context('constructor', () => {
         it('can create an instance', () => {
             let api = new Masternode_API(goodNetwork)
@@ -74,10 +75,14 @@ describe('Test Masternode API returns', () => {/*
             expect(response).to.be(false);
         })
     })
-*/
+
     context('Masternode_API.getCurrencyBalance()', () => {
-        it('returns the balance for a vk', async () => {
-            let response = await goodNetwork_api.getCurrencyBalance(balanceCheckWallet.vk)
+        it('returns the float balance for a vk', async () => {
+            let response = await goodNetwork_api.getCurrencyBalance(balanceCheckWallet.float)
+            expect(response.toNumber()).to.be.above(0);
+        })
+        it('returns the int balance for a vk', async () => {
+            let response = await goodNetwork_api.getCurrencyBalance(balanceCheckWallet.int)
             expect(response.toNumber()).to.be.above(0);
         })
         it('returns 0 if the vk does not exist yet', async () => {
@@ -91,7 +96,7 @@ describe('Test Masternode API returns', () => {/*
             expect(response.toNumber()).to.be(0);
         })
     })
-/*
+
     context('Masternode_API.contractExists()', () => {
         it('returns true if a contract exists on the blockchain', async () => {
             let response = await goodNetwork_api.contractExists('currency')
@@ -127,7 +132,7 @@ describe('Test Masternode API returns', () => {/*
 
     context('Masternode_API.getVariable()', () => {
         it('returns the value of the variable if the key exists', async () => {
-            let key = balanceCheckWallet.vk;
+            let key = balanceCheckWallet.float;
             let response = await goodNetwork_api.getVariable('currency', 'balances', key)
             expect(parseFloat(response.__fixed__)).to.be.above(0);
         })
@@ -179,5 +184,5 @@ describe('Test Masternode API returns', () => {/*
             let error = await badNetwork_api.getNonce(keyPair.vk)
             expect(error.includes(`Unable to get nonce for ${keyPair.vk}`)).to.be(true)
         })
-    })*/
+    })
 })

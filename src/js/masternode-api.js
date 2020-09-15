@@ -106,7 +106,10 @@ export class LamdenMasterNode_API{
         let balanceRes = await this.getVariable('currency', 'balances', vk);
         if (!balanceRes) return Encoder('bigNumber', 0);
         if (balanceRes.__fixed__) return Encoder('bigNumber', balanceRes.__fixed__)
-        return Encoder('bigNumber', 0);
+        else{
+            if (balanceRes.value === null) return Encoder('bigNumber', 0);
+            return Encoder('bigNumber', balanceRes.value);
+        }
     }
 
     async contractExists(contractName){
