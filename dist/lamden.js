@@ -5923,20 +5923,29 @@ class TransactionBuilder extends Network {
                 let checkAgain = false;
                 const timestamp =  new Date().toUTCString();
                 if (typeof res === 'undefined'){
-                    this.txCheckResult.error = 'TypeError: Failed to fetch';
+                    res = {};
+                    res.error = 'TypeError: Failed to fetch';
                 }else{
-                    if (res.error){
-                        if (res.error === 'Transaction not found.'){
-                            if (this.txCheckAttempts < this.txCheckLimit){
-                                checkAgain = true;
-                            }else{
-                                this.txCheckResult.errors = [res.error, `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`];
-                            }
+                    if (typeof res === 'string') {
+                        if (this.txCheckAttempts < this.txCheckLimit){
+                            checkAgain = true;
                         }else{
-                            this.txCheckResult.errors = [res.error];
+                            this.txCheckResult.errors = [res];
                         }
                     }else{
-                        this.txCheckResult = res;
+                        if (res.error){
+                            if (res.error === 'Transaction not found.'){
+                                if (this.txCheckAttempts < this.txCheckLimit){
+                                    checkAgain = true;
+                                }else{
+                                    this.txCheckResult.errors = [res.error, `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`];
+                                }
+                            }else{
+                                this.txCheckResult.errors = [res.error];
+                            }
+                        }else{
+                            this.txCheckResult = res;
+                        }
                     }
                 }
                 if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
