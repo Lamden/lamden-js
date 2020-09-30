@@ -12,8 +12,8 @@ const senderWallet1 = {
     sk: "c8a3c5333aa3b058c4fa16d48db52355ab62ddc8daa9a183706a912e522440b6"
 }
 const senderWallet2 = {
-    vk: "7d7427785b690cc5d2643d03fc58aedcd9c5574c25a08c03aee88f0e89b6c688",
-    sk: "1fd04104473c98594dc19ac3a8f370efc3ebe18bf6174a1458176706f148f782"
+    vk: "6a91a9a65eb80829a360efc0555cad8841af64c78375bbf394f6ecb89d5644ee",
+    sk: "4166ed44f465c51d562895295cdcde64a3444b14ea2a3e477c60cf0ecde65230"
 }
 
 let recieverWallet = {
@@ -169,7 +169,7 @@ describe('Test TransactionBuilder class', () => {
                 if (!txBuilder.txSendResult.hash) console.log(txBuilder.nonce + ": " + txBuilder.txSendResult.errors)
                 expect(typeof txBuilder.txSendResult.hash === 'string').to.be(true)
             })
-
+            console.log(txb)
             expect(txb.hasTransactions()).to.be(false)
         })
         it('Can process overflow', async function () {

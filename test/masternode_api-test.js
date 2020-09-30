@@ -79,21 +79,18 @@ describe('Test Masternode API returns', () => {
     context('Masternode_API.getCurrencyBalance()', () => {
         it('returns the float balance for a vk', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(balanceCheckWallet.float)
-            expect(response.toNumber()).to.be.above(0);
+            expect(response).to.be.above(0);
         })
         it('returns the int balance for a vk', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(balanceCheckWallet.int)
-            console.log(response)
-            expect(response.toFixed(8)).to.be.above(0);
+            expect(response).to.be.above(0);
         })
         it('returns 0 if the vk does not exist yet', async () => {
             let response = await goodNetwork_api.getCurrencyBalance(wallet.new_wallet().vk)
-            console.log(response)
             expect(response.toNumber()).to.be(0);
         })
         it('returns 0 if provided network is unresponsive',  async () => {
             let response = await badNetwork_api.getCurrencyBalance()
-            console.log(response)
             expect(response.toNumber()).to.be(0);
         })
     })
