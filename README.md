@@ -22,7 +22,7 @@ or
 const Lamden = require('lamden-js')
 ```
 
-## Wallet Functions
+## Functions
 ### Create a Lamden Keypair
 ```javascript
 let lamdenWallet = Lamden.wallet.new_wallet()
@@ -37,7 +37,7 @@ console.log(lamdenWallet)
 ### Get a public key (vk) from a private key (sk)
 ```javascript
 let sk = "69a8db3fb7196debc2711fad1fa1935918d09f5d8900d84c3288ea5237611c03"
-let vk = wallet.get_vk(sk)
+let vk = Lamden.wallet.get_vk(sk)
 
 console.log(vk)
 >> 'ea2cee33f9478d767d67afe345592ef36446ee04f8d588fa76942e6569a53298'
@@ -49,7 +49,7 @@ const stringBuffer = Buffer.from('message')
 let messageBytes = new Uint8Array(stringBuffer);
 let sk = "69a8db3fb7196debc2711fad1fa1935918d09f5d8900d84c3288ea5237611c03"
 
-let signedMessage = wallet.sign(sk, messageBytes)
+let signedMessage = Lamden.wallet.sign(sk, messageBytes)
 
 console.log(signedMessage)
 >> '982c204fe88e620f3319558aa6b11f9d8be75b99b3199f434f5edf2834a9c52059ba4ea3d623ac1d550170e532e919c364aad1333f757f8f22e0355cb1dd8c09'
@@ -57,7 +57,7 @@ console.log(signedMessage)
 
 #### Verify signature
 ```javascript
-let validSignature = wallet.verify(vk, messageBytes, signedMessage)
+let validSignature = Lamden.wallet.verify(vk, messageBytes, signedMessage)
 
 console.log(validSignature)
 >> true
@@ -125,7 +125,7 @@ tx.send(senderSk, (res, err) => {
 //or
 
 tx.events.on('response', (response) => {
-    if (tx.resultInfo.type === 'error') return
+    if (tx.resultInfo.type === 'errors') return
     console.log(response)
 })
 tx.send(senderSk).then(() => tx.checkForTransactionResult())
