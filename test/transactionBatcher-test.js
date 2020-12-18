@@ -132,7 +132,7 @@ describe('Test TransactionBuilder class', () => {
     })
     context('TransactionBatcher.sendBatch()', () => {
         it('can send a batch of successful transactions', async function () {
-            this.timeout(30000);
+            this.timeout(60000);
             let txb = new Lamden.TransactionBatcher(networkInfo)
             let response = await txb.getStartingNonce(senderWallet1.vk)
 
@@ -155,7 +155,7 @@ describe('Test TransactionBuilder class', () => {
 
     context('TransactionBatcher.sendAllBatches()', () => {
         it('Can send batches from all senders', async function () {
-            this.timeout(30000);
+            this.timeout(60000);
             sleep(1500)
             let txb = new Lamden.TransactionBatcher(networkInfo)
             const txList1 = makeTxList(senderWallet1.vk, recieverWallet.vk, 15)
@@ -169,7 +169,7 @@ describe('Test TransactionBuilder class', () => {
                 if (!txBuilder.txSendResult.hash) console.log(txBuilder.nonce + ": " + txBuilder.txSendResult.errors)
                 expect(typeof txBuilder.txSendResult.hash === 'string').to.be(true)
             })
-            console.log(txb)
+
             expect(txb.hasTransactions()).to.be(false)
         })
         it('Can process overflow', async function () {

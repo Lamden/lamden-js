@@ -24,6 +24,9 @@ const Lamden = require('lamden-js')
 
 ## Wallet Functions
 ### Create a Lamden Keypair
+Creates a new wallet object.
+- **verifying key (vk)**: public key
+- **secret key (sk)**: private key
 ```javascript
 let lamdenWallet = Lamden.wallet.new_wallet()
 
@@ -35,6 +38,7 @@ console.log(lamdenWallet)
 ```
 
 ### Get a public key (vk) from a private key (sk)
+Takes the sk as an argument and returns the vk
 ```javascript
 let sk = "69a8db3fb7196debc2711fad1fa1935918d09f5d8900d84c3288ea5237611c03"
 let vk = wallet.get_vk(sk)
@@ -44,6 +48,7 @@ console.log(vk)
 ```
 
 ### Sign a message
+Signs a string payload
 ```javascript
 const stringBuffer = Buffer.from('message')
 let messageBytes = new Uint8Array(stringBuffer);
@@ -56,6 +61,7 @@ console.log(signedMessage)
 ```
 
 #### Verify signature
+verify a payload
 ```javascript
 let validSignature = wallet.verify(vk, messageBytes, signedMessage)
 

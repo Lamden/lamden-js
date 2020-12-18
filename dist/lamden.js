@@ -2392,10 +2392,10 @@ class EventEmitter {
     }
 
 /*
- *      bignumber.js v9.0.0
+ *      bignumber.js v9.0.1
  *      A JavaScript library for arbitrary-precision arithmetic.
  *      https://github.com/MikeMcl/bignumber.js
- *      Copyright (c) 2019 Michael Mclaughlin <M8ch88l@gmail.com>
+ *      Copyright (c) 2020 Michael Mclaughlin <M8ch88l@gmail.com>
  *      MIT Licensed.
  *
  *      BigNumber.prototype methods     |  BigNumber methods
@@ -4787,7 +4787,7 @@ function clone(configObject) {
       e = bitFloor((e + 1) / 2) - (e < 0 || e % 2);
 
       if (s == 1 / 0) {
-        n = '1e' + e;
+        n = '5e' + e;
       } else {
         n = s.toExponential();
         n = n.slice(0, n.indexOf('e') + 1) + e;
@@ -5355,7 +5355,7 @@ function Encoder (type, value) {
     const encodeDateTime = (val) => {
         val = !isDate(val) ? new Date(val) : val;
         if (!isDate(val)) throwError(val);
-        return [
+        return {'__time__': [
             val.getUTCFullYear(), 
             val.getUTCMonth(), 
             val.getUTCDate(), 
@@ -5363,13 +5363,13 @@ function Encoder (type, value) {
             val.getUTCMinutes(), 
             val.getUTCSeconds(), 
             val.getUTCMilliseconds()
-        ]
+        ]}
     };
     const encodeTimeDelta = (val) => {
         const time = isDate(val) ? val.getTime() : new Date(val).getTime();
         const days = parseInt(time  / 1000 / 60 / 60 / 24);
         const seconds = (time - (days * 24 * 60 * 60 * 1000)) / 1000;
-        return [days, seconds]
+        return {'__delta__':[days, seconds]}
     };
 
     const encodeList = (val) => {
@@ -5404,7 +5404,7 @@ function Encoder (type, value) {
 
     function parseObject (obj) {
         const encode = (k, v) => {
-            if (k === "datetime" || k === "datetime.datetime") return Encoder("datetime.datetime", v)
+            if (k === "datetime" || k === "datetime.datetime" ) return Encoder("datetime.datetime", v)
             if (k === "timedelta" || k === "datetime.timedelta") return Encoder("datetime.timedelta", v)
             if (k !== "__fixed__" && isFloat(v)) return encodeFloat(v)
             return v
@@ -5905,7 +5905,7 @@ class TransactionBuilder extends Network {
             //Set error if txSendResult doesn't exist
             if (response === 'undefined' || validateTypes$2.isStringWithValue(response)){
                 this.txSendResult.errors = ['TypeError: Failed to fetch'];
-            }else{
+            }else {
                 if (response.error) this.txSendResult.errors = [response.error];
                 else this.txSendResult = response;
             }
@@ -5925,31 +5925,31 @@ class TransactionBuilder extends Network {
                 if (typeof res === 'undefined'){
                     res = {};
                     res.error = 'TypeError: Failed to fetch';
-                }else{
+                }else {
                     if (typeof res === 'string') {
                         if (this.txCheckAttempts < this.txCheckLimit){
                             checkAgain = true;
-                        }else{
+                        }else {
                             this.txCheckResult.errors = [res];
                         }
-                    }else{
+                    }else {
                         if (res.error){
                             if (res.error === 'Transaction not found.'){
                                 if (this.txCheckAttempts < this.txCheckLimit){
                                     checkAgain = true;
-                                }else{
+                                }else {
                                     this.txCheckResult.errors = [res.error, `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`];
                                 }
-                            }else{
+                            }else {
                                 this.txCheckResult.errors = [res.error];
                             }
-                        }else{
+                        }else {
                             this.txCheckResult = res;
                         }
                     }
                 }
                 if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
-                else{
+                else {
                     if (validateTypes$2.isNumber(this.txCheckResult.status)){
                         if (this.txCheckResult.status > 0){
                             if (!validateTypes$2.isArray(this.txCheckResult.errors)) this.txCheckResult.errors = [];
@@ -5968,7 +5968,7 @@ class TransactionBuilder extends Network {
         if (validateTypes$2.isStringWithValue(result.hash) && validateTypes$2.isStringWithValue(result.success)){
             this.txHash = result.hash;
             this.setPendingBlockInfo();
-        }else{
+        }else {
             this.setBlockResultInfo(result);
             this.txBlockResult = result;
         }

@@ -107,13 +107,13 @@ describe('Test Type Encoder', () => {
             expect( JSON.stringify(Encoder('dict', '{"vk":"833f3f66de0da4599ca60ae7854256f37404f543cf7a97c328d38aff9d3f8ac7"}')) ).to.be( JSON.stringify({vk:"833f3f66de0da4599ca60ae7854256f37404f543cf7a97c328d38aff9d3f8ac7"}) )
         })
         it('encodes datetime and float inside a dict from a string', () => {
-            expect( JSON.stringify(Encoder('dict', {'datetime':new Date(dateString), 'float': 1.1})) ).to.be( '{"datetime":[2020,6,28,19,16,35,59],"float":{"__fixed__":"1.1"}}' )
+            expect( JSON.stringify(Encoder('dict', {'datetime':new Date(dateString), 'float': 1.1})) ).to.be( '{"datetime":{"__time__":[2020,6,28,19,16,35,59]},"float":{"__fixed__":"1.1"}}' )
         })
         it('replaces datetime object with value in dict', () => {
-            expect( JSON.stringify( Encoder('dict', {'DateTime':{'datetime':new Date(dateString)}})) ).to.be('{"DateTime":[2020,6,28,19,16,35,59]}');
+            expect( JSON.stringify( Encoder('dict', {'DateTime':{'datetime':new Date(dateString)}})) ).to.be('{"DateTime":{"__time__":[2020,6,28,19,16,35,59]}}');
         })
         it('replaces timedelta object with value in dict', () => {
-            expect( JSON.stringify( Encoder('dict', {'TimeDelta':{'timedelta':1000}})) ).to.be('{"TimeDelta":[0,1]}');
+            expect( JSON.stringify( Encoder('dict', {'TimeDelta':{'timedelta':1000}})) ).to.be('{"TimeDelta":{"__delta__":[0,1]}}');
         })
         it('fails to encode non-objects', () => {
             expect(() => Encoder('dict', undefined)).to.throwError();
@@ -129,12 +129,12 @@ describe('Test Type Encoder', () => {
         })
         it('encodes fixed and datetime values in the list', () => {
             expect( JSON.stringify(Encoder('list', [ 1.1, {'datetime':new Date(dateString)}] )) )
-            .to.be( '[{"__fixed__":"1.1"},[2020,6,28,19,16,35,59]]' )
+            .to.be( '[{"__fixed__":"1.1"},{"__time__":[2020,6,28,19,16,35,59]}]' )
         })
         it('encodes a list of all values and encodes accordingly', () => {
             let testList = [1, 1.1, "string", {'datetime':new Date(dateString)}, {'timedelta':1000}, {'TimeDelta':{'timedelta':1000}}, true, [1.1]]
             expect( JSON.stringify(Encoder('list',  testList)) )
-            .to.be( '[1,{"__fixed__":"1.1"},"string",[2020,6,28,19,16,35,59],[0,1],{"TimeDelta":[0,1]},true,[{"__fixed__":"1.1"}]]' )
+            .to.be( '[1,{"__fixed__":"1.1"},"string",{"__time__":[2020,6,28,19,16,35,59]},{"__delta__":[0,1]},{"TimeDelta":{"__delta__":[0,1]}},true,[{"__fixed__":"1.1"}]]' )
         })
         it('fails to encode non-list', () => {
             expect(() => Encoder('list', {})).to.throwError();
@@ -155,22 +155,22 @@ describe('Test Type Encoder', () => {
 
     context('DateTime', () => {
         it('Encodes a Date into a value list', () => {
-            expect( JSON.stringify(Encoder('datetime.datetime', new Date(dateString))) ).to.be(JSON.stringify([2020, 6, 28, 19, 16, 35, 59]))
+            expect( JSON.stringify(Encoder('datetime.datetime', new Date(dateString))) ).to.be(JSON.stringify({'__time__':[2020, 6, 28, 19, 16, 35, 59]}))
         })
         it('Encodes a Date string into a value list', () => {
-            expect( JSON.stringify(Encoder('datetime.datetime', dateString)) ).to.be(JSON.stringify([2020, 6, 28, 19, 16, 35, 59]))
+            expect( JSON.stringify(Encoder('datetime.datetime', dateString)) ).to.be(JSON.stringify({'__time__':[2020, 6, 28, 19, 16, 35, 59]}))
         })
         it('Encodes milliseconds into a value list', () => {
-            expect( JSON.stringify(Encoder('datetime.datetime', new Date(dateString).getTime())) ).to.be(JSON.stringify([2020, 6, 28, 19, 16, 35, 59]))
+            expect( JSON.stringify(Encoder('datetime.datetime', new Date(dateString).getTime())) ).to.be(JSON.stringify({'__time__':[2020, 6, 28, 19, 16, 35, 59]}))
         })
     })
 
     context('TimeDelta', () => {
         it('Encodes a Date into days seconds', () => {
-            expect( JSON.stringify(Encoder('datetime.timedelta', new Date(millisecondsDelta))) ).to.be(JSON.stringify([5, 43200]))
+            expect( JSON.stringify(Encoder('datetime.timedelta', new Date(millisecondsDelta))) ).to.be(JSON.stringify({'__delta__':[5, 43200]}))
         })
         it('Encodes a millisenconds into days seconds', () => {
-            expect( JSON.stringify(Encoder('datetime.timedelta', millisecondsDelta)) ).to.be(JSON.stringify([5, 43200]))
+            expect( JSON.stringify(Encoder('datetime.timedelta', millisecondsDelta)) ).to.be(JSON.stringify({'__delta__':[5, 43200]}))
         })
     })
 
@@ -200,21 +200,21 @@ describe('Test Type Encoder', () => {
             expect( encodedObj.includes('"bool":true') ).to.be(true)
         })
         it('encodes a datetime.datetime', () => {
-            expect( encodedObj.includes('"datetime.datetime":[2020,6,28,19,16,35,59]') ).to.be(true)
+            expect( encodedObj.includes('"datetime.datetime":{"__time__":[2020,6,28,19,16,35,59]}') ).to.be(true)
         })
         it('encodes an datetime.timdelta', () => {
-            expect( encodedObj.includes('"datetime.timedelta":[5,43200]') ).to.be(true)
+            expect( encodedObj.includes('"datetime.timedelta":{"__delta__":[5,43200]}') ).to.be(true)
         })
         it('encodes an list', () => {
             expect( 
                 encodedObj
-                    .includes('"list":[1,{"__fixed__":"1.1"},"this is a string",true,[1,2,3,4,5,6,7],[0,1234567],[{"__fixed__":"1.1"}],{"fixed":{"__fixed__":"1.1"},"DateTime":[2020,6,28,19,16,35,59],"TimeDelta":[5,43200]}]') )
+                    .includes('"list":[1,{"__fixed__":"1.1"},"this is a string",true,[1,2,3,4,5,6,7],[0,1234567],[{"__fixed__":"1.1"}],{"fixed":{"__fixed__":"1.1"},"DateTime":{"__time__":[2020,6,28,19,16,35,59]},"TimeDelta":{"__delta__":[5,43200]}}]') )
                     .to.be(true)
         })
         it('encodes a dict/object', () => {
             expect( 
                 encodedObj
-                    .includes('"dict":{"integer":1,"float":{"__fixed__":"1.1"},"list":[1,{"__fixed__":"1.1"},"this is a string",true,[1,2,3,4,5,6,7],[0,1234567],[{"__fixed__":"1.1"}],{"fixed":{"__fixed__":"1.1"},"DateTime":[2020,6,28,19,16,35,59],"TimeDelta":[5,43200]}],"str":"this is a string","bool":true,"datetime.datetime":[2020,6,28,19,16,35,59],"datetime.timedelta":[5,43200]}') )
+                    .includes('"dict":{"integer":1,"float":{"__fixed__":"1.1"},"list":[1,{"__fixed__":"1.1"},"this is a string",true,[1,2,3,4,5,6,7],[0,1234567],[{"__fixed__":"1.1"}],{"fixed":{"__fixed__":"1.1"},"DateTime":{"__time__":[2020,6,28,19,16,35,59]},"TimeDelta":{"__delta__":[5,43200]}}],"str":"this is a string","bool":true,"datetime.datetime":{"__time__":[2020,6,28,19,16,35,59]},"datetime.timedelta":{"__delta__":[5,43200]}}') )
                     .to.be(true)
         })
     })

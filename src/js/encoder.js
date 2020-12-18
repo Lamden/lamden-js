@@ -68,7 +68,7 @@ function Encoder (type, value) {
     const encodeDateTime = (val) => {
         val = !isDate(val) ? new Date(val) : val
         if (!isDate(val)) throwError(val)
-        return [
+        return {'__time__': [
             val.getUTCFullYear(), 
             val.getUTCMonth(), 
             val.getUTCDate(), 
@@ -76,13 +76,13 @@ function Encoder (type, value) {
             val.getUTCMinutes(), 
             val.getUTCSeconds(), 
             val.getUTCMilliseconds()
-        ]
+        ]}
     }
     const encodeTimeDelta = (val) => {
         const time = isDate(val) ? val.getTime() : new Date(val).getTime()
         const days = parseInt(time  / 1000 / 60 / 60 / 24)
         const seconds = (time - (days * 24 * 60 * 60 * 1000)) / 1000
-        return [days, seconds]
+        return {'__delta__':[days, seconds]}
     }
 
     const encodeList = (val) => {
@@ -117,7 +117,7 @@ function Encoder (type, value) {
 
     function parseObject (obj) {
         const encode = (k, v) => {
-            if (k === "datetime" || k === "datetime.datetime") return Encoder("datetime.datetime", v)
+            if (k === "datetime" || k === "datetime.datetime" ) return Encoder("datetime.datetime", v)
             if (k === "timedelta" || k === "datetime.timedelta") return Encoder("datetime.timedelta", v)
             if (k !== "__fixed__" && isFloat(v)) return encodeFloat(v)
             return v
