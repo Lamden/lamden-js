@@ -127,6 +127,9 @@ describe('Test Type Encoder', () => {
         it('encodes a list from a string', () => {
             expect( JSON.stringify(Encoder('list', '[]')) ).to.be( JSON.stringify([]) )
         })
+        it('encodes a mixed list', () => {
+            expect( JSON.stringify(Encoder('list', ["1.1", 2])) ).to.be( JSON.stringify([{"__fixed__":"1.1"},2]) )
+        })
         it('encodes fixed and datetime values in the list', () => {
             expect( JSON.stringify(Encoder('list', [ 1.1, {'datetime':new Date(dateString)}] )) )
             .to.be( '[{"__fixed__":"1.1"},{"__time__":[2020,6,28,19,16,35,59]}]' )

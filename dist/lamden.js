@@ -5295,7 +5295,11 @@ function Encoder (type, value) {
     };
     const countDecimals = (n) => {
         if(Math.floor(n) === n) return 0;
-        return n.toString().split(".")[1].length || 0; 
+        try{
+            return n.toString().split(".")[1].length
+        }catch (e){
+            return 0
+        } 
     };
     const isString = (val) => typeof val === 'string' || val instanceof String;
     const isArray = (val) => val && typeof val === 'object' && val.constructor === Array;
