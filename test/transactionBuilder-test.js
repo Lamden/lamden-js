@@ -37,7 +37,7 @@ let kwargs = {
 
 let valuesTxInfo = {
     senderVk: senderWallet.vk,
-    contractName: 'con_values_testing',
+    contractName: 'con_values_testing_2',
     methodName: 'test_values',
     stampLimit: 100,
     kwargs: {
@@ -284,6 +284,7 @@ describe('Test TransactionBuilder class', () => {
 
             //Send Transaction
             let response = await newTx.send(senderWallet.sk);
+
             expect(response.success).to.be("Transaction successfully submitted to the network.")
             
             //Check Transaction
