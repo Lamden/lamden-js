@@ -5562,6 +5562,16 @@ class LamdenMasterNode_API{
         
     }
 
+    async getContractVariables(contract){
+        let path = `/contracts/${contract}/variables`;
+        return this.send('GET', path, {}, undefined, (res, err) => {
+            try{
+                if (res.variables) return res
+            } catch (e){}
+            return {};
+        })
+    }
+
     async pingServer(){
         return this.send('GET', '/ping', {}, undefined, (res, err) => {
             try { 
