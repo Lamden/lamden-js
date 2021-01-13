@@ -128,6 +128,27 @@ describe('Test Masternode API returns', () => {
         })
     })
 
+    context('Masternode_API.getContractVariables()', () => {
+        it('returns an array if a contract exists on the blockchain', async () => {
+            let response = await goodNetwork_api.getContractVariables('currency')
+            expect(Array.isArray(response.variables)).to.be(true);
+            expect(Array.isArray(response.hashes)).to.be(true);
+            expect(response.hashes.length > 0).to.be(true);
+        })
+        it('returns an empty Object if a contract does not exist on the blockchain', async () => {
+            let response = await goodNetwork_api.getContractVariables(wallet.new_wallet().vk)
+            expect(Array.isArray(response.variables)).to.be(false);
+            expect(Array.isArray(response.hashes)).to.be(false);
+            expect(Object.keys(response).length === 0).to.be(true);
+        })
+        it('returns empty Object if provided network is unresponsive', async () => {
+            let response = await badNetwork_api.getContractVariables('currency')
+            expect(Array.isArray(response.variables)).to.be(false);
+            expect(Array.isArray(response.hashes)).to.be(false);
+            expect(Object.keys(response).length === 0).to.be(true);
+        })
+    })
+
     context('Masternode_API.getVariable()', () => {
         it('returns the value of the variable if the key exists', async () => {
             let key = balanceCheckWallet.float;
