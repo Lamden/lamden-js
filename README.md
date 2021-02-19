@@ -204,3 +204,80 @@ All API methods return a value, Promise or callback if provided
 | sendTransaction(txData, *callback*) | / | submits a contract to the network a txHash will be returned.  Use checkTransaction() to get tx result |
 | getNonce(senderVk, *callback*) | /nonce/*senderVk* |    Get the current *nonce* and *processor* for a public key (vk) |
 | checkTransaction(txHash, callback) | /tx?hash=*txHash* | Get the result of a transaction |
+
+
+## Keystores
+
+### Create instances
+
+#### empty Keystore instance
+```javascript
+let keystore = new Lamden.Keystore()
+```
+
+#### instance from a private key
+```javascript
+let keystore = new Lamden.Keystore({key: "a67a2dc10b67e7ef6ef049cc2e748bbf669be990827236472108a752f2d7cb8d"})
+```
+
+#### instance from an Array of private keys
+```javascript
+let keystore = new Lamden.Keystore({keyList: [
+    "a67a2dc10b67e7ef6ef049cc2e748bbf669be990827236472108a752f2d7cb8d",
+    "3b7f44da84053441372454e8d58d3bf0cbcd12b21e136e4336a8f536704f1e1e"
+]})
+```
+
+#### instance from an existing keystore
+```javascript
+let keystore = new Lamden.Keystore({keystoreData: {
+    data: '{"ct":"nqBdCILO/cRj2pwGU9PLxvIwxWuWQFd9tQuZkoANnyiig55YTIzCPhRSKgFv7xmmuU823aP2jznNkrVWy2k15l+W3gfENe9dXF300HRcTGEFFvdOE52wxsQG4KRNC+UYOB/3VgjCJczb+HCJ39EWzSm+4qQXQI/5/K0ZzG5R+VGRZbI4b6LkfUgpDsOhXdb0BPVrFy45o/c2RjEZ1ocBgTVw63E+9SUYoxNQDHuviMU=","iv":"add60fe81ae267a01f22f18d78fade60","s":"52571fdd0c5d481c"}',
+    w: 'U2FsdGVkX19dmxAHJ6wQ7DuwkPNawIAD1rmNRrJdMF8='
+}})
+```
+
+### Access wallets
+Keystores expose the keys as wallet objects. 
+
+Wallet objects have the following properties:
+- a sign method to sign messsages
+- a verify method to verify signatures
+- a vk property
+
+#### Get all wallets
+```javascript
+let wallets = keystore.getWallets()
+
+wallets[0].sign(message)
+```
+
+#### Get one wallet
+```javascript
+let wallet = keystore.getWallet(vk)
+
+wallets[0].sign(message)
+```
+
+#### Create a keystore file
+```javascript
+let keystore = new Lamden.Keystore({keyList: [
+    "a67a2dc10b67e7ef6ef049cc2e748bbf669be990827236472108a752f2d7cb8d",
+    "3b7f44da84053441372454e8d58d3bf0cbcd12b21e136e4336a8f536704f1e1e"
+]})
+
+let password = "CoolSafePassword"
+let keyStoreFile = keystore.createKeystore("CoolSafePassword")
+```
+
+#### Decrypt a keystore file
+```javascript
+let keyStoreFile = {
+    data: '{"ct":"nqBdCILO/cRj2pwGU9PLxvIwxWuWQFd9tQuZkoANnyiig55YTIzCPhRSKgFv7xmmuU823aP2jznNkrVWy2k15l+W3gfENe9dXF300HRcTGEFFvdOE52wxsQG4KRNC+UYOB/3VgjCJczb+HCJ39EWzSm+4qQXQI/5/K0ZzG5R+VGRZbI4b6LkfUgpDsOhXdb0BPVrFy45o/c2RjEZ1ocBgTVw63E+9SUYoxNQDHuviMU=","iv":"add60fe81ae267a01f22f18d78fade60","s":"52571fdd0c5d481c"}',
+    w: 'U2FsdGVkX19dmxAHJ6wQ7DuwkPNawIAD1rmNRrJdMF8='
+}
+
+let keystore = new Lamden.Keystore({keystoreData: keyStoreFile})
+keystore.decryptKeystore('Testing010203')
+
+wallets[0].sign(message)
+```
