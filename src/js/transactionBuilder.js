@@ -113,10 +113,11 @@ export class TransactionBuilder extends Network {
         const stringArray = new Uint8Array(stringBuffer)
         return wallet.verify(this.sender, stringArray, this.signature)
     }
-    sign(sk){
+    sign(sk = undefined, userWallet = undefined){
         const stringBuffer = Buffer.from(this.sortedPayload.json)
         const stringArray = new Uint8Array(stringBuffer)
-        this.signature = wallet.sign(sk, stringArray)
+        if (userWallet) this.signature = userWallet.sign(stringArray)
+        else this.signature = wallet.sign(sk, stringArray)
         this.transactionSigned = true;
     }
     sortObject(object){

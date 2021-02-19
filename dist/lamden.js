@@ -5935,10 +5935,11 @@ class TransactionBuilder extends Network {
         const stringArray = new Uint8Array(stringBuffer);
         return verify(this.sender, stringArray, this.signature)
     }
-    sign(sk){
+    sign(sk = undefined, userWallet = undefined){
         const stringBuffer = Buffer.from(this.sortedPayload.json);
         const stringArray = new Uint8Array(stringBuffer);
-        this.signature = sign(sk, stringArray);
+        if (userWallet) this.signature = userWallet.sign(stringArray);
+        else this.signature = sign(sk, stringArray);
         this.transactionSigned = true;
     }
     sortObject(object){
