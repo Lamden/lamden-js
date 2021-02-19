@@ -1,3 +1,77 @@
+const nodeCryptoJs = require("node-cryptojs-aes")
+const { CryptoJS, JsonFormatter } = nodeCryptoJs;
+const validators = require('types-validate-assert')
+const { validateTypes, assertTypes } = validators;
+
+/**
+    * Encrypt a Javascript object with a string password
+    * The object passed must pass JSON.stringify or the method will fail.
+    * 
+    * @param {string} password  A password to encrypt the object with
+    * @param {Object} obj A javascript object (must be JSON compatible)
+    * @return {string} Encrypted string
+ */
+export function encryptObject ( password, obj ){
+    assertTypes.isStringWithValue(password)
+    assertTypes.isObject(obj)
+
+    const encrypted = CryptoJS.AES.encrypt(JSON.stringify(obj), password, { format: JsonFormatter }).toString();
+    return encrypted;
+};
+
+/**
+    *  Decrypt an Object using a password string 
+    * 
+    *  @param {string} password  A password to encrypt the object with
+    *  @param {string} objString A javascript object as JSON string
+    *  @return {string} Encrypted string
+*/
+export function decryptObject ( password, objString ) {
+    assertTypes.isStringWithValue(password)
+    assertTypes.isStringWithValue(objString)
+
+    try{
+        const decrypt = CryptoJS.AES.decrypt(objString, password, { format: JsonFormatter })
+        return JSON.parse(CryptoJS.enc.Utf8.stringify(decrypt));
+    } catch (e){
+        return false;
+    }
+};
+
+/**
+    * Encrypt a string using a password string 
+    *
+    * @param {string} password  A password to encrypt the object with
+    * @param {string} string A string to be password encrypted
+    * @return {string} Encrypted string
+*/
+export function encryptStrHash( password, string ){
+    assertTypes.isStringWithValue(password)
+    assertTypes.isString(string)
+
+    const encrypt = CryptoJS.AES.encrypt(string, password).toString();
+    return encrypt;
+};
+
+/**
+    * Decrypt a string using a password string
+    *
+    * @param {string} password  A password to encrypt the object with
+    * @param {string} encryptedString A string to decrypt
+    * @return {string} Decrypted string
+*/
+export function decryptStrHash ( password, encryptedString ){
+    assertTypes.isStringWithValue(password)
+    assertTypes.isStringWithValue(encryptedString)
+    
+    try{
+        const decrypted = CryptoJS.AES.decrypt(encryptedString, password);
+        return CryptoJS.enc.Utf8.stringify(decrypted) === '' ? false : CryptoJS.enc.Utf8.stringify(decrypted);
+    } catch (e) {
+        return false;
+    }
+};
+
 export function buf2hex(buffer) {
     return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
 }
@@ -55,3 +129,8 @@ export function isStringHex(string = '') {
     return typeof string === 'string' &&
         (string.match(hexRegEx) || []).length === string.length;
 }
+
+export function isLamdenKey( string ){
+    if (validateTypes.isStringHex(string) && string.length === 64) return true;
+    return false;
+};
