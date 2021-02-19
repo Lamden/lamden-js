@@ -3,6 +3,40 @@ import * as helpers from './helpers';
 const nacl = require('tweetnacl')
 
 /**
+    * Create a wallet object for signing and verifying messages
+    * 
+    * @param {Object} [args={}] Args Object
+    * @param {string} [args.sk=undefined] A 32 character long hex representation of a signing key (private key) to create wallet from
+    * @param {Uint8Array(length: 32)} [args.seed=null] A Uint8Array with a length of 32 to seed the keyPair with. This is advanced behavior and should be avoided by everyday users
+    * @param {boolean} [args.keepPrivate=false] No direct access to the sk. Will still allow the wallet to sign messages
+    * @return {Object} Wallet Object with sign and verify methods
+ */
+export let create_wallet = (args = {}) => {
+    let { sk = undefined, keepPrivate = false, seed = null } = args
+
+    let vk;
+
+    if (sk) {
+        vk = get_vk(sk)
+    }else{
+        let keyPair = new_wallet(seed)
+        vk = keyPair.vk
+        sk = keyPair.sk
+    }
+
+    const wallet = () => {
+        return {
+            sign: (msg) => sign(sk, msg),
+            verify: (msg, sig) => verify(vk, msg, sig),
+            vk,
+            sk: !keepPrivate ? sk : undefined
+        }
+    }
+
+    return wallet()
+}
+
+/**
  * @param Uint8Array(length: 32) seed
  *      seed:   A Uint8Array with a length of 32 to seed the keyPair with. This is advanced behavior and should be
  *              avoided by everyday users

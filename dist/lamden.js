@@ -2206,6 +2206,76 @@ var dist = createCommonjsModule(function (module, exports) {
 
 var validators = unwrapExports(dist);
 
+const nodeCryptoJs = require("node-cryptojs-aes");
+const { CryptoJS, JsonFormatter } = nodeCryptoJs;
+const validators$1 = require('types-validate-assert');
+const { validateTypes, assertTypes } = validators$1;
+
+/**
+    * Encrypt a Javascript object with a string password
+    * The object passed must pass JSON.stringify or the method will fail.
+    * 
+    * @param {string} password  A password to encrypt the object with
+    * @param {Object} obj A javascript object (must be JSON compatible)
+    * @return {string} Encrypted string
+ */
+function encryptObject ( password, obj ){
+    assertTypes.isStringWithValue(password);
+    assertTypes.isObject(obj);
+
+    const encrypted = CryptoJS.AES.encrypt(JSON.stringify(obj), password, { format: JsonFormatter }).toString();
+    return encrypted;
+}
+/**
+    *  Decrypt an Object using a password string 
+    * 
+    *  @param {string} password  A password to encrypt the object with
+    *  @param {string} objString A javascript object as JSON string
+    *  @return {string} Encrypted string
+*/
+function decryptObject ( password, objString ) {
+    assertTypes.isStringWithValue(password);
+    assertTypes.isStringWithValue(objString);
+
+    try{
+        const decrypt = CryptoJS.AES.decrypt(objString, password, { format: JsonFormatter });
+        return JSON.parse(CryptoJS.enc.Utf8.stringify(decrypt));
+    } catch (e){
+        return false;
+    }
+}
+/**
+    * Encrypt a string using a password string 
+    *
+    * @param {string} password  A password to encrypt the object with
+    * @param {string} string A string to be password encrypted
+    * @return {string} Encrypted string
+*/
+function encryptStrHash( password, string ){
+    assertTypes.isStringWithValue(password);
+    assertTypes.isString(string);
+
+    const encrypt = CryptoJS.AES.encrypt(string, password).toString();
+    return encrypt;
+}
+/**
+    * Decrypt a string using a password string
+    *
+    * @param {string} password  A password to encrypt the object with
+    * @param {string} encryptedString A string to decrypt
+    * @return {string} Decrypted string
+*/
+function decryptStrHash ( password, encryptedString ){
+    assertTypes.isStringWithValue(password);
+    assertTypes.isStringWithValue(encryptedString);
+    
+    try{
+        const decrypted = CryptoJS.AES.decrypt(encryptedString, password);
+        return CryptoJS.enc.Utf8.stringify(decrypted) === '' ? false : CryptoJS.enc.Utf8.stringify(decrypted);
+    } catch (e) {
+        return false;
+    }
+}
 function buf2hex(buffer) {
     return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
 }
@@ -2223,6 +2293,40 @@ function concatUint8Arrays(array1, array2) {
 }
 
 const nacl = require('tweetnacl');
+
+/**
+    * Create a wallet object for signing and verifying messages
+    * 
+    * @param {Object} [args={}] Args Object
+    * @param {string} [args.sk=undefined] A 32 character long hex representation of a signing key (private key) to create wallet from
+    * @param {Uint8Array(length: 32)} [args.seed=null] A Uint8Array with a length of 32 to seed the keyPair with. This is advanced behavior and should be avoided by everyday users
+    * @param {boolean} [args.keepPrivate=false] No direct access to the sk. Will still allow the wallet to sign messages
+    * @return {Object} Wallet Object with sign and verify methods
+ */
+let create_wallet = (args = {}) => {
+    let { sk = undefined, keepPrivate = false, seed = null } = args;
+
+    let vk;
+
+    if (sk) {
+        vk = get_vk(sk);
+    }else{
+        let keyPair = new_wallet(seed);
+        vk = keyPair.vk;
+        sk = keyPair.sk;
+    }
+
+    const wallet = () => {
+        return {
+            sign: (msg) => sign(sk, msg),
+            verify: (msg, sig) => verify(vk, msg, sig),
+            vk,
+            sk: !keepPrivate ? sk : undefined
+        }
+    };
+
+    return wallet()
+};
 
 /**
  * @param Uint8Array(length: 32) seed
@@ -2349,6 +2453,7 @@ function verify(vk, msg, sig) {
 
 var wallet = /*#__PURE__*/Object.freeze({
             __proto__: null,
+            create_wallet: create_wallet,
             generate_keys: generate_keys,
             get_vk: get_vk,
             format_to_keys: format_to_keys,
@@ -2392,10 +2497,10 @@ class EventEmitter {
     }
 
 /*
- *      bignumber.js v9.0.1
+ *      bignumber.js v9.0.0
  *      A JavaScript library for arbitrary-precision arithmetic.
  *      https://github.com/MikeMcl/bignumber.js
- *      Copyright (c) 2020 Michael Mclaughlin <M8ch88l@gmail.com>
+ *      Copyright (c) 2019 Michael Mclaughlin <M8ch88l@gmail.com>
  *      MIT Licensed.
  *
  *      BigNumber.prototype methods     |  BigNumber methods
@@ -4787,7 +4892,7 @@ function clone(configObject) {
       e = bitFloor((e + 1) / 2) - (e < 0 || e % 2);
 
       if (s == 1 / 0) {
-        n = '5e' + e;
+        n = '1e' + e;
       } else {
         n = s.toExponential();
         n = n.slice(0, n.indexOf('e') + 1) + e;
@@ -5471,13 +5576,13 @@ var encoder = {
 };
 var encoder_1 = encoder.Encoder;
 
-const { validateTypes } = validators;
+const { validateTypes: validateTypes$1 } = validators;
 const fetch = require('node-fetch').default;
 
 class LamdenMasterNode_API{
     constructor(networkInfoObj){
-        if (!validateTypes.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`)
-        if (!validateTypes.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
+        if (!validateTypes$1.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`)
+        if (!validateTypes$1.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
 
         this.hosts = this.validateHosts(networkInfoObj.hosts);        
     }
@@ -5539,7 +5644,7 @@ class LamdenMasterNode_API{
 
     async getVariable(contract, variable, key = ''){
         let parms = {};
-        if (validateTypes.isStringWithValue(key)) parms.key = key;
+        if (validateTypes$1.isStringWithValue(key)) parms.key = key;
 
         let path = `/contracts/${contract}/${variable}/`;
         return this.send('GET', path, {parms}, undefined, (res, err) => {
@@ -5618,7 +5723,7 @@ class LamdenMasterNode_API{
     }
 
     async getNonce(sender, callback){
-        if (!validateTypes.isStringHex(sender)) return `${sender} is not a hex string.`
+        if (!validateTypes$1.isStringHex(sender)) return `${sender} is not a hex string.`
         let path = `/nonce/${sender}`; 
         let url = this.host;
         return this.send('GET', path, {}, url, (res, err) => {
@@ -5657,7 +5762,7 @@ class LamdenMasterNode_API{
     }
 }
 
-const { validateTypes: validateTypes$1 } = validators;
+const { validateTypes: validateTypes$2 } = validators;
 
 class Network {
     // Constructor needs an Object with the following information to build Class.
@@ -5668,16 +5773,16 @@ class Network {
     //  },
     constructor(networkInfoObj){
         //Reject undefined or missing info
-        if (!validateTypes$1.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
-        if (!validateTypes$1.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
+        if (!validateTypes$2.isObjectWithKeys(networkInfoObj)) throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`)
+        if (!validateTypes$2.isArrayWithValues(networkInfoObj.hosts)) throw new Error(`HOSTS Required (Type: Array)`)
 
-        this.type = validateTypes$1.isStringWithValue(networkInfoObj.type) ? networkInfoObj.type.toLowerCase() : "custom";
+        this.type = validateTypes$2.isStringWithValue(networkInfoObj.type) ? networkInfoObj.type.toLowerCase() : "custom";
         this.events = new EventEmitter();
         this.hosts = this.validateHosts(networkInfoObj.hosts);
-        this.currencySymbol = validateTypes$1.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU';
-        this.name = validateTypes$1.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : 'lamden network';
-        this.lamden = validateTypes$1.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : false;
-        this.blockExplorer = validateTypes$1.isStringWithValue(networkInfoObj.blockExplorer) ? networkInfoObj.blockExplorer : undefined;
+        this.currencySymbol = validateTypes$2.isStringWithValue(networkInfoObj.currencySymbol) ? networkInfoObj.currencySymbol : 'TAU';
+        this.name = validateTypes$2.isStringWithValue(networkInfoObj.name) ? networkInfoObj.name : 'lamden network';
+        this.lamden = validateTypes$2.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : false;
+        this.blockExplorer = validateTypes$2.isStringWithValue(networkInfoObj.blockExplorer) ? networkInfoObj.blockExplorer : undefined;
     
         this.online = false;
         try{
@@ -5701,7 +5806,7 @@ class Network {
     async ping(callback = undefined){
         this.online = await this.API.pingServer();
         this.events.emit('online', this.online);
-        if (validateTypes$1.isFunction(callback)) callback(this.online);
+        if (validateTypes$2.isFunction(callback)) callback(this.online);
         return this.online
     }
     get host() {return this.hosts[Math.floor(Math.random() * this.hosts.length)]}
@@ -5718,7 +5823,7 @@ class Network {
     }
 }
 
-const { validateTypes: validateTypes$2 } = validators;
+const { validateTypes: validateTypes$3 } = validators;
 
 class TransactionBuilder extends Network {
     // Constructor needs an Object with the following information to build Class.
@@ -5741,33 +5846,33 @@ class TransactionBuilder extends Network {
     //  }
     //  arg[2] (txData): [Optional] state hydrating data
     constructor(networkInfo, txInfo, txData) {
-        if (validateTypes$2.isSpecificClass(networkInfo, 'Network'))
+        if (validateTypes$3.isSpecificClass(networkInfo, 'Network'))
             super(networkInfo.getNetworkInfo());
         else super(networkInfo);
 
         //Validate arguments
-        if(!validateTypes$2.isObjectWithKeys(txInfo)) throw new Error(`txInfo object not found`)
-        if(!validateTypes$2.isStringHex(txInfo.senderVk)) throw new Error(`Sender Public Key Required (Type: Hex String)`)
-        if(!validateTypes$2.isStringWithValue(txInfo.contractName)) throw new Error(`Contract Name Required (Type: String)`)
-        if(!validateTypes$2.isStringWithValue(txInfo.methodName)) throw new Error(`Method Required (Type: String)`)
-        if(!validateTypes$2.isInteger(txInfo.stampLimit)) throw new Error(`Stamps Limit Required (Type: Integer)`)        
+        if(!validateTypes$3.isObjectWithKeys(txInfo)) throw new Error(`txInfo object not found`)
+        if(!validateTypes$3.isStringHex(txInfo.senderVk)) throw new Error(`Sender Public Key Required (Type: Hex String)`)
+        if(!validateTypes$3.isStringWithValue(txInfo.contractName)) throw new Error(`Contract Name Required (Type: String)`)
+        if(!validateTypes$3.isStringWithValue(txInfo.methodName)) throw new Error(`Method Required (Type: String)`)
+        if(!validateTypes$3.isInteger(txInfo.stampLimit)) throw new Error(`Stamps Limit Required (Type: Integer)`)        
 
         //Store variables in self for reference
-        this.uid = validateTypes$2.isStringWithValue(txInfo.uid) ? txInfo.uid : undefined;
+        this.uid = validateTypes$3.isStringWithValue(txInfo.uid) ? txInfo.uid : undefined;
         this.sender = txInfo.senderVk;
         this.contract = txInfo.contractName;
         this.method = txInfo.methodName;
         this.kwargs = {};
-        if(validateTypes$2.isObject(txInfo.kwargs)) this.kwargs = txInfo.kwargs;
+        if(validateTypes$3.isObject(txInfo.kwargs)) this.kwargs = txInfo.kwargs;
         this.stampLimit = txInfo.stampLimit;
 
         //validate and set nonce and processor if user provided them
         if (typeof txInfo.nonce !== 'undefined'){
-            if(!validateTypes$2.isInteger(txInfo.nonce)) throw new Error(`arg[6] Nonce is required to be an Integer, type ${typeof txInfo.none} was given`)
+            if(!validateTypes$3.isInteger(txInfo.nonce)) throw new Error(`arg[6] Nonce is required to be an Integer, type ${typeof txInfo.none} was given`)
             this.nonce = txInfo.nonce;
         }
         if (typeof txInfo.processor !== 'undefined'){
-            if(!validateTypes$2.isStringWithValue(txInfo.processor)) throw new Error(`arg[7] Processor is required to be a String, type ${typeof txInfo.processor} was given`)
+            if(!validateTypes$3.isStringWithValue(txInfo.processor)) throw new Error(`arg[7] Processor is required to be a String, type ${typeof txInfo.processor} was given`)
             this.processor = txInfo.processor;
         }
         
@@ -5786,18 +5891,18 @@ class TransactionBuilder extends Network {
         //Hydrate other items if passed
         if (txData){
             if (txData.uid) this.uid = txData.uid;
-            if (validateTypes$2.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
-            if (validateTypes$2.isObjectWithKeys(txData.nonceResult)){
+            if (validateTypes$3.isObjectWithKeys(txData.txSendResult)) this.txSendResult = txData.txSendResult;
+            if (validateTypes$3.isObjectWithKeys(txData.nonceResult)){
                 this.nonceResult = txData.nonceResult;
-                if (validateTypes$2.isInteger(this.nonceResult.nonce)) this.nonce = this.nonceResult.nonce;
-                if (validateTypes$2.isStringWithValue(this.nonceResult.processor)) this.processor = this.nonceResult.processor;
+                if (validateTypes$3.isInteger(this.nonceResult.nonce)) this.nonce = this.nonceResult.nonce;
+                if (validateTypes$3.isStringWithValue(this.nonceResult.processor)) this.processor = this.nonceResult.processor;
             }
-            if (validateTypes$2.isObjectWithKeys(txData.txSendResult)){
+            if (validateTypes$3.isObjectWithKeys(txData.txSendResult)){
                 this.txSendResult = txData.txSendResult;
                 if (this.txSendResult.hash) this.txHash = this.txSendResult.hash;
             } 
-            if (validateTypes$2.isObjectWithKeys(txData.txBlockResult)) this.txBlockResult = txData.txBlockResult;
-            if (validateTypes$2.isObjectWithKeys(txData.resultInfo)) this.resultInfo = txData.resultInfo;
+            if (validateTypes$3.isObjectWithKeys(txData.txBlockResult)) this.txBlockResult = txData.txBlockResult;
+            if (validateTypes$3.isObjectWithKeys(txData.resultInfo)) this.resultInfo = txData.resultInfo;
         }
         //Create Capnp messages and transactionMessages
         this.makePayload();
@@ -5899,7 +6004,7 @@ class TransactionBuilder extends Network {
     }
     async send(sk = undefined, masternode = undefined, callback = undefined) {
         //Error if transaction is not signed and no sk provided to the send method to sign it before sending
-        if (!validateTypes$2.isStringWithValue(sk) && !this.transactionSigned){
+        if (!validateTypes$3.isStringWithValue(sk) && !this.transactionSigned){
             throw new Error(`Transation Not Signed: Private key needed or call sign(<private key>) first`);
         }
 
@@ -5907,9 +6012,9 @@ class TransactionBuilder extends Network {
 
         try{
             //If the nonce isn't set attempt to get it
-            if (isNaN(this.nonce) || !validateTypes$2.isStringWithValue(this.processor)) await this.getNonce();
+            if (isNaN(this.nonce) || !validateTypes$3.isStringWithValue(this.processor)) await this.getNonce();
             //if the sk is provided then sign the transaction
-            if (validateTypes$2.isStringWithValue(sk)) this.sign(sk);
+            if (validateTypes$3.isStringWithValue(sk)) this.sign(sk);
             //Serialize transaction
             this.makeTransaction();
             //Send transaction to the masternode
@@ -5917,9 +6022,9 @@ class TransactionBuilder extends Network {
             if (!masternodeURL && this.nonceMasternode) masternodeURL = this.nonceMasternode;
             let response = await this.API.sendTransaction(this.tx, masternodeURL);
             //Set error if txSendResult doesn't exist
-            if (response === 'undefined' || validateTypes$2.isStringWithValue(response)){
+            if (response === 'undefined' || validateTypes$3.isStringWithValue(response)){
                 this.txSendResult.errors = ['TypeError: Failed to fetch'];
-            }else {
+            }else{
                 if (response.error) this.txSendResult.errors = [response.error];
                 else this.txSendResult = response;
             }
@@ -5939,34 +6044,34 @@ class TransactionBuilder extends Network {
                 if (typeof res === 'undefined'){
                     res = {};
                     res.error = 'TypeError: Failed to fetch';
-                }else {
+                }else{
                     if (typeof res === 'string') {
                         if (this.txCheckAttempts < this.txCheckLimit){
                             checkAgain = true;
-                        }else {
+                        }else{
                             this.txCheckResult.errors = [res];
                         }
-                    }else {
+                    }else{
                         if (res.error){
                             if (res.error === 'Transaction not found.'){
                                 if (this.txCheckAttempts < this.txCheckLimit){
                                     checkAgain = true;
-                                }else {
+                                }else{
                                     this.txCheckResult.errors = [res.error, `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`];
                                 }
-                            }else {
+                            }else{
                                 this.txCheckResult.errors = [res.error];
                             }
-                        }else {
+                        }else{
                             this.txCheckResult = res;
                         }
                     }
                 }
                 if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
-                else {
-                    if (validateTypes$2.isNumber(this.txCheckResult.status)){
+                else{
+                    if (validateTypes$3.isNumber(this.txCheckResult.status)){
                         if (this.txCheckResult.status > 0){
-                            if (!validateTypes$2.isArray(this.txCheckResult.errors)) this.txCheckResult.errors = [];
+                            if (!validateTypes$3.isArray(this.txCheckResult.errors)) this.txCheckResult.errors = [];
                             this.txCheckResult.errors.push('This transaction returned a non-zero status code');
                         }
                     }
@@ -5979,15 +6084,15 @@ class TransactionBuilder extends Network {
     }
     handleMasterNodeResponse(result, callback = undefined){
         //Check to see if this is a successful transacation submission
-        if (validateTypes$2.isStringWithValue(result.hash) && validateTypes$2.isStringWithValue(result.success)){
+        if (validateTypes$3.isStringWithValue(result.hash) && validateTypes$3.isStringWithValue(result.success)){
             this.txHash = result.hash;
             this.setPendingBlockInfo();
-        }else {
+        }else{
             this.setBlockResultInfo(result);
             this.txBlockResult = result;
         }
         this.events.emit('response', result, this.resultInfo.subtitle);
-        if (validateTypes$2.isFunction(callback)) callback(result);
+        if (validateTypes$3.isFunction(callback)) callback(result);
         return result
     }
     setPendingBlockInfo(){
@@ -6002,10 +6107,10 @@ class TransactionBuilder extends Network {
     setBlockResultInfo(result){
         let erroredTx = false;
         let errorText = `returned an error and `;
-        let statusCode = validateTypes$2.isNumber(result.status) ? result.status : undefined;
+        let statusCode = validateTypes$3.isNumber(result.status) ? result.status : undefined;
         let stamps = (result.stampsUsed || result.stamps_used) || 0;
         let message = '';
-        if(validateTypes$2.isArrayWithValues(result.errors)){
+        if(validateTypes$3.isArrayWithValues(result.errors)){
             erroredTx = true;
             message = `This transaction returned ${result.errors.length} errors.`;
             if (result.result){
@@ -6055,11 +6160,11 @@ class TransactionBuilder extends Network {
     }
 }
 
-const { validateTypes: validateTypes$3 } = validators;
+const { validateTypes: validateTypes$4 } = validators;
 
 class TransactionBatcher extends Network {
     constructor(networkInfo) {
-        if (validateTypes$3.isSpecificClass(networkInfo, 'Network'))
+        if (validateTypes$4.isSpecificClass(networkInfo, 'Network'))
             super(networkInfo.getNetworkInfo());
         else super(networkInfo);
 
@@ -6169,12 +6274,196 @@ class TransactionBatcher extends Network {
     }
 }
 
+const { validateTypes: validateTypes$5, assertTypes: assertTypes$1 } = validators;
+
+class Keystore {
+    /**
+     * Lamden Keystores
+     *
+     * This Class will create a lamden keystore instance
+     *
+     * @param {Object|undefined} arg constructor argument
+     * @param {String|undefined} arg.key Create an instance and load it with one private key
+     * @param {String|undefined} arg.keyList Create an instance and load it with an array of private keys
+     * @param {String|undefined} arg.keystoreData Create an instance from an existing keystore file data
+     * @return {Keystore}
+     */
+    constructor(arg = undefined) {
+        this.KEYSTORE_VERSION = "1.0";
+        this.password = null;
+        this.encryptedData = null;
+
+        this.keyList = (() => {
+            let keyList = [];
+            let outerClass = this;
+            let wallets = [];
+
+            const addKey = (key) => {
+                keyList.push(key);
+                createWallets();
+            };
+            const clearKeys = () => {
+                keyList = [];
+                createWallets();
+            };
+            const numOfKeys = () => keyList.length;
+            const createWallets = () => {
+                wallets = [];
+                keyList.forEach(key => wallets.push(create_wallet({sk: key, keepPrivate: true})) );
+            };
+            const createKeystore = (password, hint = undefined) => {
+                return JSON.stringify({
+                    data: encryptObject(password, {version: outerClass.KEYSTORE_VERSION, keyList}),
+                    w: !hint ? "" : encryptStrHash('n1ahcKc0lb', hint),
+                });
+            };
+            const decryptKeystore = (password, data) => {
+                let decrypted = decryptObject(password, data);
+                if (decrypted) {
+                    assertTypes$1.isArray(decrypted.keyList);
+                    decrypted.keyList.forEach(key => assertTypes$1.isStringWithValue(key));
+                    decrypted.keyList.forEach(key => addKey(key));
+                    outerClass.version = decrypted.version;
+                } else {
+                    throw new Error("Incorrect Keystore Password.")
+                }
+            };
+
+            return {
+                getWallets: () => wallets,
+                getWallet: (vk) => wallets.find(wallet => wallet.vk === vk),
+                addKey, 
+                clearKeys, 
+                numOfKeys,
+                createKeystore,
+                decryptKeystore
+            }
+        })();
+
+        if (arg){
+            if (arg.key) this.addKey(arg.key);
+            if (arg.keyList) this.addKeys(arg.keyList);
+            if (arg.keystoreData) this.addKeystoreData(arg.keystoreData);
+        }
+    }
+    /**
+     * Add a list of keys to add to the keystore
+     * @param {Array.<String>} keyList An array of 32 character long Lamden private keys
+     */
+    addKeys(keyList){
+        assertTypes$1.isArray(keyList);
+        keyList.forEach(key => this.addKey(key));
+    }
+    /**
+     * Add a key to the keystore
+     * @param {string} key A 32 character long Lamden private key
+     */
+    addKey(key){
+        assertTypes$1.isStringWithValue(key);
+        this.keyList.addKey(key);
+    }
+    /**
+     * Load the keystore with the data from an existing keystore
+     * @param {string} keystoreData The contents of an existing encrypted keystore file
+     */
+    addKeystoreData(keystoreData){
+        if (validateTypes$5.isString(keystoreData)) keystoreData = JSON.parse(keystoreData);
+        if(this.validateKeyStore(keystoreData)){
+            this.encryptedData = keystoreData;
+        }
+    }
+    /**
+     * Returns the password hint in a keystore file
+     * @param {String|undefined} keystoreData The contents of an existing encrypted keystore file if one wasn't supplied to the constructor
+     */
+    getPasswordHint(keystoreData = undefined){
+        if (!this.encryptedData && !keystoreData) throw new Error("No keystore data found.")
+
+        if (keystoreData)  {
+            if (validateTypes$5.isString(keystoreData))  keystoreData = JSON.parse(keystoreData);
+        }
+        else keystoreData = this.encryptedData;
+
+        if (keystoreData.w) return decryptStrHash('n1ahcKc0lb', keystoreData.w);
+        else return ""
+    }
+    /**
+     * Clears all keys from the keystore
+     */
+    clearKeys(){
+        this.keyList.clearKeys();
+    }
+    /**
+     * Clears all keys from the keystore
+     * @return {Array.<Object>} An array of wallet objects
+     */
+    get wallets() {
+        return this.keyList.getWallets()
+    }
+    /**
+     * Load the keystore with the data from an existing keystore
+     * @param {String} vk A 32 character long Lamden public key
+     * @return {Object} A wallet object
+     */
+    getWallet(vk) {
+        return this.keyList.getWallet(vk)
+    }
+    /**
+     * Used to validate that a keystore is the proper Lamden Format (does not decrypt data)
+     * @param {String} keystoreData The contents of an existing encrypted keystore file
+     * @return {Boolean} valid
+     * @throws {Error} This is not a valid keystore file.
+     */
+    validateKeyStore(keystoreData){
+        assertTypes$1.isObjectWithKeys(keystoreData);
+        try{
+            let encryptedData = JSON.parse(keystoreData.data);
+             if (!encryptedData.ct || !encryptedData.iv || !encryptedData.s){
+                throw new Error("This is not a valid keystore file.")
+            }
+        } catch (e) {
+            throw new Error("This is not a valid keystore file.")
+        }
+        return true;
+    }
+    /**
+     * Create a Keystore text string from the keys contained in the Keystore instance
+     * @param {String} password A password to encrypt the data
+     * @param {String|undefined} hint An optional password hint. Not stored in clear text (obsured) but not encrypted with the password.
+     * @return {String} A JSON stringified object containing the encrypted data
+     * @throws {Error} Any errors from the encyption process
+     */
+    createKeystore(password, hint = undefined) {
+        assertTypes$1.isStringWithValue(password);
+        if (hint){
+            assertTypes$1.isStringWithValue(hint);
+        }
+        return this.keyList.createKeystore(password, hint)
+    }
+    /**
+     * Decrypt a keystore into a useable array of wallets.  Any decrypted keys will be added to existing keys in the keystore.
+     * @param {String} password A password to encrypt the data
+     * @param {String|undefined} keystoreData The encrypted contents from a keystore file if not passed into the constructor.
+     * @throws {Error} Any errors from the encyption process
+     */
+    decryptKeystore(password, keystoreData = undefined){
+        if (keystoreData) this.addKeystoreData(keystoreData);
+        if (!this.encryptedData) throw new Error ("No keystoreData to decrypt.")
+        try{
+            this.keyList.decryptKeystore(password, this.encryptedData.data);
+        }catch (e){
+            throw new Error("Incorrect Keystore Password.")
+        }
+    }
+}
+
 var index = {
     TransactionBuilder,
     TransactionBatcher,
     Masternode_API: LamdenMasterNode_API,
     Network,
     wallet,
+    Keystore,
     Encoder: encoder_1
 };
 
