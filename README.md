@@ -246,27 +246,44 @@ Wallet objects have the following properties:
 
 #### Get all wallets
 ```javascript
-let wallets = keystore.getWallets()
+// Make a new transaction
+let tx = new Lamden.TransactionBuilder(networkInfo, TxInfo)
 
-wallets[0].sign(message)
+// Sign the transaction with the first wallet in the keystore
+tx.sign(null, keystore.wallets[0])
+
+// Send transaction
+tx.send()
 ```
 
 #### Get one wallet
 ```javascript
+// Get a wallet from the keystore
 let wallet = keystore.getWallet(vk)
 
-wallets[0].sign(message)
+// Make a new transaction
+let tx = new Lamden.TransactionBuilder(networkInfo, TxInfo)
+
+// Sign the transaction with the wallet
+tx.sign(null, wallet[0])
+
+// Send transaction
+tx.send()
 ```
 
 #### Create a keystore file
 ```javascript
+// Create a keystore with a list of keys
 let keystore = new Lamden.Keystore({keyList: [
     "a67a2dc10b67e7ef6ef049cc2e748bbf669be990827236472108a752f2d7cb8d",
     "3b7f44da84053441372454e8d58d3bf0cbcd12b21e136e4336a8f536704f1e1e"
 ]})
 
-let password = "CoolSafePassword"
-let keyStoreFile = keystore.createKeystore("CoolSafePassword")
+// Create a password
+let password = "CoolPassword9000"
+
+// Create a keystore file
+let keyStoreFile = keystore.createKeystore(password)
 ```
 
 #### Decrypt a keystore file
@@ -275,9 +292,18 @@ let keyStoreFile = {
     data: '{"ct":"nqBdCILO/cRj2pwGU9PLxvIwxWuWQFd9tQuZkoANnyiig55YTIzCPhRSKgFv7xmmuU823aP2jznNkrVWy2k15l+W3gfENe9dXF300HRcTGEFFvdOE52wxsQG4KRNC+UYOB/3VgjCJczb+HCJ39EWzSm+4qQXQI/5/K0ZzG5R+VGRZbI4b6LkfUgpDsOhXdb0BPVrFy45o/c2RjEZ1ocBgTVw63E+9SUYoxNQDHuviMU=","iv":"add60fe81ae267a01f22f18d78fade60","s":"52571fdd0c5d481c"}',
     w: 'U2FsdGVkX19dmxAHJ6wQ7DuwkPNawIAD1rmNRrJdMF8='
 }
-
+// Create a keystore instance from the keystore file
 let keystore = new Lamden.Keystore({keystoreData: keyStoreFile})
+
+// Decrypt keystore with password
 keystore.decryptKeystore('Testing010203')
 
-wallets[0].sign(message)
+// Make a new transaction
+let tx = new Lamden.TransactionBuilder(networkInfo, TxInfo)
+
+// Sign the transaction with the first wallet in the keystore
+tx.sign(null, keystore.wallets[0])
+
+// Send transaction
+tx.send()
 ```
