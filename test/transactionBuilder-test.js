@@ -122,6 +122,19 @@ describe('Test TransactionBuilder class', () => {
             expect(newTx.transactionSigned).to.be(true)
             expect(newTx.verifySignature()).to.be(true)
         })
+        it('can sign and verify a transaction using a keystore wallet', () => {
+            let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_withNonce)
+
+            let stringBuffer = Buffer.from(newTx.sortedPayload.json)
+            let message = new Uint8Array(stringBuffer)
+            let keystore = new Lamden.Keystore({key: senderWallet.sk})
+
+            newTx.sign(null, keystore.wallets[0])
+
+            expect(newTx.transactionSigned).to.be(true)
+            expect(newTx.verifySignature()).to.be(true)
+            expect(keystore.wallets[0].verify(message, newTx.signature)).to.be(true)
+        })
         it('throws and error if nonce not set ', () => {
             let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce)
             expect(newTx.nonce).to.not.exist
