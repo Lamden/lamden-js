@@ -217,14 +217,24 @@ let keystore = new Lamden.Keystore()
 
 #### instance from a private key
 ```javascript
-let keystore = new Lamden.Keystore({key: "a67a2dc10b67e7ef6ef049cc2e748bbf669be990827236472108a752f2d7cb8d"})
+let keystore = new Lamden.Keystore({key: {sk: "a67a2dc10b67e7ef6ef049cc2e748bbf669be990827236472108a752f2d7cb8d"}})
+```
+
+#### instance from a private key and a nickname
+```javascript
+let keystore = new Lamden.Keystore({
+    key: {
+        sk: "a67a2dc10b67e7ef6ef049cc2e748bbf669be990827236472108a752f2d7cb8d",
+        nickname: "main account"
+    }
+})
 ```
 
 #### instance from an Array of private keys
 ```javascript
 let keystore = new Lamden.Keystore({keyList: [
-    "a67a2dc10b67e7ef6ef049cc2e748bbf669be990827236472108a752f2d7cb8d",
-    "3b7f44da84053441372454e8d58d3bf0cbcd12b21e136e4336a8f536704f1e1e"
+    {sk: "a67a2dc10b67e7ef6ef049cc2e748bbf669be990827236472108a752f2d7cb8d"},
+    {sk: "3b7f44da84053441372454e8d58d3bf0cbcd12b21e136e4336a8f536704f1e1e"}
 ]})
 ```
 
@@ -275,8 +285,8 @@ tx.send()
 ```javascript
 // Create a keystore with a list of keys
 let keystore = new Lamden.Keystore({keyList: [
-    "a67a2dc10b67e7ef6ef049cc2e748bbf669be990827236472108a752f2d7cb8d",
-    "3b7f44da84053441372454e8d58d3bf0cbcd12b21e136e4336a8f536704f1e1e"
+    {sk: "a67a2dc10b67e7ef6ef049cc2e748bbf669be990827236472108a752f2d7cb8d"},
+    {sk: "3b7f44da84053441372454e8d58d3bf0cbcd12b21e136e4336a8f536704f1e1e"}
 ]})
 
 // Create a password
@@ -289,8 +299,8 @@ let keyStoreFile = keystore.createKeystore(password)
 #### Decrypt a keystore file
 ```javascript
 let keyStoreFile = {
-    data: '{"ct":"nqBdCILO/cRj2pwGU9PLxvIwxWuWQFd9tQuZkoANnyiig55YTIzCPhRSKgFv7xmmuU823aP2jznNkrVWy2k15l+W3gfENe9dXF300HRcTGEFFvdOE52wxsQG4KRNC+UYOB/3VgjCJczb+HCJ39EWzSm+4qQXQI/5/K0ZzG5R+VGRZbI4b6LkfUgpDsOhXdb0BPVrFy45o/c2RjEZ1ocBgTVw63E+9SUYoxNQDHuviMU=","iv":"add60fe81ae267a01f22f18d78fade60","s":"52571fdd0c5d481c"}',
-    w: 'U2FsdGVkX19dmxAHJ6wQ7DuwkPNawIAD1rmNRrJdMF8='
+  data: '{"ct":"s6M4AvQvklttEyGq5ebPj/PzAmjNtV6wlS9X8L0RCoZiaqyOz0Y80eZbdf1WRv7gm4Y9aN4vPEoU4oNVVbXoT7QYhuaxMZ+XUyPihcOOnxxmMMGckWD9QOROSgLovvm5yZxp6C2G47dWp7QLkJvubuPgZ+Ws0uexLnkvxXnCikwdZ20yUAFwGN+u3RhQvmgFagCLeuViFXSOtfkDRXmzX4k/7P6cWet8j5rn5gCBbOYHq8rFOxc34ihdhE/8N+x+3MyxGYk2QmwyfzTE9jDEXZwWRlz4GtMXi29ZccRi0z2XEeB7yBl1LTLvngpQM2QnCcX0AQNjHqlPb30bZtQD5shwzgNiRKRon41tKBAH7uvTjw6N39DVIABUkQCusQ1dWWkuvkt79kPjKI/oRF3RH101kXbejFLfDy0eXNUcV3U=","iv":"14e2a23a66fae00bb201f013e9ae1699","s":"5f4b1877b9d4235e"}',
+  w: 'U2FsdGVkX19RU+1vmxcY5wDfbkn1Gq8zOsh9Y4ylvSs='
 }
 // Create a keystore instance from the keystore file
 let keystore = new Lamden.Keystore({keystoreData: keyStoreFile})

@@ -9,12 +9,28 @@ const KEYSTORE_HINT = "Testing010203"
 
 // Overwritted in "createKeystore() - Can create a keystore"
 let KEYSTORE_DATA = {
-    data: '{"ct":"nqBdCILO/cRj2pwGU9PLxvIwxWuWQFd9tQuZkoANnyiig55YTIzCPhRSKgFv7xmmuU823aP2jznNkrVWy2k15l+W3gfENe9dXF300HRcTGEFFvdOE52wxsQG4KRNC+UYOB/3VgjCJczb+HCJ39EWzSm+4qQXQI/5/K0ZzG5R+VGRZbI4b6LkfUgpDsOhXdb0BPVrFy45o/c2RjEZ1ocBgTVw63E+9SUYoxNQDHuviMU=","iv":"add60fe81ae267a01f22f18d78fade60","s":"52571fdd0c5d481c"}',
-    w: 'U2FsdGVkX19dmxAHJ6wQ7DuwkPNawIAD1rmNRrJdMF8='
+    data: '{"ct":"s6M4AvQvklttEyGq5ebPj/PzAmjNtV6wlS9X8L0RCoZiaqyOz0Y80eZbdf1WRv7gm4Y9aN4vPEoU4oNVVbXoT7QYhuaxMZ+XUyPihcOOnxxmMMGckWD9QOROSgLovvm5yZxp6C2G47dWp7QLkJvubuPgZ+Ws0uexLnkvxXnCikwdZ20yUAFwGN+u3RhQvmgFagCLeuViFXSOtfkDRXmzX4k/7P6cWet8j5rn5gCBbOYHq8rFOxc34ihdhE/8N+x+3MyxGYk2QmwyfzTE9jDEXZwWRlz4GtMXi29ZccRi0z2XEeB7yBl1LTLvngpQM2QnCcX0AQNjHqlPb30bZtQD5shwzgNiRKRon41tKBAH7uvTjw6N39DVIABUkQCusQ1dWWkuvkt79kPjKI/oRF3RH101kXbejFLfDy0eXNUcV3U=","iv":"14e2a23a66fae00bb201f013e9ae1699","s":"5f4b1877b9d4235e"}',
+    w: 'U2FsdGVkX19RU+1vmxcY5wDfbkn1Gq8zOsh9Y4ylvSs='
 }
 
 const keyPairs = [wallet.new_wallet(), wallet.new_wallet()]
-const keyList = [keyPairs[0].sk, keyPairs[1].sk]
+const keyList = [
+    {
+        sk: keyPairs[0].sk, 
+        nickname: "key1",
+        name: "lamden",
+        network: "lamden",
+        symbol: "TAU"
+    },
+    {
+        sk: keyPairs[1].sk, 
+        nickname: "key2",
+        name: "lamden",
+        network: "lamden",
+        symbol: "TAU"
+    }
+
+]
 
 describe('Test Lamden Keystore Class', () => {
     context('keystore construcutor: ', () => {
@@ -50,9 +66,9 @@ describe('Test Lamden Keystore Class', () => {
             expect(() => new Lamden.Keystore({keyList: {key1: "key1"}})).throwException();
         })
         it('NEGATIVE - Errors on if array value is not type string', () => {
-            expect(() => new Lamden.Keystore({keyList: [keyList[0] ,2]}))
+            expect(() => new Lamden.Keystore({keyList: [keyList[0], 2]}))
                 .throwException((e) => { 
-                    expect(e.message).to.be('Expected "2" to be [object String] and not empty');
+                    expect(e.message).to.be('Expected "2" to be [object Object] and have keys');
                 });
         })
     })
@@ -66,13 +82,24 @@ describe('Test Lamden Keystore Class', () => {
             let keystore = new Lamden.Keystore()
             expect(() => keystore.addKey(1))
                 .throwException((e) => { 
-                    expect(e.message).to.be('Expected "1" to be [object String] and not empty');
+                    expect(e.message).to.be('Expected "1" to be [object Object] and have keys');
                 });
         })
         it('addKeys() - Can add to the internal "keyList" via an array of keys', () => {
             let keystore = new Lamden.Keystore()
             keystore.addKeys(keyList)
             expect( keystore.keyList.numOfKeys() ).to.be( 2 )
+        })
+        it('addKeys() - Wallets contain metadata', () => {
+            let keystore = new Lamden.Keystore()
+            keystore.addKeys(keyList)
+            keystore.wallets.forEach((walletInfo, index) => {
+                expect(walletInfo.name ).to.be( keyList[index].name )
+                expect(walletInfo.nickname ).to.be( keyList[index].nickname )
+                expect(walletInfo.network ).to.be( keyList[index].network )
+                expect(walletInfo.symbol ).to.be( keyList[index].symbol )
+            })
+            
         })
         it('NEGATIVE - addKeys() - Errors if value passed is not type array', () => {
             let keystore = new Lamden.Keystore()
@@ -158,13 +185,11 @@ describe('Test Lamden Keystore Class', () => {
         it('getPasswordHint() - Can get the hint from a supplied keystore', () => {
             let keystore = new Lamden.Keystore()
             let hint = keystore.getPasswordHint(KEYSTORE_DATA)
-            console.log(hint)
             expect( hint ).to.be( KEYSTORE_HINT )
         })
         it('getPasswordHint() - Can get the hint from a supplied string keystore', () => {
             let keystore = new Lamden.Keystore()
             let hint = keystore.getPasswordHint(JSON.stringify(KEYSTORE_DATA))
-            console.log(hint)
             expect( hint ).to.be( KEYSTORE_HINT )
         })
     })

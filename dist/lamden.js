@@ -6310,7 +6310,12 @@ class Keystore {
             const numOfKeys = () => keyList.length;
             const createWallets = () => {
                 wallets = [];
-                keyList.forEach(key => wallets.push(create_wallet({sk: key, keepPrivate: true})) );
+                keyList.forEach(keyInfo => {
+                    let newWallet = create_wallet({sk: keyInfo.sk, keepPrivate: true});
+                    newWallet = {...newWallet, ...keyInfo};
+                    delete newWallet.sk;
+                    wallets.push(newWallet);
+                });
             };
             const createKeystore = (password, hint = undefined) => {
                 return JSON.stringify({
@@ -6322,8 +6327,8 @@ class Keystore {
                 let decrypted = decryptObject(password, data);
                 if (decrypted) {
                     assertTypes$1.isArray(decrypted.keyList);
-                    decrypted.keyList.forEach(key => assertTypes$1.isStringWithValue(key));
-                    decrypted.keyList.forEach(key => addKey(key));
+                    decrypted.keyList.forEach(keyInfo => assertTypes$1.isStringWithValue(keyInfo.sk));
+                    decrypted.keyList.forEach(keyInfo => addKey(keyInfo));
                     outerClass.version = decrypted.version;
                 } else {
                     throw new Error("Incorrect Keystore Password.")
@@ -6359,9 +6364,11 @@ class Keystore {
      * Add a key to the keystore
      * @param {string} key A 32 character long Lamden private key
      */
-    addKey(key){
-        assertTypes$1.isStringWithValue(key);
-        this.keyList.addKey(key);
+    addKey(keyInfo){
+        assertTypes$1.isObjectWithKeys(keyInfo);
+        assertTypes$1.isStringWithValue(keyInfo.sk);
+        if (validateTypes$5.isStringWithValue(keyInfo.vk)) delete keyInfo.vk;
+        this.keyList.addKey(keyInfo);
     }
     /**
      * Load the keystore with the data from an existing keystore
