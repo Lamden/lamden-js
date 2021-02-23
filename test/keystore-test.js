@@ -109,6 +109,39 @@ describe('Test Lamden Keystore Class', () => {
                 });
         })
     })
+    context('Deleting Keys from the Keystore', () => {
+        it('deleteKey() - Can delete a key from the keystore', () => {
+            let keystore = new Lamden.Keystore({keyList})
+            keystore.deleteKey(0)
+            expect( keystore.wallets[0].vk ).to.be( keyPairs[1].vk )
+        })
+        it('NEGATIVE - deleteKey() - Errors if argument is not an integer', () => {
+            let keystore = new Lamden.Keystore({keyList})
+            
+            expect(() => keystore.deleteKey(0.3))
+                .throwException((e) => { 
+                    expect(e.message).to.be('Expected "0.3" to be an integer but got non-integer value');
+                });
+        })
+        it('NEGATIVE - deleteKey() - Errors if index is out of range, high', () => {
+            let keystore = new Lamden.Keystore({keyList})
+            expect(() => keystore.deleteKey(2))
+                .throwException((e) => { 
+                    expect(e.message).to.be("Key index out of range.");
+                });
+        })
+        it('NEGATIVE - deleteKey() - Errors if index is out of range, low', () => {
+            let keystore = new Lamden.Keystore({keyList})
+            expect(() => keystore.deleteKey(-1))
+                .throwException((e) => { 
+                    expect(e.message).to.be("Key index out of range.");
+                });
+        })
+        it('NEGATIVE - deleteKey() - Funtion returns no keys in list', () => {
+            let keystore = new Lamden.Keystore()
+            keystore.deleteKey(0)
+        })
+    })
     context('Using keystore wallets', () => {
         it('keystore.wallets - Deletes keys from the keystore', () => {
             let keystore = new Lamden.Keystore({keyList})

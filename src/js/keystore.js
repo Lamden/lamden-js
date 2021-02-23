@@ -29,6 +29,10 @@ export class Keystore {
                 keyList.push(key)
                 createWallets()
             }
+            const deleteKey = (position) => {
+                keyList.splice(position, 1);
+                createWallets()
+            }
             const clearKeys = () => {
                 keyList = []
                 createWallets()
@@ -67,6 +71,7 @@ export class Keystore {
                 addKey, 
                 clearKeys, 
                 numOfKeys,
+                deleteKey,
                 createKeystore,
                 decryptKeystore
             }
@@ -120,6 +125,16 @@ export class Keystore {
 
         if (keystoreData.w) return helpers.decryptStrHash('n1ahcKc0lb', keystoreData.w);
         else return ""
+    }
+    /**
+     * Removes a specific key from the keyList
+     * @param {Number} keyIndex The index of the key you want to remove
+     */
+    deleteKey(keyIndex){
+        assertTypes.isInteger(keyIndex)
+        if (this.keyList.numOfKeys() === 0) return
+        if (keyIndex < 0 || keyIndex >= this.keyList.numOfKeys()) throw new Error("Key index out of range.")
+        this.keyList.deleteKey(keyIndex)
     }
     /**
      * Clears all keys from the keystore
