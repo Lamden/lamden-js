@@ -127,7 +127,7 @@ describe('Test TransactionBuilder class', () => {
 
             let stringBuffer = Buffer.from(newTx.sortedPayload.json)
             let message = new Uint8Array(stringBuffer)
-            let keystore = new Lamden.Keystore({key: senderWallet.sk})
+            let keystore = new Lamden.Keystore({key: {sk:senderWallet.sk}})
 
             newTx.sign(null, keystore.wallets[0])
 

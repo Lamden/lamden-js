@@ -5,6 +5,7 @@ import { Encoder } from './js/encoder';
 import { Keystore } from './js/keystore';
 import { LamdenMasterNode_API as Masternode_API } from './js/masternode-api';
 import * as wallet from './js/wallet';
+import * as utils from './js/helpers';
 
 export default {
     TransactionBuilder,
@@ -13,5 +14,6 @@ export default {
     Network,
     wallet,
     Keystore,
-    Encoder
+    Encoder,
+    utils
 };

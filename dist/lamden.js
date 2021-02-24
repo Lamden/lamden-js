@@ -2285,12 +2285,78 @@ function hex2buf(hexString) {
         bytes[i] = parseInt(hexString.substr(i * 2, 2), 16);
     return bytes;
 }
+function str2buf(string) {
+    var buf = new Buffer.from(string);
+    return new Uint8Array(buf);
+}
 function concatUint8Arrays(array1, array2) {
     var arr = new Uint8Array(array1.length + array2.length);
     arr.set(array1);
     arr.set(array2, array1.length);
     return arr;
 }
+function ab2str(buf) {
+    return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+function str2ab(str) {
+    var buf = new ArrayBuffer(str.length);
+    var bufView = new Uint8Array(buf);
+    for (var i = 0, strLen = str.length; i < strLen; i++) {
+        bufView[i] = str.charCodeAt(i);
+    }
+    return buf;
+}
+function str2hex(str) {
+    var hex = '';
+    for (var i = 0; i < str.length; i++) {
+        hex += '' + str.charCodeAt(i).toString(16);
+    }
+    return hex;
+}
+function hex2str(hexx) {
+    var hex = hexx.toString(); //force conversion
+    var str = '';
+    for (var i = 0; (i < hex.length && hex.substr(i, 2) !== '00'); i += 2)
+        str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    return str;
+}
+function randomString(length) {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for (var i = 0; i < length; i++) {
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+}
+function isStringHex(string = '') {
+    let hexRegEx = /([0-9]|[a-f])/gim;
+    return typeof string === 'string' &&
+        (string.match(hexRegEx) || []).length === string.length;
+}
+
+function isLamdenKey( string ){
+    if (validateTypes.isStringHex(string) && string.length === 64) return true;
+    return false;
+}
+
+var utils = /*#__PURE__*/Object.freeze({
+            __proto__: null,
+            encryptObject: encryptObject,
+            decryptObject: decryptObject,
+            encryptStrHash: encryptStrHash,
+            decryptStrHash: decryptStrHash,
+            buf2hex: buf2hex,
+            hex2buf: hex2buf,
+            str2buf: str2buf,
+            concatUint8Arrays: concatUint8Arrays,
+            ab2str: ab2str,
+            str2ab: str2ab,
+            str2hex: str2hex,
+            hex2str: hex2str,
+            randomString: randomString,
+            isStringHex: isStringHex,
+            isLamdenKey: isLamdenKey
+});
 
 const nacl = require('tweetnacl');
 
@@ -6487,7 +6553,8 @@ var index = {
     Network,
     wallet,
     Keystore,
-    Encoder: encoder_1
+    Encoder: encoder_1,
+    utils
 };
 
 module.exports = index;
