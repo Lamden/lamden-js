@@ -6106,7 +6106,7 @@ class TransactionBuilder extends Network {
             if (!masternodeURL && this.nonceMasternode) masternodeURL = this.nonceMasternode;
             let response = await this.API.sendTransaction(this.tx, masternodeURL);
             //Set error if txSendResult doesn't exist
-            if (typeof response === 'undefined' || validateTypes$3.isStringWithValue(response)){
+            if (!response || validateTypes$3.isStringWithValue(response)){
                 this.txSendResult.errors = [response || "Unknown Transaction Error"];
             }else{
                 if (response.error) this.txSendResult.errors = [response.error];
@@ -6125,7 +6125,7 @@ class TransactionBuilder extends Network {
                 const res = await this.API.checkTransaction(this.txHash);
                 let checkAgain = false;
                 const timestamp =  new Date().toUTCString();
-                if (typeof res === 'undefined'){
+                if (!res){
                     res = {};
                     res.error = "Unknown Transaction Error";
                 }else{
