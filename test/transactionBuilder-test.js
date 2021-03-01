@@ -255,7 +255,8 @@ describe('Test TransactionBuilder class', () => {
         it('throws error if provided network is unresponsive', async function () {
             let newTx = new Lamden.TransactionBuilder(badNetwork, txInfo_withNonce)
             let response = await newTx.send(senderWallet.sk)
-            expect(response.errors[0].includes('Failed to fetch')).to.be(true)
+            expect(response.errors[0])
+            .to.be('FetchError: request to http://badnetwork.lamden.io:18080/ failed, reason: getaddrinfo ENOTFOUND badnetwork.lamden.io')
 
         })
         it('can return execution errors list', async function () {

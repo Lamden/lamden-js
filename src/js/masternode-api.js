@@ -39,7 +39,11 @@ export class LamdenMasterNode_API{
 
         return fetch(`${overrideURL ? overrideURL : this.url}${path}${parms}`, options)
             .then(res => {
-                return res.json()
+                if (res.status === 200){
+                    return res.json()
+                    }else{
+                    return callback(undefined, res.statusText)
+                }
             } )
             .then(json => {
                     return callback(json, undefined)

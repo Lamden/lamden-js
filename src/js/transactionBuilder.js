@@ -201,8 +201,8 @@ export class TransactionBuilder extends Network {
             if (!masternodeURL && this.nonceMasternode) masternodeURL = this.nonceMasternode
             let response = await this.API.sendTransaction(this.tx, masternodeURL)
             //Set error if txSendResult doesn't exist
-            if (response === 'undefined' || validateTypes.isStringWithValue(response)){
-                this.txSendResult.errors = ['TypeError: Failed to fetch']
+            if (typeof response === 'undefined' || validateTypes.isStringWithValue(response)){
+                this.txSendResult.errors = [response || 'TypeError: Failed to fetch']
             }else{
                 if (response.error) this.txSendResult.errors = [response.error]
                 else this.txSendResult = response
