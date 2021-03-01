@@ -38,19 +38,20 @@ export class LamdenMasterNode_API{
         }
 
         return fetch(`${overrideURL ? overrideURL : this.url}${path}${parms}`, options)
-            .then(res => {
+            .then(async (res) => {
                 if (res.status === 200){
-                    return res.json()
-                    }else{
-                    return callback(undefined, res.statusText)
+                    let json = await res.json()
+					callback(json, undefined)
+					return json
+                }else{
+					let error = validateTypes.isStringWithValue(res.statusText) ? res.statusText : false
+					callback(undefined, error)
+					return error
                 }
-            } )
-            .then(json => {
-                    return callback(json, undefined)
             })
             .catch(err => {
-                    return callback(undefined, err.toString())
-                })
+                return callback(undefined, err.toString())
+            })
     }
 
     createParms(parms){
@@ -63,11 +64,15 @@ export class LamdenMasterNode_API{
     }
 
     async getContractInfo(contractName){
+        const returnInfo = (res) => {
+            try{
+                if (res.name) return res
+            } catch (e){}
+            return null;
+        }
         let path = `/contracts/${contractName}`
-        return this.send('GET', path, {}, undefined, (res, err) => {
-            if (err) return;
-            return res
-        })
+        return this.send('GET', path, {}, undefined, (res, err) => returnInfo(res))
+                .then(res => returnInfo(res))
     }
 
     async getVariable(contract, variable, key = ''){
@@ -75,45 +80,51 @@ export class LamdenMasterNode_API{
         if (validateTypes.isStringWithValue(key)) parms.key = key;
 
         let path = `/contracts/${contract}/${variable}/`
-        return this.send('GET', path, {parms}, undefined, (res, err) => {
-            if (err) return null;
+
+        const returnValue = (res) => {
             try{
                 if (res.value) return res.value
             } catch (e){}
-            return;
-        })
+            return null;
+        }
+        return this.send('GET', path, {parms}, undefined, (res, err) => returnValue(res))
+                    .then(res => returnValue(res))
     }
 
     async getContractMethods(contract){
-        let path = `/contracts/${contract}/methods`
-        return this.send('GET', path, {}, undefined, (res, err) => {
+        const getMethods = (res) => {
             try{
                 if (res.methods) return res.methods
             } catch (e){}
             return [];
-        })
-        
+        }
+        let path = `/contracts/${contract}/methods`
+        return this.send('GET', path, {}, undefined, (res, err) => getMethods(res))
+            .then(res => getMethods(res))
     }
 
     async getContractVariables(contract){
-        let path = `/contracts/${contract}/variables`
-        return this.send('GET', path, {}, undefined, (res, err) => {
+        const getVariables = (res) => {
             try{
                 if (res.variables) return res
             } catch (e){}
             return {};
-        })
+        }
+        let path = `/contracts/${contract}/variables`
+        return this.send('GET', path, {}, undefined, (res, err) => getVariables(res))
+        .then(res => getVariables(res))
     }
 
     async pingServer(){
-        return this.send('GET', '/ping', {}, undefined, (res, err) => {
+        const getStatus = (res) => {
             try { 
-                if (res.status === 'online') return true;
-            } 
-            catch (e) {
-                return false;
-            }
-        })
+                if (res.status) return true;
+            } catch (e) {}
+            return false
+        }
+        let response = await this.send('GET', '/ping', {}, undefined, (res, err) => getStatus(res))
+        return getStatus(response)
+
     }
 
     async getCurrencyBalance(vk){
@@ -124,13 +135,15 @@ export class LamdenMasterNode_API{
     }
 
     async contractExists(contractName){
-        let path = `/contracts/${contractName}`
-        return this.send('GET', path, {}, undefined, (res, err) => {
-            try{
+        const exists = (res) => {
+            try { 
                 if (res.name) return true;
-            } catch (e){}
-            return false;
-        })
+            } catch (e) {}
+            return false
+        }
+        let path = `/contracts/${contractName}`
+        return this.send('GET', path, {}, undefined, (res, err) => exists(res))
+        .then(res => exists(res))
     }
 
     async sendTransaction(data, url = undefined, callback){

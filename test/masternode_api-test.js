@@ -68,7 +68,6 @@ describe('Test Masternode API returns', () => {
         it('returns true if the server is online', async () => {
             let response = await goodNetwork_api.pingServer()
             expect(response).to.be(true);
-
         })
         it('returns false if provided network is unresponsive', async () => {
             let response = await badNetwork_api.pingServer()
@@ -158,17 +157,17 @@ describe('Test Masternode API returns', () => {
         it('returns undefined if the key does not exist in the variable', async () => {
             let key = wallet.new_wallet().vk;
             let response = await goodNetwork_api.getVariable('currency', 'balances', key)
-            expect(response).to.be(undefined);
+            expect(response).to.be(null);
         })
         it('returns undefined if the contract does not exist', async () => {
             let key = keyPair.vk;
             let response = await goodNetwork_api.getVariable(wallet.new_wallet().vk, 'balances', key)
-            expect(response).to.be(undefined);
+            expect(response).to.be(null);
         })
         it('returns undefined if the variable does not exist', async () => {
             let key = keyPair.vk;
             let response = await goodNetwork_api.getVariable('currency',  wallet.new_wallet().vk, key)
-            expect(response).to.be(undefined);
+            expect(response).to.be(null);
         })
         it('returns undefined if provided network is unresponsive', async () => {
             let key = keyPair.vk;
@@ -185,9 +184,10 @@ describe('Test Masternode API returns', () => {
         })
         it('returns undefined if provided network is unresponsive', async () => {
             let response = await badNetwork_api.getContractInfo('currency')
-            expect(response).to.be(undefined);
+            expect(response).to.be(null);
         })
     })
+
     context('Masternode_API.getNonce()', () => {
         it('returns a nonce and processor value for a vk', async () => {
             let response = await goodNetwork_api.getNonce(keyPair.vk)

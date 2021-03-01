@@ -202,7 +202,7 @@ export class TransactionBuilder extends Network {
             let response = await this.API.sendTransaction(this.tx, masternodeURL)
             //Set error if txSendResult doesn't exist
             if (typeof response === 'undefined' || validateTypes.isStringWithValue(response)){
-                this.txSendResult.errors = [response || 'TypeError: Failed to fetch']
+                this.txSendResult.errors = [response || "Unknown Transaction Error"]
             }else{
                 if (response.error) this.txSendResult.errors = [response.error]
                 else this.txSendResult = response
@@ -222,7 +222,7 @@ export class TransactionBuilder extends Network {
                 const timestamp =  new Date().toUTCString();
                 if (typeof res === 'undefined'){
                     res = {}
-                    res.error = 'TypeError: Failed to fetch'
+                    res.error = "Unknown Transaction Error"
                 }else{
                     if (typeof res === 'string') {
                         if (this.txCheckAttempts < this.txCheckLimit){
