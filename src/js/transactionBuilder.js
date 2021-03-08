@@ -217,9 +217,9 @@ export class TransactionBuilder extends Network {
         return new Promise((resolve) => {
             let timerId = setTimeout(async function checkTx() {
                 this.txCheckAttempts = this.txCheckAttempts + 1;
-                const res = await this.API.checkTransaction(this.txHash)
+                let res = await this.API.checkTransaction(this.txHash)
                 let checkAgain = false;
-                const timestamp =  new Date().toUTCString();
+                let timestamp =  new Date().toUTCString();
                 if (!res){
                     res = {}
                     res.error = "Unknown Transaction Error"
