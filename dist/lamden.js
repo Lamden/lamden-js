@@ -6125,30 +6125,28 @@ class TransactionBuilder extends Network {
                 let res = await this.API.checkTransaction(this.txHash);
                 let checkAgain = false;
                 let timestamp =  new Date().toUTCString();
-                if (!res){
-                    res = {};
-                    res.error = "Unknown Transaction Error";
-                }else{
-                    if (typeof res === 'string') {
-                        if (this.txCheckAttempts < this.txCheckLimit){
-                            checkAgain = true;
-                        }else{
-                            this.txCheckResult.errors = [res];
-                        }
+                if (typeof res === 'string' || !res) {
+                    if (this.txCheckAttempts < this.txCheckLimit){
+                        checkAgain = true;
                     }else{
-                        if (res.error){
-                            if (res.error === 'Transaction not found.'){
-                                if (this.txCheckAttempts < this.txCheckLimit){
-                                    checkAgain = true;
-                                }else{
-                                    this.txCheckResult.errors = [res.error, `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`];
-                                }
+                        this.txCheckResult.errors = [
+                            `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`,
+                            res
+                        ];
+                    }
+                }else{
+                    if (res.error){
+                        if (res.error === 'Transaction not found.'){
+                            if (this.txCheckAttempts < this.txCheckLimit){
+                                checkAgain = true;
                             }else{
-                                this.txCheckResult.errors = [res.error];
+                                this.txCheckResult.errors = [res.error, `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`];
                             }
                         }else{
-                            this.txCheckResult = res;
+                            this.txCheckResult.errors = [res.error];
                         }
+                    }else{
+                        this.txCheckResult = res;
                     }
                 }
                 if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);

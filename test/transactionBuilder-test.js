@@ -1,7 +1,8 @@
 const expect = require('expect.js');
+require('dotenv').config()
 const Lamden = require('../dist/lamden');
 
-
+const { vk ,sk } = process.env
 
 let goodNetwork = {
     type: 'testnet',
@@ -17,10 +18,8 @@ let badNetwork = {
 
 let uid = "randomUIDstring"
 
-const senderWallet = {
-    vk: "960c002a36c30c3aec8bc670e9b8b40eebcfd545f4e9237579fd7395a21ccebb",
-    sk: "c8a3c5333aa3b058c4fa16d48db52355ab62ddc8daa9a183706a912e522440b6"
-}
+const senderWallet = { vk, sk }
+
 let recieverWallet = Lamden.wallet.new_wallet()
 
 let senderVk = senderWallet.vk
@@ -202,6 +201,7 @@ describe('Test TransactionBuilder class', () => {
 
             //Send Tx
             await newTx1.send();
+            //console.log(newTx1.getAllInfo())
 
             let txSendResult = newTx1.txSendResult;
             expect(txSendResult.success).to.equal('Transaction successfully submitted to the network.')
@@ -217,7 +217,7 @@ describe('Test TransactionBuilder class', () => {
             expect(resultInfo.type).to.equal('success')
         })
         it('Sends transactions and can get hash result from masternode', async function () {
-            this.timeout(10000);
+            this.timeout(20000);
             await newTx1.checkForTransactionResult()
             let txBlockResult = newTx1.txBlockResult;
             expect(txBlockResult.hash).to.equal(newTx1.txSendResult.hash)

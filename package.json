@@ -1,6 +1,6 @@
 {
   "name": "lamden-js",
-  "version": "1.5.8",
+  "version": "1.6.1",
   "description": "A javascript implementaion for creating wallets, submitting transactions and interacting with masternodes on the Lamden Blockchain.",
   "main": "dist/lamden.js",
   "scripts": {
@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.8.4",
+    "dotenv": "^8.2.0",
     "expect.js": "^0.3.1",
     "mocha": "^7.2.0",
     "rollup": "^1.31.1",
