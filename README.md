@@ -1,5 +1,5 @@
 # lamden-js
-This is the Lamden javascript implementation used in the [Lamden Wallet Chrome Extention](https://chrome.google.com/webstore/detail/lamden-wallet-browser-ext/lgkgmnhecgdjiifepobmobkeeeheakko) ([Github](https://github.com/Lamden/wallet)).
+This is the Lamden javascript implementation used in the [Lamden Wallet Chrome Extention](https://chrome.google.com/webstore/detail/lamden-wallet-browser-ext/fhfffofbcgbjjojdnpcfompojdjjhdim) ([Github](https://github.com/Lamden/wallet)).
 
 This package should work in Node.js and Broswer implementations.
 
