@@ -37,6 +37,43 @@ console.log(lamdenWallet)
    }
 ```
 
+### Create a new BIP39 / BIP 32 compatible wallet
+- **BIP39** = 24 seed phrase
+- **BIP32** = derivation path
+
+```javascript
+let lamdenWallet = Lamden.wallet.new_wallet_bip39()
+
+console.log(lamdenWallet)
+>> {
+       sk: 'a6b72cb3d1160c26f9f39a8f1d4a3c7c0da2ac59d193b66ac5f919ec77f28915',
+       vk: '53d016586ce35c5f6ea581cadf4693dd2850621dfad6a2261e8dd311c83e11d5',
+       derivationIndex: 0,
+       mnemonic: 'evidence rifle behave normal duty mean junk chicken salute relief raw chunk region ocean guard swarm taste toy loop ozone spell crumble apart echo'
+   }
+
+```
+
+### Restore a  BIP39 / BIP 32 compatible wallet
+- **BIP39** = 24 seed phrase
+- **BIP32** = derivation path
+
+```javascript
+const mnemonic = 'evidence rifle behave normal duty mean junk chicken salute relief raw chunk region ocean guard swarm taste toy loop ozone spell crumble apart echo'
+const derivationIndex = 0;
+let lamdenWallet = Lamden.wallet.new_wallet_bip39(mnemonic, derivationIndex)
+
+console.log(lamdenWallet)
+>> {
+       sk: 'a6b72cb3d1160c26f9f39a8f1d4a3c7c0da2ac59d193b66ac5f919ec77f28915',
+       vk: '53d016586ce35c5f6ea581cadf4693dd2850621dfad6a2261e8dd311c83e11d5',
+       derivationIndex: 0,
+       mnemonic: 'evidence rifle behave normal duty mean junk chicken salute relief raw chunk region ocean guard swarm taste toy loop ozone spell crumble apart echo'
+   }
+
+```
+
+
 ### Get a public key (vk) from a private key (sk)
 Takes the sk as an argument and returns the vk
 ```javascript

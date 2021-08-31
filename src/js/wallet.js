@@ -1,6 +1,8 @@
 
 import * as helpers from './helpers';
 const nacl = require('tweetnacl')
+const bip39 = require('bip39')
+const bip32 = require('ed25519-hd-key')
 
 /**
     * Create a wallet object for signing and verifying messages
@@ -118,6 +120,61 @@ export function new_wallet(seed = null) {
     const keys = generate_keys(seed);
     return keys_to_format(keys);
 }
+
+/**
+ *
+ * @param mnemonic 24 word seed phrase
+ * @param derivationIndex bip32 derivation key index
+ * @returns {{derivationIndex: number, vk: string, sk: string, mnemonic: string}}
+ *      derivationIndex:    bip32 derivation key index
+ *      vk:                 Verify Key (VK) represented as a 64 character hex string
+ *      sk:                 Signing Key (SK) represented as a 64 character hex string
+ *      mnemonic:           24 word seed phrase
+
+ */
+function generate_keys_bip39(mnemonic = undefined, derivationIndex = 0) {
+    let finalMnemonic;
+
+    if (mnemonic !== undefined){
+        finalMnemonic = mnemonic;
+    }else {
+        finalMnemonic = bip39.generateMnemonic(256)
+    }
+
+    const seed = bip39.mnemonicToSeedSync(finalMnemonic).toString('hex');
+
+    const derivationPath = "m/44'/789'/" + derivationIndex + "'/0'/0'";
+    const { key, chainCode } = bip32.derivePath(derivationPath, seed, 0x80000000);
+
+    const privateKey = key.toString('hex');
+    const publicKey = bip32.getPublicKey(key, false).toString('hex');
+
+    if (publicKey !== get_vk(privateKey)){
+        throw Error('Bip32 public key does not match with Lamden public key!')
+    }
+
+    return {
+        sk: privateKey,
+        vk: publicKey,
+        derivationIndex: derivationIndex,
+        mnemonic: finalMnemonic
+    }
+}
+
+/**
+ * @param mnemonic 24 word seed phrase
+ * @param derivationIndex bip32 derivation key index
+ *
+ * @return {{derivationIndex: number, vk: string, sk: string, mnemonic: (string|undefined)}} { sk, vk, derivationIndex, mnemonic }
+ *      sk:                 Signing Key (SK) represented as a 64 character hex string
+ *      vk:                 Verify Key (VK) represented as a 64 character hex string
+ *      derivationIndex:    Bip32 derivation index
+ *      mnemonic:           24 word seed phrase
+ */
+export function new_wallet_bip39(mnemonic = undefined, derivationIndex = 0) {
+    return generate_keys_bip39(mnemonic, derivationIndex);
+}
+
 /**
  * @param String sk
  * @param Uint8Array msg
