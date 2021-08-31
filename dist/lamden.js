@@ -2483,7 +2483,7 @@ function new_wallet(seed = null) {
  *
  * @param mnemonic 24 word seed phrase
  * @param derivationIndex bip32 derivation key index
- * @returns {{derivationIndex: number, vk: string, sk: string, mnemonic: (string|undefined)}}
+ * @returns {{derivationIndex: number, vk: string, sk: string, mnemonic: string}}
  *      derivationIndex:    bip32 derivation key index
  *      vk:                 Verify Key (VK) represented as a 64 character hex string
  *      sk:                 Signing Key (SK) represented as a 64 character hex string
@@ -2520,15 +2520,14 @@ function generate_keys_bip39(mnemonic = undefined, derivationIndex = 0) {
 }
 
 /**
- * @param Uint8Array(length: 32) seed
- *      seed:   A Uint8Array with a length of 32 to seed the keyPair with. This is advanced behavior and should be
- *              avoided by everyday users
+ * @param mnemonic 24 word seed phrase
+ * @param derivationIndex bip32 derivation key index
  *
  * @return {{derivationIndex: number, vk: string, sk: string, mnemonic: (string|undefined)}} { sk, vk, derivationIndex, mnemonic }
  *      sk:                 Signing Key (SK) represented as a 64 character hex string
  *      vk:                 Verify Key (VK) represented as a 64 character hex string
  *      derivationIndex:    Bip32 derivation index
- *      mnemonic:           24 word seed phrase (just returned if method was called without existing mnemonic)
+ *      mnemonic:           24 word seed phrase
  */
 function new_wallet_bip39(mnemonic = undefined, derivationIndex = 0) {
     return generate_keys_bip39(mnemonic, derivationIndex);
