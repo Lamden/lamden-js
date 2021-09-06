@@ -56,13 +56,13 @@ console.log(lamdenWallet)
 ```
 
 ### Restore a  BIP39 / BIP 32 compatible wallet
-- **BIP39** = 24 seed phrase
+- **BIP39** = 24 word mnemonic
 - **BIP32** = derivation path
 
 ```javascript
 const seed = '3626c59ee5bce833a8bf5024645eb10415b39c6f9fd0ff0fb1b00b8ca9fd6ff4b8a0ed7077296cdaff1b955f03318f244dfd3fead404d93f11a3f301c0e3e1c6'
 const derivationIndex = 0;
-let lamdenWallet = Lamden.wallet.new_wallet_bip39(mnemonic, derivationIndex)
+let lamdenWallet = Lamden.wallet.new_wallet_bip39(seed, derivationIndex)
 
 console.log(lamdenWallet)
 >> {
