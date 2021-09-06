@@ -38,7 +38,7 @@ console.log(lamdenWallet)
 ```
 
 ### Create a new BIP39 / BIP 32 compatible wallet
-- **BIP39** = 24 seed phrase
+- **BIP39** = 24 word mnemonic
 - **BIP32** = derivation path
 
 ```javascript
@@ -49,6 +49,7 @@ console.log(lamdenWallet)
        sk: 'a6b72cb3d1160c26f9f39a8f1d4a3c7c0da2ac59d193b66ac5f919ec77f28915',
        vk: '53d016586ce35c5f6ea581cadf4693dd2850621dfad6a2261e8dd311c83e11d5',
        derivationIndex: 0,
+       seed: '3626c59ee5bce833a8bf5024645eb10415b39c6f9fd0ff0fb1b00b8ca9fd6ff4b8a0ed7077296cdaff1b955f03318f244dfd3fead404d93f11a3f301c0e3e1c6',
        mnemonic: 'evidence rifle behave normal duty mean junk chicken salute relief raw chunk region ocean guard swarm taste toy loop ozone spell crumble apart echo'
    }
 
@@ -59,7 +60,7 @@ console.log(lamdenWallet)
 - **BIP32** = derivation path
 
 ```javascript
-const mnemonic = 'evidence rifle behave normal duty mean junk chicken salute relief raw chunk region ocean guard swarm taste toy loop ozone spell crumble apart echo'
+const seed = '3626c59ee5bce833a8bf5024645eb10415b39c6f9fd0ff0fb1b00b8ca9fd6ff4b8a0ed7077296cdaff1b955f03318f244dfd3fead404d93f11a3f301c0e3e1c6'
 const derivationIndex = 0;
 let lamdenWallet = Lamden.wallet.new_wallet_bip39(mnemonic, derivationIndex)
 
@@ -68,7 +69,8 @@ console.log(lamdenWallet)
        sk: 'a6b72cb3d1160c26f9f39a8f1d4a3c7c0da2ac59d193b66ac5f919ec77f28915',
        vk: '53d016586ce35c5f6ea581cadf4693dd2850621dfad6a2261e8dd311c83e11d5',
        derivationIndex: 0,
-       mnemonic: 'evidence rifle behave normal duty mean junk chicken salute relief raw chunk region ocean guard swarm taste toy loop ozone spell crumble apart echo'
+       seed: null,
+       mnemonic: null
    }
 
 ```
