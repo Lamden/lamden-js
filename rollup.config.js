@@ -2,6 +2,7 @@ import nodePolyfills from "rollup-plugin-polyfill-node";
 import { nodeResolve as resolve } from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import alias from "@rollup/plugin-alias";
+import { terser } from "rollup-plugin-terser";
 
 export default [
   {
@@ -18,6 +19,7 @@ export default [
       resolve({ browser: true, preferBuiltins: false }),
       commonjs(),
       nodePolyfills(),
+      terser(),
     ],
   },
   {

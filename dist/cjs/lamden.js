@@ -8226,7 +8226,7 @@ class TransactionBuilder extends Network {
     if (!callback) return this.nonceResult;
     return callback(this.nonceResult);
   }
-  async send(sk = undefined, masternode = undefined, callback = undefined) {
+  async send(sk = undefined, callback = undefined, masternode = undefined) {
     //Error if transaction is not signed and no sk provided to the send method to sign it before sending
     if (!validateTypes$2.isStringWithValue(sk) && !this.transactionSigned) {
       throw new Error(
@@ -8728,4 +8728,3 @@ var index = {
 };
 
 module.exports = index;
-//# sourceMappingURL=lamden.js.map
