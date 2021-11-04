@@ -9,7 +9,6 @@ export default [
     output: {
       file: "dist/esm/lamden.js",
       format: "esm",
-      sourcemap: true,
     },
 
     plugins: [
@@ -27,7 +26,6 @@ export default [
       file: "dist/cjs/lamden.js",
       format: "cjs",
       exports: "default",
-      sourcemap: true,
     },
     plugins: [resolve({ preferBuiltins: true }), commonjs()],
     external: ["tweetnacl", "bip39", "ed25519-hd-key"],
