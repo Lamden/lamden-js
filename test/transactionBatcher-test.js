@@ -3,66 +3,65 @@
     The nonces won't increment properly depending on network lag and I don't have a good solution to it.
 */
 
-const expect = require('expect.js');
-const Lamden = require('../dist/lamden');
+const expect = require("expect.js");
+const Lamden = require("../dist/cjs/lamden");
 
 let networkInfo = {
-    hosts: ['https://testnet-master-1.lamden.io:443'] 
-}
+  hosts: ["https://testnet-master-1.lamden.io:443"],
+};
 
-let uid = "randomUIDstring"
+let uid = "randomUIDstring";
 
 const senderWallet1 = {
-    vk: "960c002a36c30c3aec8bc670e9b8b40eebcfd545f4e9237579fd7395a21ccebb",
-    sk: "c8a3c5333aa3b058c4fa16d48db52355ab62ddc8daa9a183706a912e522440b6"
-}
+  vk: "960c002a36c30c3aec8bc670e9b8b40eebcfd545f4e9237579fd7395a21ccebb",
+  sk: "c8a3c5333aa3b058c4fa16d48db52355ab62ddc8daa9a183706a912e522440b6",
+};
 const senderWallet2 = {
-    vk: "6a91a9a65eb80829a360efc0555cad8841af64c78375bbf394f6ecb89d5644ee",
-    sk: "4166ed44f465c51d562895295cdcde64a3444b14ea2a3e477c60cf0ecde65230"
-}
+  vk: "6a91a9a65eb80829a360efc0555cad8841af64c78375bbf394f6ecb89d5644ee",
+  sk: "4166ed44f465c51d562895295cdcde64a3444b14ea2a3e477c60cf0ecde65230",
+};
 
 let recieverWallet = {
-    vk: 'f16c130ceb7ed9bcebde301488cfd507717d5d511674bc269c39ad41fc15d780'
-}
+  vk: "f16c130ceb7ed9bcebde301488cfd507717d5d511674bc269c39ad41fc15d780",
+};
 
 function sleep(milliseconds) {
-    const date = Date.now();
-    let currentDate = null;
-    do {
-      currentDate = Date.now();
-    } while (currentDate - date < milliseconds);
-  }
-  
-
-const makeTxList = (senderVK, receiver, amount) => {
-    let txList = []
-    for(i = 0; i <= (amount - 1); i++){
-        txList.push({
-            uid,
-            senderVk: senderVK,
-            contractName: 'currency',
-            methodName: 'transfer',
-            kwargs:{
-              'to': receiver,
-              'amount': {"__fixed__":"0.0005"}
-            },
-            stampLimit: 500
-          })
-    }
-    return txList
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
 }
 
-let keyList = {}
-keyList[senderWallet1.vk] = senderWallet1.sk
-keyList[senderWallet2.vk] = senderWallet2.sk
+const makeTxList = (senderVK, receiver, amount) => {
+  let txList = [];
+  for (i = 0; i <= amount - 1; i++) {
+    txList.push({
+      uid,
+      senderVk: senderVK,
+      contractName: "currency",
+      methodName: "transfer",
+      kwargs: {
+        to: receiver,
+        amount: { __fixed__: "0.0005" },
+      },
+      stampLimit: 500,
+    });
+  }
+  return txList;
+};
 
-describe('Test TransactionBuilder class', () => {
-    context('new TransactionBuilder', () => {
-        it('can create an instance', () => {
-            let txb = new Lamden.TransactionBatcher(networkInfo)
-            expect(txb.running).to.be(false)
-        })
-    })/*
+let keyList = {};
+keyList[senderWallet1.vk] = senderWallet1.sk;
+keyList[senderWallet2.vk] = senderWallet2.sk;
+
+describe("Test TransactionBuilder class", () => {
+  context("new TransactionBuilder", () => {
+    it("can create an instance", () => {
+      let txb = new Lamden.TransactionBatcher(networkInfo);
+      expect(txb.running).to.be(false);
+    });
+  }); /*
     context('TransactionBatcher.addTransaction()', () => {
         it('can add a list of transactions for 1 sender', () => {
             let txb = new Lamden.TransactionBatcher(networkInfo)
@@ -207,4 +206,4 @@ describe('Test TransactionBuilder class', () => {
 
         })
     })*/
-})    
+});
