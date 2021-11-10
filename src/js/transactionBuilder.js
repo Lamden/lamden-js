@@ -73,7 +73,7 @@ export class TransactionBuilder extends Network {
     this.txHash;
     this.txCheckResult = {};
     this.txCheckAttempts = 0;
-    this.txCheckLimit = 1;
+    this.txCheckLimit = 10;
 
     //Hydrate other items if passed
     if (txData) {

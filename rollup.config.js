@@ -1,7 +1,7 @@
 import nodePolyfills from "rollup-plugin-polyfill-node";
-import { nodeResolve as resolve } from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import alias from "@rollup/plugin-alias";
+import { nodeResolve as resolve } from "@rollup/plugin-node-resolve";
 import { terser } from "rollup-plugin-terser";
 
 export default [
