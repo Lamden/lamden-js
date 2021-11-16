@@ -21,14 +21,12 @@ function _interopNamespace(e) {
 				var d = Object.getOwnPropertyDescriptor(e, k);
 				Object.defineProperty(n, k, d.get ? d : {
 					enumerable: true,
-					get: function () {
-						return e[k];
-					}
+					get: function () { return e[k]; }
 				});
 			}
 		});
 	}
-	n['default'] = e;
+	n["default"] = e;
 	return Object.freeze(n);
 }
 
@@ -2832,9 +2830,9 @@ let create_wallet = (args = {}) => {
 function generate_keys(seed = null) {
   var kp = null;
   if (seed == null) {
-    kp = nacl__default['default'].sign.keyPair();
+    kp = nacl__default["default"].sign.keyPair();
   } else {
-    kp = nacl__default['default'].sign.keyPair.fromSeed(seed);
+    kp = nacl__default["default"].sign.keyPair.fromSeed(seed);
   }
   // In the JS implementation of the NaCL library the sk is the first 32 bytes of the secretKey
   // and the vk is the last 32 bytes of the secretKey as well as the publicKey
@@ -2925,10 +2923,10 @@ function generate_keys_bip39(mnemonic = undefined, derivationIndex = 0) {
   const seed = bip39__namespace.mnemonicToSeedSync(finalMnemonic).toString("hex");
 
   const derivationPath = "m/44'/789'/" + derivationIndex + "'/0'/0'";
-  const { key, chainCode } = bip32__default['default'].derivePath(derivationPath, seed, 0x80000000);
+  const { key, chainCode } = bip32__default["default"].derivePath(derivationPath, seed, 0x80000000);
 
   const privateKey = key.toString("hex");
-  const publicKey = bip32__default['default'].getPublicKey(key, false).toString("hex");
+  const publicKey = bip32__default["default"].getPublicKey(key, false).toString("hex");
 
   if (publicKey !== get_vk(privateKey)) {
     throw Error("Bip32 public key does not match with Lamden public key!");
@@ -2973,7 +2971,7 @@ function sign(sk, msg) {
   // vk objects to exist in 32-byte string format (same as cilantro's
   // python implementation) when presented to the user.
   var jsnacl_sk = concatUint8Arrays(kp.sk, kp.vk);
-  return buf2hex(nacl__default['default'].sign.detached(msg, jsnacl_sk));
+  return buf2hex(nacl__default["default"].sign.detached(msg, jsnacl_sk));
 }
 /**
  * @param String vk
@@ -2990,7 +2988,7 @@ function verify(vk, msg, sig) {
   var vkb = hex2buf(vk);
   var sigb = hex2buf(sig);
   try {
-    return nacl__default['default'].sign.detached.verify(msg, sigb, vkb);
+    return nacl__default["default"].sign.detached.verify(msg, sigb, vkb);
   } catch (_a) {
     return false;
   }
@@ -3045,7 +3043,7 @@ class EventEmitter {
 // Based on https://github.com/tmpvar/jsdom/blob/aa85b2abf07766ff7bf5c1f6daafb3726f2f2db5/lib/jsdom/living/blob.js
 
 // fix for "Readable" isn't a named export issue
-const Readable = Stream__default['default'].Readable;
+const Readable = Stream__default["default"].Readable;
 
 const BUFFER = Symbol('buffer');
 const TYPE = Symbol('type');
@@ -3197,7 +3195,7 @@ try {
 const INTERNALS = Symbol('Body internals');
 
 // fix an issue where "PassThrough" isn't a named export for node <10
-const PassThrough = Stream__default['default'].PassThrough;
+const PassThrough = Stream__default["default"].PassThrough;
 
 /**
  * Body mixin
@@ -3230,7 +3228,7 @@ function Body(body) {
 	} else if (ArrayBuffer.isView(body)) {
 		// body is ArrayBufferView
 		body = Buffer.from(body.buffer, body.byteOffset, body.byteLength);
-	} else if (body instanceof Stream__default['default']) ; else {
+	} else if (body instanceof Stream__default["default"]) ; else {
 		// none of the above
 		// coerce to string then buffer
 		body = Buffer.from(String(body));
@@ -3243,7 +3241,7 @@ function Body(body) {
 	this.size = size;
 	this.timeout = timeout;
 
-	if (body instanceof Stream__default['default']) {
+	if (body instanceof Stream__default["default"]) {
 		body.on('error', function (err) {
 			const error = err.name === 'AbortError' ? err : new FetchError(`Invalid response body while trying to fetch ${_this.url}: ${err.message}`, 'system', err);
 			_this[INTERNALS].error = error;
@@ -3399,7 +3397,7 @@ function consumeBody() {
 	}
 
 	// istanbul ignore if: should never happen
-	if (!(body instanceof Stream__default['default'])) {
+	if (!(body instanceof Stream__default["default"])) {
 		return Body.Promise.resolve(Buffer.alloc(0));
 	}
 
@@ -3572,7 +3570,7 @@ function clone$1(instance) {
 
 	// check that body is a stream and not form-data object
 	// note: we can't clone the form-data object without having it as a dependency
-	if (body instanceof Stream__default['default'] && typeof body.getBoundary !== 'function') {
+	if (body instanceof Stream__default["default"] && typeof body.getBoundary !== 'function') {
 		// tee instance body
 		p1 = new PassThrough();
 		p2 = new PassThrough();
@@ -3620,7 +3618,7 @@ function extractContentType(body) {
 	} else if (typeof body.getBoundary === 'function') {
 		// detect form data input from form-data module
 		return `multipart/form-data;boundary=${body.getBoundary()}`;
-	} else if (body instanceof Stream__default['default']) {
+	} else if (body instanceof Stream__default["default"]) {
 		// body is stream
 		// can't really do much about this
 		return null;
@@ -4074,7 +4072,7 @@ function createHeadersLenient(obj) {
 const INTERNALS$1 = Symbol('Response internals');
 
 // fix an issue where "STATUS_CODES" aren't a named export for node <10
-const STATUS_CODES = http__default['default'].STATUS_CODES;
+const STATUS_CODES = http__default["default"].STATUS_CODES;
 
 /**
  * Response class
@@ -4175,10 +4173,10 @@ Object.defineProperty(Response.prototype, Symbol.toStringTag, {
 const INTERNALS$2 = Symbol('Request internals');
 
 // fix an issue where "format", "parse" aren't a named export for node <10
-const parse_url = Url__default['default'].parse;
-const format_url = Url__default['default'].format;
+const parse_url = Url__default["default"].parse;
+const format_url = Url__default["default"].format;
 
-const streamDestructionSupported = 'destroy' in Stream__default['default'].Readable.prototype;
+const streamDestructionSupported = 'destroy' in Stream__default["default"].Readable.prototype;
 
 /**
  * Check if a value is an instance of Request.
@@ -4341,7 +4339,7 @@ function getNodeRequestOptions(request) {
 		throw new TypeError('Only HTTP(S) protocols are supported');
 	}
 
-	if (request.signal && request.body instanceof Stream__default['default'].Readable && !streamDestructionSupported) {
+	if (request.signal && request.body instanceof Stream__default["default"].Readable && !streamDestructionSupported) {
 		throw new Error('Cancellation of streamed requests with AbortSignal is not supported in node < 8');
 	}
 
@@ -4416,8 +4414,8 @@ AbortError.prototype.constructor = AbortError;
 AbortError.prototype.name = 'AbortError';
 
 // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
-const PassThrough$1 = Stream__default['default'].PassThrough;
-const resolve_url = Url__default['default'].resolve;
+const PassThrough$1 = Stream__default["default"].PassThrough;
+const resolve_url = Url__default["default"].resolve;
 
 /**
  * Fetch function
@@ -4441,7 +4439,7 @@ function fetch(url, opts) {
 		const request = new Request(url, opts);
 		const options = getNodeRequestOptions(request);
 
-		const send = (options.protocol === 'https:' ? https__default['default'] : http__default['default']).request;
+		const send = (options.protocol === 'https:' ? https__default["default"] : http__default["default"]).request;
 		const signal = request.signal;
 
 		let response = null;
@@ -4449,7 +4447,7 @@ function fetch(url, opts) {
 		const abort = function abort() {
 			let error = new AbortError('The user aborted a request.');
 			reject(error);
-			if (request.body && request.body instanceof Stream__default['default'].Readable) {
+			if (request.body && request.body instanceof Stream__default["default"].Readable) {
 				request.body.destroy(error);
 			}
 			if (!response || !response.body) return;
@@ -4613,13 +4611,13 @@ function fetch(url, opts) {
 			// by common browsers.
 			// Always using Z_SYNC_FLUSH is what cURL does.
 			const zlibOptions = {
-				flush: zlib__default['default'].Z_SYNC_FLUSH,
-				finishFlush: zlib__default['default'].Z_SYNC_FLUSH
+				flush: zlib__default["default"].Z_SYNC_FLUSH,
+				finishFlush: zlib__default["default"].Z_SYNC_FLUSH
 			};
 
 			// for gzip
 			if (codings == 'gzip' || codings == 'x-gzip') {
-				body = body.pipe(zlib__default['default'].createGunzip(zlibOptions));
+				body = body.pipe(zlib__default["default"].createGunzip(zlibOptions));
 				response = new Response(body, response_options);
 				resolve(response);
 				return;
@@ -4633,9 +4631,9 @@ function fetch(url, opts) {
 				raw.once('data', function (chunk) {
 					// see http://stackoverflow.com/questions/37519828
 					if ((chunk[0] & 0x0F) === 0x08) {
-						body = body.pipe(zlib__default['default'].createInflate());
+						body = body.pipe(zlib__default["default"].createInflate());
 					} else {
-						body = body.pipe(zlib__default['default'].createInflateRaw());
+						body = body.pipe(zlib__default["default"].createInflateRaw());
 					}
 					response = new Response(body, response_options);
 					resolve(response);
@@ -4644,8 +4642,8 @@ function fetch(url, opts) {
 			}
 
 			// for br
-			if (codings == 'br' && typeof zlib__default['default'].createBrotliDecompress === 'function') {
-				body = body.pipe(zlib__default['default'].createBrotliDecompress());
+			if (codings == 'br' && typeof zlib__default["default"].createBrotliDecompress === 'function') {
+				body = body.pipe(zlib__default["default"].createBrotliDecompress());
 				response = new Response(body, response_options);
 				resolve(response);
 				return;
@@ -8100,7 +8098,7 @@ class TransactionBuilder extends Network {
     this.txHash;
     this.txCheckResult = {};
     this.txCheckAttempts = 0;
-    this.txCheckLimit = 1;
+    this.txCheckLimit = 10;
 
     //Hydrate other items if passed
     if (txData) {
