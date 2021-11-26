@@ -2,9 +2,17 @@
     The Transaction Batcher is in alpha and so I disabled the test cases for it as they cause the suite to fail.
     The nonces won't increment properly depending on network lag and I don't have a good solution to it.
 */
-
+const {Builder, logging, Capabilities } = require('selenium-webdriver');
+const Koa = require('koa');
+const KoaStatic = require('koa-static');
+const path = require('path');
 const expect = require("expect.js");
-const Lamden = require("../dist/cjs/lamden");
+
+// https://www.selenium.dev/selenium/docs/api/javascript/module/selenium-webdriver/lib/logging.html
+const prefs = new logging.Preferences();
+prefs.setLevel(logging.Type.BROWSER, logging.Level.ALL);
+const caps = Capabilities.chrome();
+caps.setLoggingPrefs(prefs);
 
 let networkInfo = {
   hosts: ["https://testnet-master-1.lamden.io:443"],
@@ -55,10 +63,35 @@ let keyList = {};
 keyList[senderWallet1.vk] = senderWallet1.sk;
 keyList[senderWallet2.vk] = senderWallet2.sk;
 
-describe("Test TransactionBuilder class", () => {
+describe("Browsers Tests: Test TransactionBuilder class", async () => {
+  var driver;
+  let server;
+  const app = new Koa();
+  const port = 6800;
+  before(async function() {
+    // Start a http server
+    app.use(KoaStatic(path.join(__dirname,'../../')));
+    server = app.listen(port, () => console.log(`\n\x1B[32mKoa Server running at http://127.0.0.1:${port}/\x1B[0m`))
+
+    driver = await new Builder()
+            .withCapabilities(caps)
+            .forBrowser("chrome")
+            .build();
+
+    // Load the test.html
+    await driver.get(`http://127.0.0.1:${port}/test/browsers/test.html`);
+  });
+
+  after(() => {
+      driver && driver.quit();
+      server && server.close();
+  });
+
   context("new TransactionBuilder", () => {
-    it("can create an instance", () => {
-      let txb = new Lamden.TransactionBatcher(networkInfo);
+    it("can create an instance", async () => {
+      let txb = await driver.executeScript(function (networkInfo) {
+        return new Lamden.TransactionBatcher(networkInfo);
+      }, networkInfo)
       expect(txb.running).to.be(false);
     });
   }); /*

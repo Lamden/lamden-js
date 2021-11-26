@@ -1,18 +1,35 @@
-import resolve from 'rollup-plugin-node-resolve';
-import builtins from 'rollup-plugin-node-builtins';
-import commonjs from 'rollup-plugin-commonjs';
-import globals from 'rollup-plugin-node-globals';
+import nodePolyfills from "rollup-plugin-polyfill-node";
+import commonjs from "@rollup/plugin-commonjs";
+import alias from "@rollup/plugin-alias";
+import { nodeResolve as resolve } from "@rollup/plugin-node-resolve";
+import { terser } from "rollup-plugin-terser";
 
-module.exports = {
-    input: 'src/index.js',
+export default [
+  {
+    input: "src/index.js",
     output: {
-      	file: 'dist/lamden.js',
-      	format: 'cjs'
+      file: "dist/esm/lamden.js",
+      format: "esm",
     },
+
     plugins: [
-		resolve({preferBuiltins: true}),
-		commonjs(),
-		globals(),
-		builtins()
-	]
-};
+      alias({
+        entries: [{ find: "bip39", replacement: "../bip39.browser" }],
+      }),
+      resolve({ browser: true, preferBuiltins: false }),
+      commonjs(),
+      nodePolyfills(),
+      terser(),
+    ],
+  },
+  {
+    input: "src/index.js",
+    output: {
+      file: "dist/cjs/lamden.js",
+      format: "cjs",
+      exports: "default",
+    },
+    plugins: [resolve({ preferBuiltins: true }), commonjs()],
+    external: ["tweetnacl", "bip39", "ed25519-hd-key"],
+  },
+];
