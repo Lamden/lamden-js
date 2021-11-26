@@ -64,8 +64,7 @@ export class Network {
   get url() {
     return this.host;
   }
-  async getNetworkInfo() {
-    await this.ping();
+  getNetworkInfo() {
     return {
       name: this.name,
       lamden: this.lamden,
