@@ -127,22 +127,22 @@ export function new_wallet(seed = null) {
  *      derivationIndex:    bip32 derivation key index
  *      vk:                 Verify Key (VK) represented as a 64 character hex string
  *      sk:                 Signing Key (SK) represented as a 64 character hex string
- *      mnemonic:           24 word seed phrase
-
+ *      seed:               Bip39 seed phrase (128 characters in hex)
+ *      mnemonic:           Bip39 24 words mnemonic
  */
-function generate_keys_bip39(mnemonic = undefined, derivationIndex = 0) {
-  let finalMnemonic;
+function generate_keys_bip39(seed = undefined, derivationIndex = 0) {
+    let finalSeed;
+    let finalMnemonic;
 
-  if (mnemonic !== undefined) {
-    finalMnemonic = mnemonic;
-  } else {
-    finalMnemonic = bip39.generateMnemonic(256);
-  }
+    if (seed !== undefined){
+        finalSeed = seed;
+    }else {
+        finalMnemonic = bip39.generateMnemonic(256)
+        finalSeed = bip39.mnemonicToSeedSync(finalMnemonic).toString('hex');
+    }
 
-  const seed = bip39.mnemonicToSeedSync(finalMnemonic).toString("hex");
-
-  const derivationPath = "m/44'/789'/" + derivationIndex + "'/0'/0'";
-  const { key, chainCode } = bip32.derivePath(derivationPath, seed, 0x80000000);
+    const derivationPath = "m/44'/789'/" + derivationIndex + "'/0'/0'";
+    const { key, chainCode } = bip32.derivePath(derivationPath, finalSeed, 0x80000000);
 
   const privateKey = key.toString("hex");
   const publicKey = bip32.getPublicKey(key, false).toString("hex");
@@ -151,12 +151,17 @@ function generate_keys_bip39(mnemonic = undefined, derivationIndex = 0) {
     throw Error("Bip32 public key does not match with Lamden public key!");
   }
 
-  return {
-    sk: privateKey,
-    vk: publicKey,
-    derivationIndex: derivationIndex,
-    mnemonic: finalMnemonic,
-  };
+    if (finalMnemonic !== undefined){
+
+    }
+
+    return {
+        sk: privateKey,
+        vk: publicKey,
+        derivationIndex: derivationIndex,
+        seed: seed !== undefined ? null : finalSeed,
+        mnemonic: seed !== undefined ? null : finalMnemonic,
+    }
 }
 
 /**
@@ -167,10 +172,11 @@ function generate_keys_bip39(mnemonic = undefined, derivationIndex = 0) {
  *      sk:                 Signing Key (SK) represented as a 64 character hex string
  *      vk:                 Verify Key (VK) represented as a 64 character hex string
  *      derivationIndex:    Bip32 derivation index
- *      mnemonic:           24 word seed phrase
+ *      seed:               Bip39 seed phrase (128 characters in hex)
+ *      mnemonic:           Bip39 24 words mnemonic
  */
-export function new_wallet_bip39(mnemonic = undefined, derivationIndex = 0) {
-  return generate_keys_bip39(mnemonic, derivationIndex);
+export function new_wallet_bip39(seed = undefined, derivationIndex = 0) {
+    return generate_keys_bip39(seed, derivationIndex);
 }
 
 /**
