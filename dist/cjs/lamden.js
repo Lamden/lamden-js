@@ -8591,7 +8591,13 @@ class Keystore {
     }
     /**
      * Add a list of keys to add to the keystore
-     * @param {Array.<String>} keyList An array of 32 character long Lamden private keys
+     * @typedef {Object} keyinfo
+     * @property {string} sk - The private key. 
+     * @property {string} nickname - The key nickname. 
+     * @property {string} name - The key name.
+     * @property {string} network - Network name. 
+     * @property {string} symbol - The token symbol.
+     * @param {Array.<keyinfo>} keyList An array of keyinfo Object
      */
     addKeys(keyList){
         assertTypes.isArray(keyList);
@@ -8599,7 +8605,13 @@ class Keystore {
     }
     /**
      * Add a key to the keystore
-     * @param {string} key A 32 character long Lamden private key
+     * @typedef {Object} keyinfo
+     * @property {string} sk - The private key. 
+     * @property {string} nickname - The key nickname. 
+     * @property {string} name - The key name.
+     * @property {string} network - Network name. 
+     * @property {string} symbol - The token symbol.
+     * @param {keyinfo} keyInfo A keyinfo Object 
      */
     addKey(keyInfo){
         assertTypes.isObjectWithKeys(keyInfo);

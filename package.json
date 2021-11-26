@@ -5,7 +5,7 @@
   "main": "dist/cjs/lamden.js",
   "module": "dist/esm/lamden.js",
   "scripts": {
-    "test": "npm run build && mocha",
+    "test": "npm run build && mocha --recursive --timeout 10000",
     "tests": "npm run test",
     "test-network": "npm run build && mocha test/network-test.js",
     "test-masternode-api": "npm run build && mocha test/masternode_api-test.js",
@@ -14,6 +14,13 @@
     "test-wallet": "npm run build && mocha test/wallet-test.js",
     "test-encoder": "npm run build && mocha test/encoder-test.js",
     "test-keystore": "npm run build && mocha test/keystore-test.js",
+    "browsers:test-network": "npm run build && mocha test/browsers/network-test.js --timeout 10000",
+    "browsers:test-masternode-api": "npm run build && mocha test/browsers/masternode_api-test.js --timeout 10000",
+    "browsers:test-transaction-builder": "npm run build && mocha test/browsers/transactionBuilder-test.js --timeout 10000",
+    "browsers:test-transaction-batcher": "npm run build && mocha test/browsers/transactionBatcher-test.js --timeout 10000",
+    "browsers:test-wallet": "npm run build && mocha test/browsers/wallet-test.js --timeout 10000",
+    "browsers:test-encoder": "npm run build && mocha test/browsers/encoder-test.js --timeout 10000",
+    "browsers:test-keystore": "npm run build && mocha test/browsers/keystore-test.js --timeout 10000",
     "build": "rollup --config",
     "doc": "doxdox 'src/js/keystore.js' --layout markdown --output docs/keystore.md"
   },
@@ -51,9 +58,12 @@
     "buffer": "^6.0.3",
     "dotenv": "^8.2.0",
     "expect.js": "^0.3.1",
+    "koa": "^2.13.4",
+    "koa-static": "^5.0.0",
     "mocha": "^7.2.0",
     "rollup": "^2.60.0",
     "rollup-plugin-polyfill-node": "^0.7.0",
-    "rollup-plugin-terser": "^7.0.2"
+    "rollup-plugin-terser": "^7.0.2",
+    "selenium-webdriver": "^3.6.0"
   }
 }
