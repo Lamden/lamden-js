@@ -265,7 +265,7 @@ describe("Test TransactionBuilder class", () => {
       expect(resultInfo.type).to.equal("success");
     });
     it("Sends transactions and can get hash result from masternode", async function () {
-      this.timeout(20000);
+      this.timeout(30000);
       await newTx1.checkForTransactionResult();
       let txBlockResult = newTx1.txBlockResult;
       expect(txBlockResult.hash).to.equal(newTx1.txSendResult.hash);

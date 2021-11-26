@@ -121,7 +121,7 @@ export function new_wallet(seed = null) {
 
 /**
  *
- * @param mnemonic 24 word seed phrase
+ * @param seed Bip39 seed phrase (128 characters in hex)
  * @param derivationIndex bip32 derivation key index
  * @returns {{derivationIndex: number, vk: string, sk: string, mnemonic: string}}
  *      derivationIndex:    bip32 derivation key index
@@ -165,7 +165,7 @@ function generate_keys_bip39(seed = undefined, derivationIndex = 0) {
 }
 
 /**
- * @param mnemonic 24 word seed phrase
+ * @param seed Bip39 seed phrase (128 characters in hex)
  * @param derivationIndex bip32 derivation key index
  *
  * @return {{derivationIndex: number, vk: string, sk: string, mnemonic: (string|undefined)}} { sk, vk, derivationIndex, mnemonic }

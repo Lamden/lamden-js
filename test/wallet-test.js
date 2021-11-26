@@ -17,23 +17,6 @@ describe("Test Lamden Wallet methods", () => {
       expect(validateTypes.isNumber(newWallet.derivationIndex)).to.be(true);
       expect(newWallet.derivationIndex).to.be(0);
     }),
-      it("creates a bip39 / bip32 compatible lamden keypair from mnemonic", () => {
-        const mnemonic =
-          "ripple junk access broom element fitness side example ramp flush model creek nest face rent jacket ahead come short find over family wise comfort";
-        const derivationIndex = 127;
-        let newWallet = wallet.new_wallet_bip39(mnemonic, derivationIndex);
-
-            expect( validateTypes.isStringHex(newWallet.vk) ).to.be( true )
-            expect( newWallet.vk.length ).to.be( 64 )
-            expect( validateTypes.isStringHex(newWallet.sk) ).to.be( true )
-            expect( newWallet.sk.length ).to.be( 64 )
-            expect( validateTypes.isStringWithValue(newWallet.mnemonic) ).to.be( true )
-            expect( validateTypes.isNumber(newWallet.derivationIndex) ).to.be( true )
-            expect( newWallet.derivationIndex ).to.be( 0 )
-            expect( validateTypes.isStringHex(newWallet.seed) ).to.be( true )
-            expect( newWallet.seed.length ).to.be( 128 )
-        }),
-
         it('creates a bip39 / bip32 compatible lamden keypair from seed', () => {
             const seed = 'd3ad26bd89d54d0c22bb32d34ea9f06c567ba060d8e1518974d807180b886c643bfb7f455bd3db2c767a17c089aab20db97cf0f0184d730b9d20be0c7b6cc6cc'
             const derivationIndex = 127
