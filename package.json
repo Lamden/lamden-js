@@ -1,6 +1,6 @@
 {
   "name": "lamden-js",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "A javascript implementaion for creating wallets, submitting transactions and interacting with masternodes on the Lamden Blockchain.",
   "main": "dist/cjs/lamden.js",
   "module": "dist/esm/lamden.js",
@@ -56,6 +56,7 @@
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-node-resolve": "^13.0.6",
     "buffer": "^6.0.3",
+    "chromedriver": "^96.0.0",
     "dotenv": "^8.2.0",
     "expect.js": "^0.3.1",
     "koa": "^2.13.4",
