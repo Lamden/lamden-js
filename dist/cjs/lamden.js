@@ -8360,6 +8360,7 @@ class TransactionBuilder extends Network {
 		if (this.blockservice.url){
 			if (await this.blockservice.pingServer()) this.startBlock = await this.blockservice.getLastetBlock();
 		}
+		console.log({startBlock: this.startBlock});
 		//Error if transaction is not signed and no sk provided to the send method to sign it before sending
 		if (!validateTypes$2.isStringWithValue(sk) && !this.transactionSigned) {
 			throw new Error(

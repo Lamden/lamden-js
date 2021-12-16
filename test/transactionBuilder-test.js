@@ -1,6 +1,7 @@
 const expect = require("expect.js");
 require("dotenv").config();
 const Lamden = require("../dist/cjs/lamden");
+const util = require('util')
 
 const { vk, sk } = process.env;
 
@@ -254,7 +255,7 @@ describe("Test TransactionBuilder class", () => {/*
 			//console.log(newTx1.getAllInfo())
 
 			let txSendResult = newTx1.txSendResult;
-			console.log(newTx1.getAllInfo())
+			console.log(util.inspect(newTx1.getAllInfo(), false, null, true))
 			expect(txSendResult.success).to.equal("Transaction successfully submitted to the network.");
 			expect(txSendResult.hash).to.exist;
 			expect(txSendResult.timestamp).to.exist;
