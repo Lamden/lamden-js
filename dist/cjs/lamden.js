@@ -8227,9 +8227,9 @@ class TransactionBuilder extends Network {
     this.txHash;
     this.txCheckResult = {};
     this.txCheckAttempts = 0;
-	this.txCheckLimit = 10;
-	this.maxBlockToCheck = 20;
-	this.startBlock = null;
+    this.txCheckLimit = 10;
+    this.maxBlockToCheck = 10;
+    this.startBlock = null;
 
     //Hydrate other items if passed
     if (txData) {
