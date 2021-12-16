@@ -9,6 +9,7 @@
     "tests": "npm run test",
     "test-network": "npm run build && mocha test/network-test.js --timeout 10000",
     "test-masternode-api": "npm run build && mocha test/masternode_api-test.js --timeout 10000",
+    "test-blockservice-api": "npm run build && mocha test/blockservice_api-test.js --timeout 10000",
     "test-transaction-builder": "npm run build && mocha test/transactionBuilder-test.js --timeout 10000",
     "test-transaction-batcher": "npm run build && mocha test/transactionBatcher-test.js --timeout 60000",
     "test-wallet": "npm run build && mocha test/wallet-test.js",
