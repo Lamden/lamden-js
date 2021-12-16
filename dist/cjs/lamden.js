@@ -2627,7 +2627,7 @@ cryptojs.CryptoJS = CryptoJS$1;
 cryptojs.JsonFormatter = JsonFormatter$1;
 
 const { CryptoJS, JsonFormatter } = cryptojs;
-const { validateTypes: validateTypes$5, assertTypes: assertTypes$1 } = validators;
+const { validateTypes: validateTypes$6, assertTypes: assertTypes$1 } = validators;
 
 /**
  * Encrypt a Javascript object with a string password
@@ -2761,7 +2761,7 @@ function isStringHex(string = "") {
 }
 
 function isLamdenKey(string) {
-  if (validateTypes$5.isStringHex(string) && string.length === 64) return true;
+  if (validateTypes$6.isStringHex(string) && string.length === 64) return true;
   return false;
 }
 
@@ -7743,13 +7743,13 @@ function Encoder(type, value) {
 
 Encoder.BigNumber = BigNumber;
 
-const { validateTypes: validateTypes$4 } = validators;
+const { validateTypes: validateTypes$5 } = validators;
 
 class LamdenMasterNode_API {
   constructor(networkInfoObj) {
-    if (!validateTypes$4.isObjectWithKeys(networkInfoObj))
+    if (!validateTypes$5.isObjectWithKeys(networkInfoObj))
       throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`);
-    if (!validateTypes$4.isArrayWithValues(networkInfoObj.hosts))
+    if (!validateTypes$5.isArrayWithValues(networkInfoObj.hosts))
       throw new Error(`HOSTS Required (Type: Array)`);
 
     this.hosts = this.validateHosts(networkInfoObj.hosts);
@@ -7792,7 +7792,7 @@ class LamdenMasterNode_API {
           callback(json, undefined);
           return json;
         } else {
-          let error = validateTypes$4.isStringWithValue(res.statusText) ? res.statusText : false;
+          let error = validateTypes$5.isStringWithValue(res.statusText) ? res.statusText : false;
           callback(undefined, error);
           return error;
         }
@@ -7826,7 +7826,7 @@ class LamdenMasterNode_API {
 
   async getVariable(contract, variable, key = "") {
     let parms = {};
-    if (validateTypes$4.isStringWithValue(key)) parms.key = key;
+    if (validateTypes$5.isStringWithValue(key)) parms.key = key;
 
     let path = `/contracts/${contract}/${variable}/`;
 
@@ -7915,7 +7915,7 @@ class LamdenMasterNode_API {
   }
 
   async getNonce(sender, callback) {
-    if (!validateTypes$4.isStringHex(sender)) return `${sender} is not a hex string.`;
+    if (!validateTypes$5.isStringHex(sender)) return `${sender} is not a hex string.`;
     let path = `/nonce/${sender}`;
     let url = this.host;
     return this.send("GET", path, {}, url, (res, err) => {
@@ -7950,6 +7950,128 @@ class LamdenMasterNode_API {
       return res;
     });
   }
+}
+
+const { validateTypes: validateTypes$4 } = validators;
+
+class LamdenBlockservice_API {
+constructor(networkInfoObj) {
+    if (!validateTypes$4.isObjectWithKeys(networkInfoObj))
+    throw new Error(`Expected Network to be Object and got Type: ${typeof networkInfoObj}`);
+    if (validateTypes$4.isArrayWithValues(networkInfoObj.blockservice_hosts)){
+        this.hosts = this.validateHosts(networkInfoObj.blockservice_hosts);
+    }else {
+        this.hosts = [];
+    }
+}
+//This will throw an error if the protocol wasn't included in the host string
+vaidateProtocol(host) {
+    let protocols = ["https://", "http://"];
+    if (protocols.map((protocol) => host.includes(protocol)).includes(true)) return host;
+    throw new Error("Blockservice host value must include http:// or https://");
+}
+validateHosts(hosts) {
+    return hosts.map((host) => this.vaidateProtocol(host.toLowerCase()));
+}
+
+get host() {
+    return this.hosts[Math.floor(Math.random() * this.hosts.length)];
+}
+get url() {
+    return this.host;
+}
+
+send(method, path, data = {}, overrideURL) {
+    let parms = "";
+    if (Object.keys(data).includes("parms")) {
+        parms = this.createParms(data.parms);
+    }
+
+    let options = {};
+    if (method === "POST") {
+        let headers = { "Content-Type": "application/json" };
+        options.method = method;
+        options.headers = headers;
+        options.body = data;
+    }
+
+    return fetch(`${overrideURL ? overrideURL : this.url}${path}${parms}`, options)
+}
+
+createParms(parms) {
+    if (Object.keys(parms).length === 0) return "";
+    let parmString = "?";
+    Object.keys(parms).forEach((key) => {
+        parmString = `${parmString}${key}=${parms[key]}&`;
+    });
+    return parmString.slice(0, -1);
+}
+
+async pingServer() {
+    return this.send("GET", "/ping", {})
+        .then(res => res.text())
+        .then(text => text === "pong")
+        .catch(() => false)
+}
+
+async getLastetBlock(callback){
+    return this.send("GET", "/latest_block")
+        .then(res => res.json())
+        .then(json => {
+            if (callback) callback(json.latest_block, null);
+            return json.latest_block
+        })
+        .catch(err => {
+            if (callback) callback(null, err.message);
+            return {error: err.message}
+        })
+}
+
+async getBlocks(start_block, limit = 10, callback){
+    const parms = { start_block, limit };
+    return this.send("GET", "/blocks", { parms })
+        .then(res => res.json())
+        .then(json => {
+            if (callback) callback(json, null);
+            return json
+        })
+        .catch(err => {
+            if (callback) callback(null, err.message);
+            return {error: err.message}
+        })
+}
+
+async getCurrentKeyValue(contractName, variableName, key, callback){
+    return this.send("GET", `/current/one/${contractName}/${variableName}/${key}`)
+        .then(res => res.json())
+        .then(json => {
+            if (callback) callback(json, null);
+            return json
+        })
+        .catch(err => {
+            if (callback) callback(null, err.message);
+            return {error: err.message}
+        })
+}
+
+async getTransaction(hash, callback) {
+    const parms = { hash };
+    return this.send("GET", "/tx", { parms })
+        .then(res => res.json())
+        .then(json => {
+            if (callback) callback(json, null);
+            return json
+        })
+        .catch(err => {
+            if (err.message.includes("invalid json response body")) {
+                if (callback) callback(null, null);
+                return null
+            }else {
+                if (callback) callback(null, err.message);
+                return {error: err.message}
+            }
+        })
+    }
 }
 
 const { validateTypes: validateTypes$3 } = validators;
@@ -7990,6 +8112,11 @@ class Network {
     } catch (e) {
       throw new Error(e);
     }
+    try {
+      this.blockservice = new LamdenBlockservice_API(networkInfoObj);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
   //This will throw an error if the protocol wasn't included in the host string
   vaidateProtocol(host) {
@@ -8021,6 +8148,7 @@ class Network {
       lamden: this.lamden,
       type: this.type,
       hosts: this.hosts,
+      blockservice_hosts: this.blockservice.hosts,
       url: this.url,
       online: this.online,
     };
@@ -8100,6 +8228,8 @@ class TransactionBuilder extends Network {
     this.txCheckResult = {};
     this.txCheckAttempts = 0;
     this.txCheckLimit = 10;
+    this.maxBlockToCheck = 10;
+    this.startBlock = null;
 
     //Hydrate other items if passed
     if (txData) {
@@ -8231,7 +8361,11 @@ class TransactionBuilder extends Network {
       throw new Error(
         `Transation Not Signed: Private key needed or call sign(<private key>) first`
       );
-    }
+	}
+	
+	if (this.blockservice.url){
+		if (await this.blockservice.pingServer()) this.startBlock = await this.blockservice.getLastetBlock();
+	}
 
     let timestamp = new Date().toUTCString();
 
@@ -8260,70 +8394,142 @@ class TransactionBuilder extends Network {
     this.txSendResult.timestamp = timestamp;
     return this.handleMasterNodeResponse(this.txSendResult, callback);
   }
-  checkForTransactionResult(callback = undefined) {
-    return new Promise((resolve) => {
-      let timerId = setTimeout(
-        async function checkTx() {
-          this.txCheckAttempts = this.txCheckAttempts + 1;
-          let res = await this.API.checkTransaction(this.txHash);
-          let checkAgain = false;
-          let timestamp = new Date().toUTCString();
-          if (typeof res === "string" || !res) {
-            if (this.txCheckAttempts < this.txCheckLimit) {
-              checkAgain = true;
-            } else {
-              this.txCheckResult.errors = [
-                `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`,
-                res,
-              ];
-            }
-          } else {
-            if (res.error) {
-              if (res.error === "Transaction not found.") {
-                if (this.txCheckAttempts < this.txCheckLimit) {
-                  checkAgain = true;
-                } else {
-                  this.txCheckResult.errors = [
-                    res.error,
-                    `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`,
-                  ];
-                }
-              } else {
-                this.txCheckResult.errors = [res.error];
-              }
-            } else {
-              this.txCheckResult = res;
-            }
-          }
-          if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
-          else {
-            if (validateTypes$2.isNumber(this.txCheckResult.status)) {
-              if (this.txCheckResult.status > 0) {
-                if (!validateTypes$2.isArray(this.txCheckResult.errors))
-                  this.txCheckResult.errors = [];
-                this.txCheckResult.errors.push("This transaction returned a non-zero status code");
-              }
-            }
-            this.txCheckResult.timestamp = timestamp;
-            clearTimeout(timerId);
-            resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
-          }
-        }.bind(this),
-        1000
-      );
-    });
-  }
+	checkForTransactionResult(callback = undefined) {
+		return new Promise((resolve) => {
+			let timerId = setTimeout(
+				async function checkTx() {
+				this.txCheckAttempts = this.txCheckAttempts + 1;
+				let res = await this.API.checkTransaction(this.txHash);
+				let checkAgain = false;
+				let timestamp = new Date().toUTCString();
+				if (typeof res === "string" || !res) {
+					if (this.txCheckAttempts < this.txCheckLimit) {
+					checkAgain = true;
+					} else {
+					this.txCheckResult.errors = [
+						`Retry Attempts ${this.txCheckAttempts} hit while checking for Tx Result.`,
+						res,
+					];
+					this.txCheckResult.status = 2;
+					}
+				} else {
+					if (res.error) {
+					if (res.error === "Transaction not found.") {
+						if (this.txCheckAttempts < this.txCheckLimit) {
+						checkAgain = true;
+						} else {
+							this.txCheckResult.errors = [
+								res.error,
+								`Retry Attempts ${this.txCheckAttempts} hit while checking for Tx Result.`,
+							];
+							this.txCheckResult.status = 2;
+						}
+					} else {
+						this.txCheckResult.errors = [res.error];
+					}
+					} else {
+					this.txCheckResult = res;
+					}
+				}
+				if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
+				else {
+					if (validateTypes$2.isNumber(this.txCheckResult.status)) {
+					if (this.txCheckResult.status > 0) {
+						if (!validateTypes$2.isArray(this.txCheckResult.errors))
+						this.txCheckResult.errors = [];
+						this.txCheckResult.errors.push("This transaction returned a non-zero status code");
+					}
+					}
+					this.txCheckResult.timestamp = timestamp;
+					clearTimeout(timerId);
+					resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+				}
+				}.bind(this),
+				1000
+			);
+		});
+	}
+	async checkBlockserviceForTransactionResult(callback = undefined) {
+		// Check if the blockservice is up
+		let serverAvailable = await this.blockservice.pingServer();
+
+		//If it's not then fail over to checking from the masternode
+		if (!serverAvailable) {
+			console.log("Blockservice not available, failing back to masternode.");
+			return this.checkForTransactionResult(callback)
+		}
+
+		return new Promise(async (resolve) => {
+			let nextBlockToCheck = this.startBlock;
+			let numberOfBlocksChecked = 0;
+
+			// Get the next 10 blocks from the blockservice starting with the block the transction was sent from
+			const getNewBlocks = async () => {
+				let blocks = await this.blockservice.getBlocks(nextBlockToCheck);
+				checkBlocks(blocks);
+			};
+
+			// Check all the transaction in these blocks for our transction hash
+			const checkBlocks = async (blocks) => {
+				for (let block in blocks){
+					const { subblocks } = block;
+
+					if (subblocks) {
+						for (let sb in subblocks){
+							if (sb){
+								const { transactions } = sb;
+								for (let tx in transactions){
+									if (tx.hash === this.txHash){
+										let found = await this.blockservice.getTransaction(this.txHash)
+										.then(res => {
+											if (res) {
+												this.txCheckResult = {...res, ...res.txInfo};
+												resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+												return true
+											}
+											return false
+										});
+										if (found) break
+									}
+								}
+							}
+						}
+					}
+				}
+
+				numberOfBlocksChecked = numberOfBlocksChecked + blocks.length;
+				nextBlockToCheck = this.startBlock + numberOfBlocksChecked + 1;
+
+				if (numberOfBlocksChecked >= this.maxBlockToCheck){
+					this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} blocks after sending.`];
+					this.txCheckResult.status = 2;
+					resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+				}else {
+					setTimeout(getNewBlocks, 5000);
+				}
+			};
+			await this.blockservice.getTransaction(this.txHash)
+				.then(res => {
+					if (res) {
+						this.txCheckResult = {...res, ...res.txInfo};
+						resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+					}else {
+						getNewBlocks();
+					}
+				});
+		});
+	}
   handleMasterNodeResponse(result, callback = undefined) {
     //Check to see if this is a successful transacation submission
     if (
-      validateTypes$2.isStringWithValue(result.hash) &&
-      validateTypes$2.isStringWithValue(result.success)
+		validateTypes$2.isStringWithValue(result.hash) &&
+		validateTypes$2.isStringWithValue(result.success)
     ) {
-      this.txHash = result.hash;
-      this.setPendingBlockInfo();
+		this.txHash = result.hash;
+		this.setPendingBlockInfo();
     } else {
-      this.setBlockResultInfo(result);
-      this.txBlockResult = result;
+		this.setBlockResultInfo(result);
+		this.txBlockResult = result;
     }
     this.events.emit("response", result, this.resultInfo.subtitle);
     if (validateTypes$2.isFunction(callback)) callback(result);
@@ -8331,10 +8537,10 @@ class TransactionBuilder extends Network {
   }
   setPendingBlockInfo() {
     this.resultInfo = {
-      title: "Transaction Pending",
-      subtitle: "Your transaction was submitted and is being processed",
-      message: `Tx Hash: ${this.txHash}`,
-      type: "success",
+		title: "Transaction Pending",
+		subtitle: "Your transaction was submitted and is being processed",
+		message: `Tx Hash: ${this.txHash}`,
+		type: "success",
     };
     return this.resultInfo;
   }
@@ -8731,6 +8937,7 @@ var index = {
   TransactionBuilder,
   TransactionBatcher,
   Masternode_API: LamdenMasterNode_API,
+  Blockservice_API: LamdenBlockservice_API,
   Network,
   wallet,
   Keystore,
