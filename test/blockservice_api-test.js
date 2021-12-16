@@ -145,7 +145,7 @@ describe("Test Blockservice_API", () => {
 				return new Promise(resolver => {
 					goodNetwork_api.getLastetBlock((res, err) => {
 						expect(err).to.equal(null);
-						expect(res.latest_block).to.be.greaterThan(0)
+						expect(res).to.be.greaterThan(0)
 						resolver()
 					});
 				})
