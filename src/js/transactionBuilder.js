@@ -74,7 +74,7 @@ export class TransactionBuilder extends Network {
     this.txCheckResult = {};
     this.txCheckAttempts = 0;
     this.txCheckLimit = 10;
-    this.maxBlockToCheck = 6;
+    this.maxBlockToCheck = 10;
     this.startBlock = null;
 
     //Hydrate other items if passed
