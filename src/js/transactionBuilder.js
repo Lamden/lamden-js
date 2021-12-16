@@ -73,7 +73,9 @@ export class TransactionBuilder extends Network {
     this.txHash;
     this.txCheckResult = {};
     this.txCheckAttempts = 0;
-    this.txCheckLimit = 10;
+	this.txCheckLimit = 10;
+	this.maxBlockToCheck = 20;
+	this.startBlock = null;
 
     //Hydrate other items if passed
     if (txData) {
@@ -205,7 +207,11 @@ export class TransactionBuilder extends Network {
       throw new Error(
         `Transation Not Signed: Private key needed or call sign(<private key>) first`
       );
-    }
+	}
+	
+	if (this.blockservice.url){
+		if (await this.blockservice.pingServer()) this.startBlock = await this.blockservice.getLastetBlock()
+	}
 
     let timestamp = new Date().toUTCString();
 
@@ -234,70 +240,142 @@ export class TransactionBuilder extends Network {
     this.txSendResult.timestamp = timestamp;
     return this.handleMasterNodeResponse(this.txSendResult, callback);
   }
-  checkForTransactionResult(callback = undefined) {
-    return new Promise((resolve) => {
-      let timerId = setTimeout(
-        async function checkTx() {
-          this.txCheckAttempts = this.txCheckAttempts + 1;
-          let res = await this.API.checkTransaction(this.txHash);
-          let checkAgain = false;
-          let timestamp = new Date().toUTCString();
-          if (typeof res === "string" || !res) {
-            if (this.txCheckAttempts < this.txCheckLimit) {
-              checkAgain = true;
-            } else {
-              this.txCheckResult.errors = [
-                `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`,
-                res,
-              ];
-            }
-          } else {
-            if (res.error) {
-              if (res.error === "Transaction not found.") {
-                if (this.txCheckAttempts < this.txCheckLimit) {
-                  checkAgain = true;
-                } else {
-                  this.txCheckResult.errors = [
-                    res.error,
-                    `Retry Attmpts ${this.txCheckAttempts} hit while checking for Tx Result.`,
-                  ];
-                }
-              } else {
-                this.txCheckResult.errors = [res.error];
-              }
-            } else {
-              this.txCheckResult = res;
-            }
-          }
-          if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
-          else {
-            if (validateTypes.isNumber(this.txCheckResult.status)) {
-              if (this.txCheckResult.status > 0) {
-                if (!validateTypes.isArray(this.txCheckResult.errors))
-                  this.txCheckResult.errors = [];
-                this.txCheckResult.errors.push("This transaction returned a non-zero status code");
-              }
-            }
-            this.txCheckResult.timestamp = timestamp;
-            clearTimeout(timerId);
-            resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
-          }
-        }.bind(this),
-        1000
-      );
-    });
-  }
+	checkForTransactionResult(callback = undefined) {
+		return new Promise((resolve) => {
+			let timerId = setTimeout(
+				async function checkTx() {
+				this.txCheckAttempts = this.txCheckAttempts + 1;
+				let res = await this.API.checkTransaction(this.txHash);
+				let checkAgain = false;
+				let timestamp = new Date().toUTCString();
+				if (typeof res === "string" || !res) {
+					if (this.txCheckAttempts < this.txCheckLimit) {
+					checkAgain = true;
+					} else {
+					this.txCheckResult.errors = [
+						`Retry Attempts ${this.txCheckAttempts} hit while checking for Tx Result.`,
+						res,
+					];
+					this.txCheckResult.status = 2
+					}
+				} else {
+					if (res.error) {
+					if (res.error === "Transaction not found.") {
+						if (this.txCheckAttempts < this.txCheckLimit) {
+						checkAgain = true;
+						} else {
+							this.txCheckResult.errors = [
+								res.error,
+								`Retry Attempts ${this.txCheckAttempts} hit while checking for Tx Result.`,
+							];
+							this.txCheckResult.status = 2
+						}
+					} else {
+						this.txCheckResult.errors = [res.error];
+					}
+					} else {
+					this.txCheckResult = res;
+					}
+				}
+				if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
+				else {
+					if (validateTypes.isNumber(this.txCheckResult.status)) {
+					if (this.txCheckResult.status > 0) {
+						if (!validateTypes.isArray(this.txCheckResult.errors))
+						this.txCheckResult.errors = [];
+						this.txCheckResult.errors.push("This transaction returned a non-zero status code");
+					}
+					}
+					this.txCheckResult.timestamp = timestamp;
+					clearTimeout(timerId);
+					resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+				}
+				}.bind(this),
+				1000
+			);
+		});
+	}
+	async checkBlockserviceForTransactionResult(callback = undefined) {
+		// Check if the blockservice is up
+		let serverAvailable = await this.blockservice.pingServer()
+
+		//If it's not then fail over to checking from the masternode
+		if (!serverAvailable) {
+			console.log("Blockservice not available, failing back to masternode.")
+			return this.checkForTransactionResult(callback)
+		}
+
+		return new Promise(async (resolve) => {
+			let nextBlockToCheck = this.startBlock
+			let numberOfBlocksChecked = 0
+
+			// Get the next 10 blocks from the blockservice starting with the block the transction was sent from
+			const getNewBlocks = async () => {
+				let blocks = await this.blockservice.getBlocks(nextBlockToCheck)
+				checkBlocks(blocks)
+			}
+
+			// Check all the transaction in these blocks for our transction hash
+			const checkBlocks = async (blocks) => {
+				for (let block in blocks){
+					const { subblocks } = block
+
+					if (subblocks) {
+						for (let sb in subblocks){
+							if (sb){
+								const { transactions } = sb
+								for (let tx in transactions){
+									if (tx.hash === this.txHash){
+										let found = await this.blockservice.getTransaction(this.txHash)
+										.then(res => {
+											if (res) {
+												this.txCheckResult = {...res, ...res.txInfo}
+												resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+												return true
+											}
+											return false
+										})
+										if (found) break
+									}
+								}
+							}
+						}
+					}
+				}
+
+				numberOfBlocksChecked = numberOfBlocksChecked + blocks.length
+				nextBlockToCheck = this.startBlock + numberOfBlocksChecked + 1
+
+				if (numberOfBlocksChecked >= this.maxBlockToCheck){
+					this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} blocks after sending.`]
+					this.txCheckResult.status = 2
+					resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+				}else{
+					setTimeout(getNewBlocks, 5000)
+				}
+			}
+			await this.blockservice.getTransaction(this.txHash)
+				.then(res => {
+					if (res) {
+						this.txCheckResult = {...res, ...res.txInfo}
+						resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+					}else{
+						getNewBlocks()
+					}
+				})
+		});
+	}
   handleMasterNodeResponse(result, callback = undefined) {
     //Check to see if this is a successful transacation submission
     if (
-      validateTypes.isStringWithValue(result.hash) &&
-      validateTypes.isStringWithValue(result.success)
+		validateTypes.isStringWithValue(result.hash) &&
+		validateTypes.isStringWithValue(result.success)
     ) {
-      this.txHash = result.hash;
-      this.setPendingBlockInfo();
+		this.txHash = result.hash;
+		this.setPendingBlockInfo();
     } else {
-      this.setBlockResultInfo(result);
-      this.txBlockResult = result;
+		this.setBlockResultInfo(result);
+		this.txBlockResult = result;
     }
     this.events.emit("response", result, this.resultInfo.subtitle);
     if (validateTypes.isFunction(callback)) callback(result);
@@ -305,10 +383,10 @@ export class TransactionBuilder extends Network {
   }
   setPendingBlockInfo() {
     this.resultInfo = {
-      title: "Transaction Pending",
-      subtitle: "Your transaction was submitted and is being processed",
-      message: `Tx Hash: ${this.txHash}`,
-      type: "success",
+		title: "Transaction Pending",
+		subtitle: "Your transaction was submitted and is being processed",
+		message: `Tx Hash: ${this.txHash}`,
+		type: "success",
     };
     return this.resultInfo;
   }

@@ -2,6 +2,7 @@ import { EventEmitter } from "./eventEmitter";
 import validators from "types-validate-assert";
 const { validateTypes } = validators;
 import { LamdenMasterNode_API } from "./masternode-api";
+import { LamdenBlockservice_API } from "./blockservice-api";
 
 export class Network {
   // Constructor needs an Object with the following information to build Class.
@@ -39,6 +40,11 @@ export class Network {
     } catch (e) {
       throw new Error(e);
     }
+    try {
+      this.blockservice = new LamdenBlockservice_API(networkInfoObj);
+    } catch (e) {
+      throw new Error(e);
+    }
   }
   //This will throw an error if the protocol wasn't included in the host string
   vaidateProtocol(host) {
@@ -70,6 +76,7 @@ export class Network {
       lamden: this.lamden,
       type: this.type,
       hosts: this.hosts,
+      blockservice_hosts: this.blockservice.hosts,
       url: this.url,
       online: this.online,
     };
