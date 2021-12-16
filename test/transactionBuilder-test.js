@@ -1,5 +1,6 @@
 const expect = require("expect.js");
 require("dotenv").config();
+const util = require('util')
 const Lamden = require("../dist/cjs/lamden");
 
 const { vk, sk } = process.env;
@@ -66,6 +67,7 @@ let txInfo_withNonce = {
 };
 
 describe("Test TransactionBuilder class", () => {
+	/*
   context("new TransactionBuilder", () => {
     it("can create an instance without nonce or processor", () => {
       let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
@@ -234,7 +236,7 @@ describe("Test TransactionBuilder class", () => {
       expect(error).to.be(`Unable to get nonce for ${newTx.sender} on network ${newTx.url}`);
     });
   });
-
+*/
   context("TransactionBuilder.send()", () => {
     let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
 
@@ -248,14 +250,15 @@ describe("Test TransactionBuilder class", () => {
       expect(newTx1.verifySignature()).to.be(true);
 
       //Send Tx
-      await newTx1.send();
+	  await newTx1.send();
+	  console.log(util.inspect(newTx1.getAllInfo(), false, null, true))
       //console.log(newTx1.getAllInfo())
 
       let txSendResult = newTx1.txSendResult;
       expect(txSendResult.success).to.equal("Transaction successfully submitted to the network.");
       expect(txSendResult.hash).to.exist;
       expect(txSendResult.timestamp).to.exist;
-    });
+    });/*
     it("Creates ResultInfo object based on txSendResult", async function () {
       let resultInfo = newTx1.resultInfo;
 
@@ -359,6 +362,6 @@ describe("Test TransactionBuilder class", () => {
       //Check Transaction
       let check = await newTx.checkForTransactionResult();
       expect(check.status).to.be(0);
-    });
+    });*/
   });
 });
