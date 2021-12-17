@@ -74,7 +74,7 @@ export class TransactionBuilder extends Network {
     this.txCheckResult = {};
     this.txCheckAttempts = 0;
     this.txCheckLimit = 10;
-    this.maxBlockToCheck = 10;
+    this.maxBlockToCheck = 15;
     this.startBlock = null;
 
     //Hydrate other items if passed
@@ -317,14 +317,14 @@ export class TransactionBuilder extends Network {
 
 			// Check all the transaction in these blocks for our transction hash
 			const checkBlocks = async (blocks) => {
-				for (let block in blocks){
+				for (let block of blocks){
 					const { subblocks } = block
 
 					if (subblocks) {
-						for (let sb in subblocks){
+						for (let sb of subblocks){
 							if (sb){
 								const { transactions } = sb
-								for (let tx in transactions){
+								for (let tx of transactions){
 									if (tx.hash === this.txHash){
 										let found = await this.blockservice.getTransaction(this.txHash)
 										.then(res => {

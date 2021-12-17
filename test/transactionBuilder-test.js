@@ -439,7 +439,7 @@ describe("Test TransactionBuilder class", () => {
 				let res = await newTx1.checkBlockserviceForTransactionResult()
 				expect(res.errors.length).to.be.greaterThan(0)
 				expect(res.status).to.equal(2)
-				expect(res.errors.includes("No transaction result found within 20 blocks after sending.")).to.equal(true)
+				expect(res.errors[0]).to.equal(`No transaction result found within ${newTx1.maxBlockToCheck} blocks after sending.`)
 			});
 			it("Fails back to masternode checker if blockservice is not available.", async function () {
 				let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
@@ -487,7 +487,7 @@ describe("Test TransactionBuilder class", () => {
 					newTx1.checkBlockserviceForTransactionResult((res) => {
 						expect(res.errors.length).to.be.greaterThan(0)
 						expect(res.status).to.equal(2)
-						expect(res.errors.includes("No transaction result found within 20 blocks after sending.")).to.equal(true)
+						expect(res.errors[0]).to.equal(`No transaction result found within ${newTx1.maxBlockToCheck} blocks after sending.`)
 						resolver()
 					});
 				})
