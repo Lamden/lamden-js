@@ -8228,7 +8228,7 @@ class TransactionBuilder extends Network {
     this.txCheckResult = {};
     this.txCheckAttempts = 0;
     this.txCheckLimit = 10;
-    this.maxBlockToCheck = 15;
+    this.maxBlockToCheck = 30;
     this.startBlock = null;
 
     //Hydrate other items if passed
@@ -8450,6 +8450,10 @@ class TransactionBuilder extends Network {
 		});
 	}
 	async checkBlockserviceForTransactionResult(callback = undefined) {
+    if (!this.txHash) {
+      throw new Error("No transaction hash to check.")
+    }
+
 		// Check if the blockservice is up
 		let serverAvailable = await this.blockservice.pingServer();
 
@@ -8460,63 +8464,38 @@ class TransactionBuilder extends Network {
 		}
 
 		return new Promise(async (resolve) => {
-			let nextBlockToCheck = this.startBlock;
-			let numberOfBlocksChecked = 0;
+      let lastLatestBlock = this.startBlock || 0;
+
 
 			// Get the next 10 blocks from the blockservice starting with the block the transction was sent from
-			const getNewBlocks = async () => {
-				let blocks = await this.blockservice.getBlocks(nextBlockToCheck);
-				checkBlocks(blocks);
+			const getLatestBlock = async () => {
+        let latestBlock = await this.blockservice.getLastetBlock();
+        if (latestBlock > lastLatestBlock){
+          lastLatestBlock = latestBlock;
+          checkForTrasaction();
+        }else {
+          setTimeout(getLatestBlock, 5000);
+        }
 			};
 
 			// Check all the transaction in these blocks for our transction hash
-			const checkBlocks = async (blocks) => {
-				for (let block of blocks){
-					const { subblocks } = block;
-
-					if (subblocks) {
-						for (let sb of subblocks){
-							if (sb){
-								const { transactions } = sb;
-								for (let tx of transactions){
-									if (tx.hash === this.txHash){
-										let found = await this.blockservice.getTransaction(this.txHash)
-										.then(res => {
-											if (res) {
-												this.txCheckResult = {...res, ...res.txInfo};
-												resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
-												return true
-											}
-											return false
-										});
-										if (found) break
-									}
-								}
-							}
-						}
-					}
-				}
-
-				numberOfBlocksChecked = numberOfBlocksChecked + blocks.length;
-				nextBlockToCheck = this.startBlock + numberOfBlocksChecked + 1;
-
-				if (numberOfBlocksChecked >= this.maxBlockToCheck){
-					this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} blocks after sending.`];
-					this.txCheckResult.status = 2;
-					resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
-				}else {
-					setTimeout(getNewBlocks, 5000);
-				}
-			};
-			await this.blockservice.getTransaction(this.txHash)
-				.then(res => {
-					if (res) {
-						this.txCheckResult = {...res, ...res.txInfo};
-						resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
-					}else {
-						getNewBlocks();
-					}
-				});
+			const checkForTrasaction = async () => {
+        let txResults = await this.blockservice.getTransaction(this.txHash);
+        if (txResults){
+          this.txCheckResult = {...txResults, ...txResults.txInfo};
+          resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+        }else {
+          if (lastLatestBlock - this.startBlock > this.maxBlockToCheck){
+            this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} blocks after sending.`];
+            this.txCheckResult.status = 2;
+            resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+          }else {
+            setTimeout(getLatestBlock, 5000);
+          }
+        }
+      };
+      
+			getLatestBlock();
 		});
 	}
   handleMasterNodeResponse(result, callback = undefined) {
