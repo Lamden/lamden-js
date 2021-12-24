@@ -67,7 +67,7 @@ let txInfo_withNonce = {
   processor,
 };
 
-describe("Test TransactionBuilder class", () => {
+describe("Test TransactionBuilder class", () => {/*
 	context("new TransactionBuilder", () => {
 		it("can create an instance without nonce or processor", () => {
 			let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
@@ -411,7 +411,7 @@ describe("Test TransactionBuilder class", () => {
 			});
 		})
 	});
-	
+	*/
 	context("checkBlockserviceForTransactionResult()", () => {
 		context("Promise", () => {
 			it("Returns the result of a transaction", async function () {
