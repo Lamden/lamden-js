@@ -102,6 +102,22 @@ async getCurrentKeyValue(contractName, variableName, key, callback){
         })
 }
 
+async getCurrentKeysValues(keys, callback){
+    try{
+        let endpont = 'current/keys'
+        let data = await this.send('POST', `/${endpont}`, JSON.stringify(keys))
+        .then(res => res.json())
+        .then(json => {
+            if (callback) callback(json, null)
+            return json
+        })
+        return data
+    }catch(err){
+        if (callback) callback(null, err.message)
+        return {error: err.message}
+    }
+}
+
 async getTransaction(hash, callback) {
     const parms = { hash };
     return this.send("GET", "/tx", { parms })

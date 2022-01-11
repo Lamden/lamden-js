@@ -36,6 +36,18 @@ const good_key_info = {
 	key: "960c002a36c30c3aec8bc670e9b8b40eebcfd545f4e9237579fd7395a21ccebb"
 }
 
+const keysToGet =  [{
+	contractName: 'currency',
+	variableName: "balances",
+	key: '2341d744f11658d7f1ca1c514a1b76ff07898435c46402b1e4f8b00d4a13f5f9'
+}]
+
+const notExistKeysToGet =  [{
+	contractName: 'currency',
+	variableName: "balances",
+	key: 'nope_key_123973'
+}]
+
 describe("Test Blockservice_API", () => {
 	context("constructor", () => {
 		it("can create an instance", () => {
@@ -242,6 +254,42 @@ describe("Test Blockservice_API", () => {
 						resolver()
 					});
 				});
+			});
+		})
+	});
+
+	context(".getCurrentKeysValues()", () => {
+		context("Promise", () => {
+			it("returns a result", async () => {
+				let res = await goodNetwork_api.getCurrentKeysValues(keysToGet);
+				expect(res.length).to.equal(1)
+				expect(res[0].value).to.exist
+				expect(res[0].prev_value).to.exist
+			});
+			it("returns a null result if the key doesn't exist", async () => {
+				let res = await goodNetwork_api.getCurrentKeysValues(notExistKeysToGet);
+				expect(res.length).to.equal(0)
+			});
+		}),
+		context("Callback", () => {
+			it("returns a result", async () => {
+				return new Promise(resolver => {
+					goodNetwork_api.getCurrentKeysValues(keysToGet, (res, err) => {
+						expect(res.length).to.equal(1)
+						expect(res[0].value).to.exist
+						expect(res[0].prev_value).to.exist
+						resolver()
+					});
+				})
+			});
+			it("returns a null result if the key doesn't exist", async () => {
+				return new Promise(resolver => {
+					goodNetwork_api.getCurrentKeysValues(notExistKeysToGet, (res, err) => {
+						expect(err).to.equal(null);
+						expect(res.length).to.equal(0)
+						resolver()
+					});
+				})
 			});
 		})
 	});
