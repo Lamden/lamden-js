@@ -25,6 +25,7 @@ describe("Test Netowrk class", () => {
       expect(network.name).to.be(goodNetwork.name);
       expect(network.lamden).to.be(goodNetwork.lamden);
       expect(network.blockExplorer).to.be(goodNetwork.blockExplorer);
+      expect(network.classname).to.be('Network');
     });
 
     it("rejects missing hosts Array", () => {
