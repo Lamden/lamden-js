@@ -254,6 +254,7 @@ describe("Test TransactionBuilder class", () => {
 			//console.log(newTx1.getAllInfo())
 
 			let txSendResult = newTx1.txSendResult;
+			expect(txSendResult).to.equal('ff');
 			expect(txSendResult.success).to.equal("Transaction successfully submitted to the network.");
 			expect(txSendResult.hash).to.exist;
 			expect(txSendResult.timestamp).to.exist;
@@ -267,7 +268,6 @@ describe("Test TransactionBuilder class", () => {
 			expect(resultInfo.type).to.equal("success");
 		});
 		it("Sends transactions and can get hash result from masternode", async function () {
-			this.timeout(30000);
 			await newTx1.checkForTransactionResult();
 			let txBlockResult = newTx1.txBlockResult;
 			expect(txBlockResult.hash).to.equal(newTx1.txSendResult.hash);
@@ -290,7 +290,6 @@ describe("Test TransactionBuilder class", () => {
 			expect(resultInfo.returnResult).to.equal("None");
 		});
 		it("gets nonce and signs transacation automatically if sk is provided", async function () {
-			this.timeout(10000);
 			let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
 			//Send Tx
 			await newTx.send(senderWallet.sk);
@@ -309,7 +308,6 @@ describe("Test TransactionBuilder class", () => {
 			);
 		});
 		it("can return execution errors list", async function () {
-			this.timeout(10000);
 			let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
 			newTx.stampLimit = 0;
 			//Send Tx
@@ -348,7 +346,6 @@ describe("Test TransactionBuilder class", () => {
 			);
 		});
 		it("can encode and send all annotation types", async function () {
-			this.timeout(15000);
 			valuesTxInfo.kwargs = Lamden.Encoder("object", valuesTxInfo.kwargs);
 
 			let newTx = new Lamden.TransactionBuilder(goodNetwork, valuesTxInfo);

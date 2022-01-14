@@ -5,7 +5,7 @@ import { TransactionBuilder } from './transactionBuilder'
 
 export class TransactionBatcher extends Network {
     constructor(networkInfo) {
-        if (validateTypes.isSpecificClass(networkInfo, 'Network'))
+        if (networkInfo && networkInfo.classname === "Network")
             super(networkInfo.getNetworkInfo())
         else super(networkInfo)
 

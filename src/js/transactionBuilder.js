@@ -24,7 +24,7 @@ export class TransactionBuilder extends Network {
   //  }
   //  arg[2] (txData): [Optional] state hydrating data
   constructor(networkInfo, txInfo, txData) {
-    if (validateTypes.isSpecificClass(networkInfo, "Network")) super(networkInfo.getNetworkInfo());
+    if (networkInfo && networkInfo.classname === "Network") super(networkInfo.getNetworkInfo());
     else super(networkInfo);
 
     //Validate arguments

@@ -17,7 +17,7 @@ export class Network {
       throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`);
     if (!validateTypes.isArrayWithValues(networkInfoObj.hosts))
       throw new Error(`HOSTS Required (Type: Array)`);
-
+    this.classname = 'Network'
     this.type = validateTypes.isStringWithValue(networkInfoObj.type)
       ? networkInfoObj.type.toLowerCase()
       : "custom";
