@@ -2627,7 +2627,7 @@ cryptojs.CryptoJS = CryptoJS$1;
 cryptojs.JsonFormatter = JsonFormatter$1;
 
 const { CryptoJS, JsonFormatter } = cryptojs;
-const { validateTypes: validateTypes$6, assertTypes: assertTypes$1 } = validators;
+const { validateTypes: validateTypes$5, assertTypes: assertTypes$1 } = validators;
 
 /**
  * Encrypt a Javascript object with a string password
@@ -2761,7 +2761,7 @@ function isStringHex(string = "") {
 }
 
 function isLamdenKey(string) {
-  if (validateTypes$6.isStringHex(string) && string.length === 64) return true;
+  if (validateTypes$5.isStringHex(string) && string.length === 64) return true;
   return false;
 }
 
@@ -7743,13 +7743,13 @@ function Encoder(type, value) {
 
 Encoder.BigNumber = BigNumber;
 
-const { validateTypes: validateTypes$5 } = validators;
+const { validateTypes: validateTypes$4 } = validators;
 
 class LamdenMasterNode_API {
   constructor(networkInfoObj) {
-    if (!validateTypes$5.isObjectWithKeys(networkInfoObj))
+    if (!validateTypes$4.isObjectWithKeys(networkInfoObj))
       throw new Error(`Expected Object and got Type: ${typeof networkInfoObj}`);
-    if (!validateTypes$5.isArrayWithValues(networkInfoObj.hosts))
+    if (!validateTypes$4.isArrayWithValues(networkInfoObj.hosts))
       throw new Error(`HOSTS Required (Type: Array)`);
 
     this.hosts = this.validateHosts(networkInfoObj.hosts);
@@ -7792,7 +7792,7 @@ class LamdenMasterNode_API {
           callback(json, undefined);
           return json;
         } else {
-          let error = validateTypes$5.isStringWithValue(res.statusText) ? res.statusText : false;
+          let error = validateTypes$4.isStringWithValue(res.statusText) ? res.statusText : false;
           callback(undefined, error);
           return error;
         }
@@ -7826,7 +7826,7 @@ class LamdenMasterNode_API {
 
   async getVariable(contract, variable, key = "") {
     let parms = {};
-    if (validateTypes$5.isStringWithValue(key)) parms.key = key;
+    if (validateTypes$4.isStringWithValue(key)) parms.key = key;
 
     let path = `/contracts/${contract}/${variable}/`;
 
@@ -7915,7 +7915,7 @@ class LamdenMasterNode_API {
   }
 
   async getNonce(sender, callback) {
-    if (!validateTypes$5.isStringHex(sender)) return `${sender} is not a hex string.`;
+    if (!validateTypes$4.isStringHex(sender)) return `${sender} is not a hex string.`;
     let path = `/nonce/${sender}`;
     let url = this.host;
     return this.send("GET", path, {}, url, (res, err) => {
@@ -7952,13 +7952,13 @@ class LamdenMasterNode_API {
   }
 }
 
-const { validateTypes: validateTypes$4 } = validators;
+const { validateTypes: validateTypes$3 } = validators;
 
 class LamdenBlockservice_API {
 constructor(networkInfoObj) {
-    if (!validateTypes$4.isObjectWithKeys(networkInfoObj))
+    if (!validateTypes$3.isObjectWithKeys(networkInfoObj))
     throw new Error(`Expected Network to be Object and got Type: ${typeof networkInfoObj}`);
-    if (validateTypes$4.isArrayWithValues(networkInfoObj.blockservice_hosts)){
+    if (validateTypes$3.isArrayWithValues(networkInfoObj.blockservice_hosts)){
         this.hosts = this.validateHosts(networkInfoObj.blockservice_hosts);
     }else {
         this.hosts = [];
@@ -8090,7 +8090,7 @@ async getTransaction(hash, callback) {
     }
 }
 
-const { validateTypes: validateTypes$3 } = validators;
+const { validateTypes: validateTypes$2 } = validators;
 
 class Network {
   // Constructor needs an Object with the following information to build Class.
@@ -8101,24 +8101,24 @@ class Network {
   //  },
   constructor(networkInfoObj) {
     //Reject undefined or missing info
-    if (!validateTypes$3.isObjectWithKeys(networkInfoObj))
+    if (!validateTypes$2.isObjectWithKeys(networkInfoObj))
       throw new Error(`Expected Network Info Object and got Type: ${typeof networkInfoObj}`);
-    if (!validateTypes$3.isArrayWithValues(networkInfoObj.hosts))
+    if (!validateTypes$2.isArrayWithValues(networkInfoObj.hosts))
       throw new Error(`HOSTS Required (Type: Array)`);
-
-    this.type = validateTypes$3.isStringWithValue(networkInfoObj.type)
+    this.classname = 'Network';
+    this.type = validateTypes$2.isStringWithValue(networkInfoObj.type)
       ? networkInfoObj.type.toLowerCase()
       : "custom";
     this.events = new EventEmitter();
     this.hosts = this.validateHosts(networkInfoObj.hosts);
-    this.currencySymbol = validateTypes$3.isStringWithValue(networkInfoObj.currencySymbol)
+    this.currencySymbol = validateTypes$2.isStringWithValue(networkInfoObj.currencySymbol)
       ? networkInfoObj.currencySymbol
       : "TAU";
-    this.name = validateTypes$3.isStringWithValue(networkInfoObj.name)
+    this.name = validateTypes$2.isStringWithValue(networkInfoObj.name)
       ? networkInfoObj.name
       : "lamden network";
-    this.lamden = validateTypes$3.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : false;
-    this.blockExplorer = validateTypes$3.isStringWithValue(networkInfoObj.blockExplorer)
+    this.lamden = validateTypes$2.isBoolean(networkInfoObj.lamden) ? networkInfoObj.lamden : false;
+    this.blockExplorer = validateTypes$2.isStringWithValue(networkInfoObj.blockExplorer)
       ? networkInfoObj.blockExplorer
       : undefined;
 
@@ -8149,7 +8149,7 @@ class Network {
   async ping(callback = undefined) {
     this.online = await this.API.pingServer();
     this.events.emit("online", this.online);
-    if (validateTypes$3.isFunction(callback)) callback(this.online);
+    if (validateTypes$2.isFunction(callback)) callback(this.online);
     return this.online;
   }
   get host() {
@@ -8171,7 +8171,7 @@ class Network {
   }
 }
 
-const { validateTypes: validateTypes$2 } = validators;
+const { validateTypes: validateTypes$1 } = validators;
 
 class TransactionBuilder extends Network {
   // Constructor needs an Object with the following information to build Class.
@@ -8194,39 +8194,39 @@ class TransactionBuilder extends Network {
   //  }
   //  arg[2] (txData): [Optional] state hydrating data
   constructor(networkInfo, txInfo, txData) {
-    if (validateTypes$2.isSpecificClass(networkInfo, "Network")) super(networkInfo.getNetworkInfo());
+    if (networkInfo && networkInfo.classname === "Network") super(networkInfo.getNetworkInfo());
     else super(networkInfo);
 
     //Validate arguments
-    if (!validateTypes$2.isObjectWithKeys(txInfo)) throw new Error(`txInfo object not found`);
-    if (!validateTypes$2.isStringHex(txInfo.senderVk))
+    if (!validateTypes$1.isObjectWithKeys(txInfo)) throw new Error(`txInfo object not found`);
+    if (!validateTypes$1.isStringHex(txInfo.senderVk))
       throw new Error(`Sender Public Key Required (Type: Hex String)`);
-    if (!validateTypes$2.isStringWithValue(txInfo.contractName))
+    if (!validateTypes$1.isStringWithValue(txInfo.contractName))
       throw new Error(`Contract Name Required (Type: String)`);
-    if (!validateTypes$2.isStringWithValue(txInfo.methodName))
+    if (!validateTypes$1.isStringWithValue(txInfo.methodName))
       throw new Error(`Method Required (Type: String)`);
-    if (!validateTypes$2.isInteger(txInfo.stampLimit))
+    if (!validateTypes$1.isInteger(txInfo.stampLimit))
       throw new Error(`Stamps Limit Required (Type: Integer)`);
 
     //Store variables in self for reference
-    this.uid = validateTypes$2.isStringWithValue(txInfo.uid) ? txInfo.uid : undefined;
+    this.uid = validateTypes$1.isStringWithValue(txInfo.uid) ? txInfo.uid : undefined;
     this.sender = txInfo.senderVk;
     this.contract = txInfo.contractName;
     this.method = txInfo.methodName;
     this.kwargs = {};
-    if (validateTypes$2.isObject(txInfo.kwargs)) this.kwargs = txInfo.kwargs;
+    if (validateTypes$1.isObject(txInfo.kwargs)) this.kwargs = txInfo.kwargs;
     this.stampLimit = txInfo.stampLimit;
 
     //validate and set nonce and processor if user provided them
     if (typeof txInfo.nonce !== "undefined") {
-      if (!validateTypes$2.isInteger(txInfo.nonce))
+      if (!validateTypes$1.isInteger(txInfo.nonce))
         throw new Error(
           `arg[6] Nonce is required to be an Integer, type ${typeof txInfo.none} was given`
         );
       this.nonce = txInfo.nonce;
     }
     if (typeof txInfo.processor !== "undefined") {
-      if (!validateTypes$2.isStringWithValue(txInfo.processor))
+      if (!validateTypes$1.isStringWithValue(txInfo.processor))
         throw new Error(
           `arg[7] Processor is required to be a String, type ${typeof txInfo.processor} was given`
         );
@@ -8250,21 +8250,21 @@ class TransactionBuilder extends Network {
     //Hydrate other items if passed
     if (txData) {
       if (txData.uid) this.uid = txData.uid;
-      if (validateTypes$2.isObjectWithKeys(txData.txSendResult))
+      if (validateTypes$1.isObjectWithKeys(txData.txSendResult))
         this.txSendResult = txData.txSendResult;
-      if (validateTypes$2.isObjectWithKeys(txData.nonceResult)) {
+      if (validateTypes$1.isObjectWithKeys(txData.nonceResult)) {
         this.nonceResult = txData.nonceResult;
-        if (validateTypes$2.isInteger(this.nonceResult.nonce)) this.nonce = this.nonceResult.nonce;
-        if (validateTypes$2.isStringWithValue(this.nonceResult.processor))
+        if (validateTypes$1.isInteger(this.nonceResult.nonce)) this.nonce = this.nonceResult.nonce;
+        if (validateTypes$1.isStringWithValue(this.nonceResult.processor))
           this.processor = this.nonceResult.processor;
       }
-      if (validateTypes$2.isObjectWithKeys(txData.txSendResult)) {
+      if (validateTypes$1.isObjectWithKeys(txData.txSendResult)) {
         this.txSendResult = txData.txSendResult;
         if (this.txSendResult.hash) this.txHash = this.txSendResult.hash;
       }
-      if (validateTypes$2.isObjectWithKeys(txData.txBlockResult))
+      if (validateTypes$1.isObjectWithKeys(txData.txBlockResult))
         this.txBlockResult = txData.txBlockResult;
-      if (validateTypes$2.isObjectWithKeys(txData.resultInfo)) this.resultInfo = txData.resultInfo;
+      if (validateTypes$1.isObjectWithKeys(txData.resultInfo)) this.resultInfo = txData.resultInfo;
     }
     //Create Capnp messages and transactionMessages
     this.makePayload();
@@ -8373,7 +8373,7 @@ class TransactionBuilder extends Network {
   }
   async send(sk = undefined, callback = undefined, masternode = undefined) {
     //Error if transaction is not signed and no sk provided to the send method to sign it before sending
-    if (!validateTypes$2.isStringWithValue(sk) && !this.transactionSigned) {
+    if (!validateTypes$1.isStringWithValue(sk) && !this.transactionSigned) {
       throw new Error(
         `Transation Not Signed: Private key needed or call sign(<private key>) first`
       );
@@ -8387,10 +8387,10 @@ class TransactionBuilder extends Network {
 
     try {
       //If the nonce isn't set attempt to get it
-      if (isNaN(this.nonce) || !validateTypes$2.isStringWithValue(this.processor))
+      if (isNaN(this.nonce) || !validateTypes$1.isStringWithValue(this.processor))
         await this.getNonce();
       //if the sk is provided then sign the transaction
-      if (validateTypes$2.isStringWithValue(sk)) this.sign(sk);
+      if (validateTypes$1.isStringWithValue(sk)) this.sign(sk);
       //Serialize transaction
       this.makeTransaction();
       //Send transaction to the masternode
@@ -8398,7 +8398,7 @@ class TransactionBuilder extends Network {
       if (!masternodeURL && this.nonceMasternode) masternodeURL = this.nonceMasternode;
       let response = await this.API.sendTransaction(this.tx, masternodeURL);
       //Set error if txSendResult doesn't exist
-      if (!response || validateTypes$2.isStringWithValue(response)) {
+      if (!response || validateTypes$1.isStringWithValue(response)) {
         this.txSendResult.errors = [response || "Unknown Transaction Error"];
       } else {
         if (response.error) this.txSendResult.errors = [response.error];
@@ -8449,9 +8449,9 @@ class TransactionBuilder extends Network {
 				}
 				if (checkAgain) timerId = setTimeout(checkTx.bind(this), 1000);
 				else {
-					if (validateTypes$2.isNumber(this.txCheckResult.status)) {
+					if (validateTypes$1.isNumber(this.txCheckResult.status)) {
 					if (this.txCheckResult.status > 0) {
-						if (!validateTypes$2.isArray(this.txCheckResult.errors))
+						if (!validateTypes$1.isArray(this.txCheckResult.errors))
 						this.txCheckResult.errors = [];
 						this.txCheckResult.errors.push("This transaction returned a non-zero status code");
 					}
@@ -8517,8 +8517,8 @@ class TransactionBuilder extends Network {
   handleMasterNodeResponse(result, callback = undefined) {
     //Check to see if this is a successful transacation submission
     if (
-		validateTypes$2.isStringWithValue(result.hash) &&
-		validateTypes$2.isStringWithValue(result.success)
+		validateTypes$1.isStringWithValue(result.hash) &&
+		validateTypes$1.isStringWithValue(result.success)
     ) {
 		this.txHash = result.hash;
 		this.setPendingBlockInfo();
@@ -8527,7 +8527,7 @@ class TransactionBuilder extends Network {
 		this.txBlockResult = result;
     }
     this.events.emit("response", result, this.resultInfo.subtitle);
-    if (validateTypes$2.isFunction(callback)) callback(result);
+    if (validateTypes$1.isFunction(callback)) callback(result);
     return result;
   }
   setPendingBlockInfo() {
@@ -8542,10 +8542,10 @@ class TransactionBuilder extends Network {
   setBlockResultInfo(result) {
     let erroredTx = false;
     let errorText = `returned an error and `;
-    let statusCode = validateTypes$2.isNumber(result.status) ? result.status : undefined;
+    let statusCode = validateTypes$1.isNumber(result.status) ? result.status : undefined;
     let stamps = result.stampsUsed || result.stamps_used || 0;
     let message = "";
-    if (validateTypes$2.isArrayWithValues(result.errors)) {
+    if (validateTypes$1.isArrayWithValues(result.errors)) {
       erroredTx = true;
       message = `This transaction returned ${result.errors.length} errors.`;
       if (result.result) {
@@ -8595,11 +8595,9 @@ class TransactionBuilder extends Network {
   }
 }
 
-const { validateTypes: validateTypes$1 } = validators;
-
 class TransactionBatcher extends Network {
     constructor(networkInfo) {
-        if (validateTypes$1.isSpecificClass(networkInfo, 'Network'))
+        if (networkInfo && networkInfo.classname === "Network")
             super(networkInfo.getNetworkInfo());
         else super(networkInfo);
 

@@ -1,6 +1,6 @@
 {
   "name": "lamden-js",
-  "version": "3.5.7",
+  "version": "3.5.8",
   "description": "A javascript implementaion for creating wallets, submitting transactions and interacting with masternodes on the Lamden Blockchain.",
   "main": "dist/cjs/lamden.js",
   "module": "dist/esm/lamden.js",
@@ -10,7 +10,7 @@
     "test-network": "npm run build && mocha test/network-test.js --timeout 10000",
     "test-masternode-api": "npm run build && mocha test/masternode_api-test.js --timeout 10000",
     "test-blockservice-api": "npm run build && mocha test/blockservice_api-test.js --timeout 10000",
-    "test-transaction-builder": "npm run build && mocha test/transactionBuilder-test.js --timeout 10000",
+    "test-transaction-builder": "npm run build && mocha test/transactionBuilder-test.js --timeout 30000",
     "test-transaction-batcher": "npm run build && mocha test/transactionBatcher-test.js --timeout 60000",
     "test-wallet": "npm run build && mocha test/wallet-test.js",
     "test-encoder": "npm run build && mocha test/encoder-test.js",
