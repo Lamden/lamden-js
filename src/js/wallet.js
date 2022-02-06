@@ -218,3 +218,15 @@ export function verify(vk, msg, sig) {
     return false;
   }
 }
+/**
+ * @param string mnemonic
+ * @param string[] wordList
+ *      mnemonic: Bip39 24 words mnemonic
+ *      wordList: An array of string(Optional)
+ *
+ * @return Boolen res
+ *      res: A boolen value
+ */
+export function validateMnemonic(mnemonic, wordList) {
+  return bip39.validateMnemonic(mnemonic, wordList);
+}
