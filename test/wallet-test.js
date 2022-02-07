@@ -107,4 +107,15 @@ describe("Test Lamden Wallet methods", () => {
       expect(newWallet.verify(message, signedMessage)).to.be(true);
     });
   });
+
+  context("wallet.validateMnemonic(): ", () => {
+    it("can validate a correct mnemonic", () => {
+      let goodMnemonic = "air sudden rival toy battle moon dad tooth axis release reform actress jaguar mask tray solar cactus ordinary amazing assist tool they wish three"
+      expect(wallet.validateMnemonic(goodMnemonic)).to.be(true);
+    });
+    it("can validate an incorrect mnemonic", () => {
+      let badMnemonic = "xxxx sudden rival toy battle moon dad tooth axis release reform actress jaguar mask tray solar cactus ordinary amazing assist tool they wish three"
+      expect(wallet.validateMnemonic(badMnemonic)).to.be(false);
+    });
+  });
 });
