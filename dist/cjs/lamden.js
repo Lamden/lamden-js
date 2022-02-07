@@ -2995,6 +2995,18 @@ function verify(vk, msg, sig) {
     return false;
   }
 }
+/**
+ * @param string mnemonic
+ * @param string[] wordList
+ *      mnemonic: Bip39 24 words mnemonic
+ *      wordList: An array of string(Optional)
+ *
+ * @return Boolen res
+ *      res: A boolen value
+ */
+function validateMnemonic(mnemonic, wordList) {
+  return bip39__namespace.validateMnemonic(mnemonic, wordList);
+}
 
 var wallet = /*#__PURE__*/Object.freeze({
 	__proto__: null,
@@ -3006,7 +3018,8 @@ var wallet = /*#__PURE__*/Object.freeze({
 	new_wallet: new_wallet,
 	new_wallet_bip39: new_wallet_bip39,
 	sign: sign,
-	verify: verify
+	verify: verify,
+	validateMnemonic: validateMnemonic
 });
 
 class EventEmitter {
