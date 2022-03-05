@@ -254,7 +254,6 @@ describe("Test TransactionBuilder class", () => {
 			//console.log(newTx1.getAllInfo())
 
 			let txSendResult = newTx1.txSendResult;
-			expect(txSendResult).to.equal('ff');
 			expect(txSendResult.success).to.equal("Transaction successfully submitted to the network.");
 			expect(txSendResult.hash).to.exist;
 			expect(txSendResult.timestamp).to.exist;
