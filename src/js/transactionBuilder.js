@@ -248,7 +248,7 @@ export class TransactionBuilder extends Network {
 				let res = await this.API.checkTransaction(this.txHash);
 				let checkAgain = false;
 				let timestamp = new Date().toUTCString();
-				if (typeof res === "string" || !res) {
+				if (typeof res === "string" || !res || (res && !res.txInfo)) {
 					if (this.txCheckAttempts < this.txCheckLimit) {
 					checkAgain = true;
 					} else {
@@ -327,7 +327,7 @@ export class TransactionBuilder extends Network {
 			// Check all the transaction in these blocks for our transction hash
 			const checkForTrasaction = async () => {
         let txResults = await this.blockservice.getTransaction(this.txHash)
-        if (txResults){
+        if (txResults && txResults.txInfo){
           this.txCheckResult = {...txResults, ...txResults.txInfo}
           resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
         }else{
