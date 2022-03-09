@@ -8489,7 +8489,11 @@ class TransactionBuilder extends Network {
 		//If it's not then fail over to checking from the masternode
 		if (!serverAvailable) {
 			console.log("Blockservice not available, failing back to masternode.");
-			return this.checkForTransactionResult(callback)
+			return this.checkForTransactionResult(callback).then(
+        (res) => {
+          return {txinfo: res, ...res} 
+        }
+      )
 		}
 
 		return new Promise(async (resolve) => {
