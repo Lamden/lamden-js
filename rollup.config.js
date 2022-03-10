@@ -3,6 +3,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import alias from "@rollup/plugin-alias";
 import { nodeResolve as resolve } from "@rollup/plugin-node-resolve";
 import { terser } from "rollup-plugin-terser";
+import json from "@rollup/plugin-json";
 
 export default [
   {
@@ -29,7 +30,7 @@ export default [
       format: "cjs",
       exports: "default",
     },
-    plugins: [resolve({ preferBuiltins: true }), commonjs()],
+    plugins: [resolve({ preferBuiltins: true }), commonjs(), json()],
     external: ["tweetnacl", "bip39", "ed25519-hd-key"],
   },
 ];
