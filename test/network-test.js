@@ -26,6 +26,7 @@ describe("Test Netowrk class", () => {
       expect(network.lamden).to.be(goodNetwork.lamden);
       expect(network.blockExplorer).to.be(goodNetwork.blockExplorer);
       expect(network.classname).to.be('Network');
+      expect(network.version).to.be(1);
     });
 
     it("rejects missing hosts Array", () => {
@@ -65,6 +66,19 @@ describe("Test Netowrk class", () => {
       }
       expect(error.message).to.be("Expected Network Info Object and got Type: string");
     });
+    it("sets network version to 2 if provided", () => {
+      let networkInfo = copyObject(goodNetwork);
+      networkInfo.version = 2
+      let network = new Lamden.Network(networkInfo);
+      expect(network.version).to.be(2);
+
+    })
+    it("sets network version to 1 version set to anything else", () => {
+      let networkInfo = copyObject(goodNetwork);
+      networkInfo.version = "a"
+      let network = new Lamden.Network(networkInfo);
+      expect(network.version).to.be(1);
+    })
   });
   context("Ping Network", () => {
     it("emits online status", async () => {

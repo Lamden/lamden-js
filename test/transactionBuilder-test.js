@@ -11,6 +11,15 @@ let goodNetwork = {
   blockservice_hosts: ["http://165.227.181.34:3535"]
 };
 
+let goodNetwork_v2 = {
+	type: "testnet",
+	version: 2,
+	name: "Lamden Public Testnet",
+	hosts: ["https://testnet-master-1.lamden.io:443"],
+	blockservice_hosts: ["http://165.227.181.34:3535"]
+  };
+  
+
 let badNetwork = {
   type: "testnet",
   name: "Bad Network",
@@ -195,6 +204,20 @@ describe("Test TransactionBuilder class", () => {
 				expect(e.toString()).to.be("Error: No Nonce Set. Call getNonce()");
 			}
 		});
+	});
+
+	context("TransactionBuilder.makeTransaction()", () => {
+		it("includes timestamp in metadata for v1 network", () => {
+			let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_withNonce);
+			newTx.makeTransaction()
+			expect(newTx.tx.metadata.timestamp).to.exist
+		});3
+		it("does not have timestamp in metadata for v2 network", () => {
+			let newTx = new Lamden.TransactionBuilder(goodNetwork_v2, txInfo_withNonce);
+			newTx.makeTransaction()
+			expect(newTx.tx.metadata.timestamp).to.be(undefined)
+		});
+
 	});
 
 	context("TransactionBuilder.getNonce()", () => {
