@@ -88006,6 +88006,7 @@ class Network {
       blockservice_hosts: this.blockservice.hosts,
       url: this.url,
       online: this.online,
+      version: this.version
     };
   }
 }

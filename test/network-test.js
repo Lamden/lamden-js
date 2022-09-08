@@ -106,4 +106,21 @@ describe("Test Netowrk class", () => {
       await network.ping((status) => checkResult(status));
     });
   });
+  context("getNetworkInfo()", () => {
+    it("returns proper values", async () => {
+      let networkInfo = copyObject(goodNetwork);
+      networkInfo.version = 2
+      let network = new Lamden.Network(networkInfo); 
+
+      expect(Object.keys(network.getNetworkInfo()).length).to.be(8)
+      expect(network.host).to.exist
+      expect(network.url).to.exist
+      expect(network.type).to.exist
+      expect(network.name).to.exist
+      expect(network.lamden).to.exist
+      expect(network.blockExplorer).to.exist
+      expect(network.classname).to.exist
+      expect(network.version).to.exist
+    })
+  })
 });
