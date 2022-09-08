@@ -116,6 +116,7 @@ Use Lamden.TransactionBuilder(networkInfo, txInfo) to create a new Lamden transa
 
 ### Create networkInfo object
 create an object that describes the masternode/network that you are going to send the transcation to.
+use `version` to indicate this is a Lamden 2.0 netowrk. Leave off version for Lamden 1.0 networks.
 ```javascript
 let networkInfo = {
     // Optional: Name of network
@@ -125,7 +126,10 @@ let networkInfo = {
     type: 'testnet',
 
     // Required: must begin with http or https
-    hosts: ['https://testnet-master-1.lamden.io:443']
+    hosts: ['https://testnet-master-1.lamden.io:443'],
+
+    // indicate this is a Lamden 2.0 netowrk
+    version: 2
 }
 ```
 ### Create txInfo object
@@ -220,7 +224,8 @@ Create a network instance will allow you to call the masternode API.  This class
 let testnet = new Network({
     name: 'Lamden Public Testnet',
     type: 'testnet',
-    hosts: ['https://testnet-master-1.lamden.io:443']
+    hosts: ['https://testnet-master-1.lamden.io:443'],
+    version: 2 // Use for Lamden 2.0 networks. Leave off for Lamden 1.0 networks.
 })
 
 testnet.events.on('online', (online) => {
