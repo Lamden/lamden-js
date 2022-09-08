@@ -112,13 +112,23 @@ export class TransactionBuilder extends Network {
     this.sortedPayload = this.sortObject(this.payload);
   }
   makeTransaction() {
-    this.tx = {
-      metadata: {
-        signature: this.signature,
-        timestamp: parseInt(+new Date() / 1000),
-      },
-      payload: this.sortedPayload.orderedObj,
-    };
+    if (this.version === 1){
+      this.tx = {
+        metadata: {
+          signature: this.signature,
+          timestamp: parseInt(+new Date() / 1000),
+        },
+        payload: this.sortedPayload.orderedObj,
+      };
+    }
+    if (this.version === 2){
+      this.tx = {
+        metadata: {
+          signature: this.signature
+        },
+        payload: this.sortedPayload.orderedObj,
+      };
+    }
   }
   verifySignature() {
     //Verify the signature is correct

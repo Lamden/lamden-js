@@ -87922,12 +87922,15 @@ async getTransaction(hash, callback) {
 
 const { validateTypes: validateTypes$2 } = validators;
 
+const NETWORK_VERSIONS = [1, 2];
+
 class Network {
   // Constructor needs an Object with the following information to build Class.
   //
   // networkInfo: {
   //      hosts: <array> list of masternode hostname/ip urls,
-  //      type: <string> "testnet", "mainnet" or "custom"
+  //      type: <string> "testnet", "mainnet" or "custom",
+  //      version <interger>: 1 (default) or 2
   //  },
   constructor(networkInfoObj) {
     //Reject undefined or missing info
@@ -87939,6 +87942,7 @@ class Network {
     this.type = validateTypes$2.isStringWithValue(networkInfoObj.type)
       ? networkInfoObj.type.toLowerCase()
       : "custom";
+    this.version = this.getNetworkVersion(networkInfoObj.version);
     this.events = new EventEmitter();
     this.hosts = this.validateHosts(networkInfoObj.hosts);
     this.currencySymbol = validateTypes$2.isStringWithValue(networkInfoObj.currencySymbol)
@@ -87972,6 +87976,11 @@ class Network {
   }
   validateHosts(hosts) {
     return hosts.map((host) => this.vaidateProtocol(host.toLowerCase()));
+  }
+  getNetworkVersion(version){
+    if (!validateTypes$2.isInteger(version)) return 1
+    if (NETWORK_VERSIONS.includes(version)) return version
+    else return 1
   }
   //Check if the network is online
   //Emits boolean as 'online' event
@@ -88112,13 +88121,23 @@ class TransactionBuilder extends Network {
     this.sortedPayload = this.sortObject(this.payload);
   }
   makeTransaction() {
-    this.tx = {
-      metadata: {
-        signature: this.signature,
-        timestamp: parseInt(+new Date() / 1000),
-      },
-      payload: this.sortedPayload.orderedObj,
-    };
+    if (this.version === 1){
+      this.tx = {
+        metadata: {
+          signature: this.signature,
+          timestamp: parseInt(+new Date() / 1000),
+        },
+        payload: this.sortedPayload.orderedObj,
+      };
+    }
+    if (this.version === 2){
+      this.tx = {
+        metadata: {
+          signature: this.signature
+        },
+        payload: this.sortedPayload.orderedObj,
+      };
+    }
   }
   verifySignature() {
     //Verify the signature is correct

@@ -4,12 +4,15 @@ const { validateTypes } = validators;
 import { LamdenMasterNode_API } from "./masternode-api";
 import { LamdenBlockservice_API } from "./blockservice-api";
 
+const NETWORK_VERSIONS = [1, 2]
+
 export class Network {
   // Constructor needs an Object with the following information to build Class.
   //
   // networkInfo: {
   //      hosts: <array> list of masternode hostname/ip urls,
-  //      type: <string> "testnet", "mainnet" or "custom"
+  //      type: <string> "testnet", "mainnet" or "custom",
+  //      version <interger>: 1 (default) or 2
   //  },
   constructor(networkInfoObj) {
     //Reject undefined or missing info
@@ -21,6 +24,7 @@ export class Network {
     this.type = validateTypes.isStringWithValue(networkInfoObj.type)
       ? networkInfoObj.type.toLowerCase()
       : "custom";
+    this.version = this.getNetworkVersion(networkInfoObj.version)
     this.events = new EventEmitter();
     this.hosts = this.validateHosts(networkInfoObj.hosts);
     this.currencySymbol = validateTypes.isStringWithValue(networkInfoObj.currencySymbol)
@@ -54,6 +58,11 @@ export class Network {
   }
   validateHosts(hosts) {
     return hosts.map((host) => this.vaidateProtocol(host.toLowerCase()));
+  }
+  getNetworkVersion(version){
+    if (!validateTypes.isInteger(version)) return 1
+    if (NETWORK_VERSIONS.includes(version)) return version
+    else return 1
   }
   //Check if the network is online
   //Emits boolean as 'online' event
