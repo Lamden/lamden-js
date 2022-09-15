@@ -325,13 +325,13 @@ export class TransactionBuilder extends Network {
 
 		return new Promise(async (resolve) => {
       let lastLatestBlock = this.startBlock || 0
-
-
+      let count = this.maxBlockToCheck
 			// Get the next 10 blocks from the blockservice starting with the block the transction was sent from
 			const getLatestBlock = async () => {
         let latestBlock = await this.blockservice.getLastetBlock()
         if (latestBlock > lastLatestBlock){
           lastLatestBlock = latestBlock
+          count = count - 1
           checkForTrasaction()
         }else{
           setTimeout(getLatestBlock, 5000)
@@ -345,7 +345,7 @@ export class TransactionBuilder extends Network {
           this.txCheckResult = {...txResults, ...txResults.txInfo}
           resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
         }else{
-          if (lastLatestBlock - this.startBlock > this.maxBlockToCheck){
+          if (count < 1){
             this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} blocks after sending.`]
             this.txCheckResult.status = 2
             resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
