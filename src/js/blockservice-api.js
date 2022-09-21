@@ -63,7 +63,7 @@ async pingServer() {
 }
 
 async getLastetBlock(callback){
-    return this.send("GET", "/latest_block")
+    return this.send("GET", "/latest_block", {})
         .then(res => res.json())
         .then(json => {
             if (callback) callback(json.latest_block, null)
@@ -136,4 +136,24 @@ async getTransaction(hash, callback) {
             }
         })
     }
+
+async getContractInfo(contractName) {
+    return this.send("GET", `/contracts/${contractName}`, {})
+        .then(res => res.json())
+        .then(json => {
+            if (Object.keys(json).length > 0) {
+                let data = json[contractName]
+                return {
+                    name: contractName,
+                    code: data['__code__']
+                }
+            } else {
+                return {"error":`${contractName} does not exist`}
+            }
+        })
+        .catch(err => {
+            return {error: err.message}
+        })
 }
+}
+

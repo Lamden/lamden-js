@@ -305,6 +305,11 @@ export class TransactionBuilder extends Network {
 			);
 		});
 	}
+
+  async checkTransactionResult(callback) {
+    await checkBlockserviceForTransactionResult(callback)
+  }
+  
 	async checkBlockserviceForTransactionResult(callback = undefined) {
     if (!this.txHash) {
       throw new Error("No transaction hash to check.")
