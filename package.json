@@ -3,6 +3,7 @@
   "version": "3.7.5",
   "description": "A javascript implementaion for creating wallets, submitting transactions and interacting with masternodes on the Lamden Blockchain.",
   "main": "dist/cjs/lamden.js",
+  "types": "src/index.d.ts",
   "module": "dist/esm/lamden.js",
   "scripts": {
     "test": "npm run build && mocha --recursive --timeout 30000",
