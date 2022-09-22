@@ -74,7 +74,7 @@ export class TransactionBuilder extends Network {
     this.txCheckResult = {};
     this.txCheckAttempts = 0;
     this.txCheckLimit = 10;
-    this.maxBlockToCheck = 30;
+    this.maxBlockToCheck = 15;
     this.startBlock = null;
 
     //Hydrate other items if passed
@@ -317,7 +317,6 @@ export class TransactionBuilder extends Network {
 
 		// Check if the blockservice is up
 		let serverAvailable = await this.blockservice.pingServer()
-
 		//If it's not then fail over to checking from the masternode
 		if (!serverAvailable) {
 			console.log("Blockservice not available, failing back to masternode.")
@@ -328,15 +327,20 @@ export class TransactionBuilder extends Network {
       )
 		}
 
+    let count = this.maxBlockToCheck
 		return new Promise(async (resolve) => {
       let lastLatestBlock = this.startBlock || 0
-      let count = this.maxBlockToCheck
 			// Get the next 10 blocks from the blockservice starting with the block the transction was sent from
 			const getLatestBlock = async () => {
+        if (count < 1) {
+          this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} attempts.`]
+          this.txCheckResult.status = 2
+          resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+        } 
+        count = count - 1
         let latestBlock = await this.blockservice.getLastetBlock()
-        if (latestBlock > lastLatestBlock){
+        if (latestBlock !== lastLatestBlock){
           lastLatestBlock = latestBlock
-          count = count - 1
           checkForTrasaction()
         }else{
           setTimeout(getLatestBlock, 5000)
@@ -351,7 +355,7 @@ export class TransactionBuilder extends Network {
           resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
         }else{
           if (count < 1){
-            this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} blocks after sending.`]
+            this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} attempts.`]
             this.txCheckResult.status = 2
             resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
           }else{

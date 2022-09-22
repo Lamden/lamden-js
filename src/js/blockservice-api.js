@@ -42,7 +42,6 @@ send(method, path, data = {}, overrideURL) {
         options.headers = headers;
         options.body = data;
     }
-
     return fetch(`${overrideURL ? overrideURL : this.url}${path}${parms}`, options)
 }
 
