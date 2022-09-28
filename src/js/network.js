@@ -91,4 +91,69 @@ export class Network {
       version: this.version
     };
   }
+
+  // Unify APIs
+  async pingServer() {
+    let res;
+    if (this.blockservice.host) {
+      res = await this.blockservice.pingServer();
+    } else {
+      res = await this.API.pingServer();
+    }
+    return res
+  }
+
+  async getVariable(contractName, variableName, key) {
+    if (this.blockservice.host) {
+      let data = await this.blockservice.getCurrentKeyValue(contractName, variableName, key);
+      return data
+    } else {
+      let res = await this.API.getVariable(contractName, variableName, key);
+      if (res) {
+        return {
+          value: res
+        }
+      } else {
+        return {error: "key or variable not exists"}
+      }
+    }
+  }
+
+  async getCurrencyBalance(vk) {
+    return await this.getVariable("currency", "balances", vk)
+  }
+
+  async getContractInfo(contractName) {
+    if (this.blockservice.host) {
+      return await this.blockservice.getContractInfo(contractName);
+    } else {
+      return await this.API.getContractInfo(contractName);
+    }
+  }
+
+  async contractExists(contractName) {
+    let data;
+    if (this.blockservice.host) {
+      data = await this.blockservice.getContractInfo(contractName);
+    } else {
+      data =  await this.API.getContractInfo(contractName);
+    }
+    return data && data.name ? true : false
+  }
+
+  async getLastetBlock() {
+    if (this.blockservice.host) {
+      let data = await this.blockservice.getLastetBlock();
+      if (data.error) {
+        return data
+      } else {
+        return {
+          value: data
+        }
+      }
+    } else {
+      return await this.API.getLastetBlock();
+    }
+  }
+
 }

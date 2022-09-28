@@ -12,7 +12,12 @@ caps.setLoggingPrefs(prefs);
 
 const dateString = "2020-07-28T19:16:35.059Z";
 const millisecondsDelta = 475200000;
-
+const typeValidAssertMiddleware = async (ctx, next) => {
+    if (ctx.request.url.indexOf("types-validate-assert") >= 0 && ctx.request.url.indexOf(".js") === -1) {
+      ctx.redirect(`${ctx.request.url}.js`);
+    }
+    await next();
+  }
 describe('Browsers Tests: Test Type Encoder', function () {
     let driver;
     let server;
@@ -21,6 +26,7 @@ describe('Browsers Tests: Test Type Encoder', function () {
 
     before(async function() {
         // Start a http server
+        app.use(typeValidAssertMiddleware)
         app.use(KoaStatic(path.join(__dirname,'../../')));
         server = app.listen(port, () => console.log(`\n\x1B[32mKoa Server running at http://127.0.0.1:${port}/\x1B[0m`))
 

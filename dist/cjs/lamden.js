@@ -87646,7 +87646,7 @@ class LamdenMasterNode_API {
       try {
         if (res.name) return res;
       } catch (e) {}
-      return null;
+      return {"error":`${contractName} does not exist`};
     };
     let path = `/contracts/${contractName}`;
     return this.send("GET", path, {}, undefined, (res, err) => returnInfo(res)).then((res) =>
@@ -87780,6 +87780,17 @@ class LamdenMasterNode_API {
       return res;
     });
   }
+
+  async getLastetBlock(){
+    return this.send("GET", "/latest_block", {})
+        .then(res => res.json())
+        .then(json => {
+            return { value: json.number }
+        })
+        .catch(err => {
+            return {error: err.message}
+        })
+  }
 }
 
 const { validateTypes: validateTypes$3 } = validators;
@@ -87824,7 +87835,6 @@ send(method, path, data = {}, overrideURL) {
         options.headers = headers;
         options.body = data;
     }
-
     return fetch(`${overrideURL ? overrideURL : this.url}${path}${parms}`, options)
 }
 
@@ -87845,7 +87855,7 @@ async pingServer() {
 }
 
 async getLastetBlock(callback){
-    return this.send("GET", "/latest_block")
+    return this.send("GET", "/latest_block", {})
         .then(res => res.json())
         .then(json => {
             if (callback) callback(json.latest_block, null);
@@ -87918,6 +87928,25 @@ async getTransaction(hash, callback) {
             }
         })
     }
+
+async getContractInfo(contractName) {
+    return this.send("GET", `/contracts/${contractName}`, {})
+        .then(res => res.json())
+        .then(json => {
+            if (Object.keys(json).length > 0) {
+                let data = json[contractName];
+                return {
+                    name: contractName,
+                    code: data['__code__']
+                }
+            } else {
+                return {"error":`${contractName} does not exist`}
+            }
+        })
+        .catch(err => {
+            return {error: err.message}
+        })
+}
 }
 
 const { validateTypes: validateTypes$2 } = validators;
@@ -88009,6 +88038,71 @@ class Network {
       version: this.version
     };
   }
+
+  // Unify APIs
+  async pingServer() {
+    let res;
+    if (this.blockservice.host) {
+      res = await this.blockservice.pingServer();
+    } else {
+      res = await this.API.pingServer();
+    }
+    return res
+  }
+
+  async getVariable(contractName, variableName, key) {
+    if (this.blockservice.host) {
+      let data = await this.blockservice.getCurrentKeyValue(contractName, variableName, key);
+      return data
+    } else {
+      let res = await this.API.getVariable(contractName, variableName, key);
+      if (res) {
+        return {
+          value: res
+        }
+      } else {
+        return {error: "key or variable not exists"}
+      }
+    }
+  }
+
+  async getCurrencyBalance(vk) {
+    return await this.getVariable("currency", "balances", vk)
+  }
+
+  async getContractInfo(contractName) {
+    if (this.blockservice.host) {
+      return await this.blockservice.getContractInfo(contractName);
+    } else {
+      return await this.API.getContractInfo(contractName);
+    }
+  }
+
+  async contractExists(contractName) {
+    let data;
+    if (this.blockservice.host) {
+      data = await this.blockservice.getContractInfo(contractName);
+    } else {
+      data =  await this.API.getContractInfo(contractName);
+    }
+    return data && data.name ? true : false
+  }
+
+  async getLastetBlock() {
+    if (this.blockservice.host) {
+      let data = await this.blockservice.getLastetBlock();
+      if (data.error) {
+        return data
+      } else {
+        return {
+          value: data
+        }
+      }
+    } else {
+      return await this.API.getLastetBlock();
+    }
+  }
+
 }
 
 const { validateTypes: validateTypes$1 } = validators;
@@ -88084,7 +88178,7 @@ class TransactionBuilder extends Network {
     this.txCheckResult = {};
     this.txCheckAttempts = 0;
     this.txCheckLimit = 10;
-    this.maxBlockToCheck = 30;
+    this.maxBlockToCheck = 15;
     this.startBlock = null;
 
     //Hydrate other items if passed
@@ -88315,6 +88409,11 @@ class TransactionBuilder extends Network {
 			);
 		});
 	}
+
+  async checkTransactionResult(callback) {
+    await checkBlockserviceForTransactionResult(callback);
+  }
+  
 	async checkBlockserviceForTransactionResult(callback = undefined) {
     if (!this.txHash) {
       throw new Error("No transaction hash to check.")
@@ -88322,7 +88421,6 @@ class TransactionBuilder extends Network {
 
 		// Check if the blockservice is up
 		let serverAvailable = await this.blockservice.pingServer();
-
 		//If it's not then fail over to checking from the masternode
 		if (!serverAvailable) {
 			console.log("Blockservice not available, failing back to masternode.");
@@ -88333,14 +88431,19 @@ class TransactionBuilder extends Network {
       )
 		}
 
+    let count = this.maxBlockToCheck;
 		return new Promise(async (resolve) => {
       let lastLatestBlock = this.startBlock || 0;
-
-
 			// Get the next 10 blocks from the blockservice starting with the block the transction was sent from
 			const getLatestBlock = async () => {
+        if (count < 1) {
+          this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} attempts.`];
+          this.txCheckResult.status = 2;
+          resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+        } 
+        count = count - 1;
         let latestBlock = await this.blockservice.getLastetBlock();
-        if (latestBlock > lastLatestBlock){
+        if (latestBlock !== lastLatestBlock){
           lastLatestBlock = latestBlock;
           checkForTrasaction();
         }else {
@@ -88355,8 +88458,8 @@ class TransactionBuilder extends Network {
           this.txCheckResult = {...txResults, ...txResults.txInfo};
           resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
         }else {
-          if (lastLatestBlock - this.startBlock > this.maxBlockToCheck){
-            this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} blocks after sending.`];
+          if (count < 1){
+            this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} attempts.`];
             this.txCheckResult.status = 2;
             resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
           }else {

@@ -74,7 +74,7 @@ export class LamdenMasterNode_API {
       try {
         if (res.name) return res;
       } catch (e) {}
-      return null;
+      return {"error":`${contractName} does not exist`};
     };
     let path = `/contracts/${contractName}`;
     return this.send("GET", path, {}, undefined, (res, err) => returnInfo(res)).then((res) =>
@@ -207,5 +207,16 @@ export class LamdenMasterNode_API {
       }
       return res;
     });
+  }
+
+  async getLastetBlock(){
+    return this.send("GET", "/latest_block", {})
+        .then(res => res.json())
+        .then(json => {
+            return { value: json.number }
+        })
+        .catch(err => {
+            return {error: err.message}
+        })
   }
 }
