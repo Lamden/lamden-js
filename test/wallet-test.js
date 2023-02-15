@@ -96,15 +96,62 @@ describe("Test Lamden Wallet methods", () => {
     });
     it("wallet object can sign messages", () => {
       let newWallet = wallet.create_wallet({ keepPrivate: true });
-      let message = new Uint8Array("this is a message");
+
+      let mesage_buffer = Buffer.from("this is a message")
+      let message = new Uint8Array(mesage_buffer);
       let signedMessage = newWallet.sign(message);
+
       expect(wallet.verify(newWallet.vk, message, signedMessage)).to.be(true);
     });
-    it("wallet object can verify a messages", () => {
+    it("wallet object can verify a messages, returns true", () => {
       let newWallet = wallet.create_wallet({ keepPrivate: true });
-      let message = new Uint8Array("this is a message");
+
+      let mesage_buffer = Buffer.from("this is a message")
+      let message = new Uint8Array(mesage_buffer);
       let signedMessage = newWallet.sign(message);
+
       expect(newWallet.verify(message, signedMessage)).to.be(true);
+    });
+    it("wallet object can verify a message using String message, returns true", () => {
+      let newWallet = wallet.create_wallet({ keepPrivate: true });
+
+      let mesage_buffer = Buffer.from("this is a message")
+      let message = new Uint8Array(mesage_buffer);
+      let signedMessage = newWallet.sign(message);
+
+      expect(newWallet.verify("this is a message", signedMessage)).to.be(true);
+    });
+    it("wallet object can verify a message, returns false if message incorrect", () => {
+      let newWallet = wallet.create_wallet({ keepPrivate: true });
+
+      let mesage_buffer = Buffer.from("this is a message")
+      let message = new Uint8Array(mesage_buffer);
+      let signedMessage = newWallet.sign(message);
+
+      let message_buffer_2 = Buffer.from("this is another message")
+      let message_2 = new Uint8Array(message_buffer_2);
+
+      expect(newWallet.verify(message_2, signedMessage)).to.be(false);
+    });
+    it("wallet object can verify a message, returns false if vk incorrect", () => {
+      let newWallet = wallet.create_wallet({ keepPrivate: true });
+      let anotherWallet = wallet.create_wallet({ keepPrivate: true });
+
+      let mesage_buffer = Buffer.from("this is a message")
+      let message = new Uint8Array(mesage_buffer);
+      let signedMessage = newWallet.sign(message);
+      
+      expect(anotherWallet.verify(message, signedMessage)).to.be(false);
+    });
+    it("wallet object can verify a message, returns false if sig incorrect", () => {
+      let newWallet = wallet.create_wallet({ keepPrivate: true });
+      let anotherWallet = wallet.create_wallet({ keepPrivate: true });
+
+      let mesage_buffer = Buffer.from("this is a message")
+      let message = new Uint8Array(mesage_buffer);
+      let signedMessage = anotherWallet.sign(message);
+
+      expect(newWallet.verify(message, signedMessage)).to.be(false);
     });
   });
 

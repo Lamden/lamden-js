@@ -2979,10 +2979,10 @@ function sign$1(sk, msg) {
 }
 /**
  * @param String vk
- * @param Uint8Array msg
+ * @param {(Uint8Array|string)} msg
  * @param String sig
  *      vk:     A 64 character long hex representation of a verify key (public key)
- *      msg:    A Uint8Array (bytes) representation of a message that has been signed
+ *      msg:    A Uint8Array (bytes) || (string) representation of a message that has been signed
  *      sig:    A 128 character long hex representation of a nacl signature
  *
  * @return Bool result
@@ -2991,9 +2991,15 @@ function sign$1(sk, msg) {
 function verify(vk, msg, sig) {
   var vkb = hex2buf(vk);
   var sigb = hex2buf(sig);
+  var msgb = msg;
+
+  // Convert string messages to Uint8Array
+  if (Object.prototype.toString.call(msgb) === "[object String]") msgb = str2buf(msg);
+
   try {
-    return nacl__default["default"].sign.detached.verify(msg, sigb, vkb);
+    return nacl__default["default"].sign.detached.verify(msgb, sigb, vkb);
   } catch (_a) {
+    console.log(_a);
     return false;
   }
 }
