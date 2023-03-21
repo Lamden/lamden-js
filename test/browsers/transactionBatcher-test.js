@@ -89,10 +89,10 @@ describe("Browsers Tests: Test TransactionBuilder class", async () => {
 
   context("new TransactionBuilder", () => {
     it("can create an instance", async () => {
-      let txb = await driver.executeScript(function (networkInfo) {
-        return new Lamden.TransactionBatcher(networkInfo);
+      let res = await driver.executeScript(function (networkInfo) {
+        return new Lamden.TransactionBatcher(networkInfo).running;
       }, networkInfo)
-      expect(txb.running).to.be(false);
+      expect(res).to.be(false);
     });
   }); /*
     context('TransactionBatcher.addTransaction()', () => {

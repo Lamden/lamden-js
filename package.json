@@ -49,6 +49,7 @@
     "ed25519-hd-key": "^1.2.0",
     "node-cryptojs-aes": "^0.4.0",
     "node-fetch": "^2.6.1",
+    "socket.io-client": "^4.6.1",
     "tweetnacl": "1.0.1",
     "types-validate-assert": "^1.0.1"
   },
@@ -59,7 +60,6 @@
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.0.6",
     "buffer": "^6.0.3",
-    "chromedriver": "^105.0.1",
     "dotenv": "^8.2.0",
     "expect.js": "^0.3.1",
     "koa": "^2.13.4",
@@ -68,6 +68,7 @@
     "rollup": "^2.60.0",
     "rollup-plugin-polyfill-node": "^0.7.0",
     "rollup-plugin-terser": "^7.0.2",
-    "selenium-webdriver": "^3.6.0"
+    "selenium-webdriver": "^3.6.0",
+    "chromedriver": "^111.0.0"
   }
 }

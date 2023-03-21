@@ -1,11 +1,34 @@
 const expect = require("expect.js");
+require("dotenv").config();
 const Lamden = require("../dist/cjs/lamden");
 const { Blockservice_API, wallet } = Lamden;
 
+
+const { vk, sk } = process.env;
+
+const senderWallet = { vk, sk };
+
+let recieverWallet = Lamden.wallet.new_wallet();
+
+let senderVk = senderWallet.vk;
+let contractName = "currency";
+let methodName = "transfer";
+let stampLimit = 100;
+
+let kwargs = {
+  to: recieverWallet.vk,
+  amount: 1,
+};
+
+let txInfo_noNonce = { senderVk, contractName, methodName, kwargs, stampLimit };
+
+
 let goodNetwork = {
 	type: "testnet",
+    version: 2,
 	name: "Lamden Public Testnet",
-	blockservice_hosts: ["http://165.227.181.34:3535"],
+	blockservice_hosts: ["https://testnet-v2-bs-bang.lamden.io"],
+    hosts: ["https://testnet-v2-master-bang.lamden.io"],
 };
 let goodNetwork_api = new Blockservice_API(goodNetwork);
 
@@ -20,7 +43,7 @@ let badNetwork_api = new Blockservice_API(badNetwork);
 function copyObject(object) {
 	return JSON.parse(JSON.stringify(object));
 }
-let good_tx_hash = "b9f9d598c56ae579b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46b"
+let good_tx_hash = "08e229b123c2997329d217baab9e22311d57851ef7b6d2314eb87017316eab55"
 let bad_tx_hash = "this_is_a_bad_tx_hash"
 
 let keyPair = wallet.new_wallet();
@@ -47,6 +70,14 @@ const notExistKeysToGet =  [{
 	variableName: "balances",
 	key: 'nope_key_123973'
 }]
+
+function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
+}
 
 describe("Test Blockservice_API", () => {
 	context("constructor", () => {
@@ -290,6 +321,24 @@ describe("Test Blockservice_API", () => {
 						resolver()
 					});
 				})
+			});
+		})
+	});
+
+    context(".subscribeTx()", () => {
+		context("Promise", () => {
+			it("returns a result", async function () {
+                this.timeout(10000);
+				let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
+                await newTx.getNonce();
+                //Sign transaction
+                newTx.sign(senderWallet.sk);
+    
+                //Send Tx 
+                await newTx.send();
+                let hash = newTx.txSendResult.hash;
+                let res = await goodNetwork_api.subscribeTx(hash);
+                expect(res.txHash).to.equal(hash);
 			});
 		})
 	});

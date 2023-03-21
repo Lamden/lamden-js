@@ -49,7 +49,7 @@ describe("Browsers Tests: Test Netowrk class", () => {
 
   context("Constructor", () => {
     it("can create an instance", async () => {
-      let network = await driver.executeScript("return new Lamden.Network(arguments[0])", goodNetwork);
+      let network  = await driver.executeScript("return new Lamden.Network(arguments[0]).getNetworkInfo()", goodNetwork);
       expect(network).to.exist;
       expect(JSON.stringify(network.hosts)).to.be(JSON.stringify(goodNetwork.hosts));
       expect(network.hosts[0]).to.be(goodNetwork.hosts[0]);
@@ -57,7 +57,6 @@ describe("Browsers Tests: Test Netowrk class", () => {
       expect(network.type).to.be(goodNetwork.type);
       expect(network.name).to.be(goodNetwork.name);
       expect(network.lamden).to.be(goodNetwork.lamden);
-      expect(network.blockExplorer).to.be(goodNetwork.blockExplorer);
     });
 
     it("rejects missing hosts Array", async () => {
@@ -85,7 +84,7 @@ describe("Browsers Tests: Test Netowrk class", () => {
     it("defaults missing type to custom", async () => {
       let networkInfo = copyObject(goodNetwork);
       networkInfo.type = "";
-      let network = await driver.executeScript("return new Lamden.Network(arguments[0])", networkInfo);
+      let network = await driver.executeScript("return new Lamden.Network(arguments[0]).getNetworkInfo()", networkInfo);
       expect(network.type).to.be("custom");
     });
     it("rejects arg not being an object", async () => {

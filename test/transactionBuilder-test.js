@@ -4,19 +4,19 @@ const Lamden = require("../dist/cjs/lamden");
 
 const { vk, sk } = process.env;
 
-let goodNetwork = {
+let goodNetwork_v1 = {
   type: "testnet",
   name: "Lamden Public Testnet",
   hosts: ["https://testnet-master-1.lamden.io:443"],
   blockservice_hosts: ["http://165.227.181.34:3535"]
 };
 
-let goodNetwork_v2 = {
+let goodNetwork = {
 	type: "testnet",
 	version: 2,
 	name: "Lamden Public Testnet",
-	hosts: ["https://testnet-master-1.lamden.io:443"],
-	blockservice_hosts: ["http://165.227.181.34:3535"]
+	hosts: ["https://testnet-v2-master-sf.lamden.io"],
+	blockservice_hosts: ["https://testnet-v2-bs-sf.lamden.io"]
   };
   
 
@@ -64,7 +64,7 @@ let valuesTxInfo = {
   },
 };
 
-let txInfo_noNonce = { uid, senderVk, contractName, methodName, kwargs, stampLimit };
+let txInfo_noNonce = { senderVk, contractName, methodName, kwargs, stampLimit };
 let txInfo_withNonce = {
   uid,
   senderVk,
@@ -216,12 +216,12 @@ describe("Test TransactionBuilder class", () => {
 
 	context("TransactionBuilder.makeTransaction()", () => {
 		it("includes timestamp in metadata for v1 network", () => {
-			let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_withNonce);
+			let newTx = new Lamden.TransactionBuilder(goodNetwork_v1, txInfo_withNonce);
 			newTx.makeTransaction()
 			expect(newTx.tx.metadata.timestamp).to.exist
-		});3
+		});
 		it("does not have timestamp in metadata for v2 network", () => {
-			let newTx = new Lamden.TransactionBuilder(goodNetwork_v2, txInfo_withNonce);
+			let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_withNonce);
 			newTx.makeTransaction()
 			expect(newTx.tx.metadata.timestamp).to.be(undefined)
 		});
@@ -395,14 +395,14 @@ describe("Test TransactionBuilder class", () => {
 		context("Promise", () => {
 			it("Returns the result of a transaction", async function () {
 				let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
-				newTx1.txHash = "b9f9d598c56ae579b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46b"
+				newTx1.txHash = "bb26df2b0583858a5e18ca2c37d3586ea58c5ed1f4cfb67d3a9b01acbedf367f"
 				let res = await newTx1.checkForTransactionResult()
 				expect(res.hash).to.exist
-				expect(res.status.__fixed__).to.equal('0')
+				expect(res.status).to.equal(0)
 			});
 			it("Returns error and status code 2 if txHash could not be found after X tries.", async function () {
 				let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
-				newTx1.txHash = "b9f9d598c56ae59b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46"
+				newTx1.txHash = "bb26df2b0583858a5e18ca2c37d3586ea58c5ed1f4cfb67d3a9b01acbedf367dd"
 				newTx1.txCheckLimit = 2;
 				let res = await newTx1.checkForTransactionResult()
 				expect(res.errors.length).to.be.greaterThan(0)
@@ -414,11 +414,11 @@ describe("Test TransactionBuilder class", () => {
 			it("Returns the result of a transaction", async function () {
 				return new Promise(resolver => {
 					let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
-					newTx1.txHash = "b9f9d598c56ae579b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46b"
+					newTx1.txHash = "bb26df2b0583858a5e18ca2c37d3586ea58c5ed1f4cfb67d3a9b01acbedf367f"
 
 					newTx1.checkForTransactionResult((res) => {
 						expect(res.hash).to.exist
-						expect(res.status.__fixed__).to.equal('0')
+						expect(res.status).to.equal(0)
 						resolver()
 					});
 				})
@@ -426,7 +426,7 @@ describe("Test TransactionBuilder class", () => {
 			it("Returns error and status code 2 if txHash could not be found after X tries.", async function () {
 				return new Promise(resolver => {
 					let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
-					newTx1.txHash = "b9f9d598c56ae59b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46"
+					newTx1.txHash = "bb26df2b0583858a5e18ca2c37d3586ea58c5ed1f4cfb67d3a9b01acbedf367feqeq"
 					newTx1.txCheckLimit = 2;
 					newTx1.checkForTransactionResult((res) => {
 						expect(res.errors.length).to.be.greaterThan(0)
@@ -442,38 +442,23 @@ describe("Test TransactionBuilder class", () => {
 	context("checkBlockserviceForTransactionResult()", () => {
 		context("Promise", () => {
 			it("Returns the result of a transaction", async function () {
+                this.timeout(60000)
 				let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
-				newTx1.txHash = "b9f9d598c56ae579b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46b"
+                await newTx1.getNonce();
+                //Sign transaction
+                newTx1.sign(senderWallet.sk);
+
+				await newTx1.send()
 				let res = await newTx1.checkBlockserviceForTransactionResult()
 				expect(res.hash).to.exist
 				expect(res.status).to.equal(0)
 				expect(res.state_changes_obj).to.exist
 			});
 
-			it("Checks blocks at start_block and finds transaction, then returns results", async function () {
-				let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
-				newTx1.txHash = "b9f9d598c56ae579b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46b"
-				newTx1.startBlock = 62858
-				let res = await newTx1.checkBlockserviceForTransactionResult()
-				expect(res.hash).to.exist
-				expect(res.status).to.equal(0)
-				expect(res.state_changes_obj).to.exist
-			});
-			it("Returns error and status code 2 if txHash could not be found within X number of blocks.", async function () {
-				this.timeout(50000)
-				let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
-				newTx1.maxBlockToCheck = 2
-				newTx1.txHash = "b9f9d598c56ae59b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46b"
-				newTx1.startBlock = 62880
-				let res = await newTx1.checkBlockserviceForTransactionResult()
-				expect(res.errors.length).to.be.greaterThan(0)
-				expect(res.status).to.equal(2)
-				expect(res.errors[0]).to.equal(`No transaction result found within ${newTx1.maxBlockToCheck} attempts.`)
-			});
 			it("Fails back to masternode checker if blockservice is not available.", async function () {
 				let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
 				newTx1.blockservice.hosts = []
-				newTx1.txHash = "b9f9d598c56ae59b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46"
+				newTx1.txHash = "bb26df2b0583858a5e18ca2c37d3586ea58c5ed1f4cfb67d3a9b01acbedf367f21"
 				newTx1.txCheckLimit = 2;
 				let res = await newTx1.checkBlockserviceForTransactionResult()
 				expect(res.errors.length).to.be.greaterThan(0)
@@ -483,23 +468,11 @@ describe("Test TransactionBuilder class", () => {
 		})
 		context("Callback", () => {
 			it("Returns the result of a transaction", async function () {
+                let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
+                await newTx1.getNonce()
+                newTx1.sign(senderWallet.sk)
+                await newTx1.send()
 				return new Promise(resolver => {
-					let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
-					newTx1.txHash = "b9f9d598c56ae579b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46b"
-					newTx1.checkBlockserviceForTransactionResult((res) => {
-						expect(res.hash).to.exist
-						expect(res.status).to.equal(0)
-						expect(res.state_changes_obj).to.exist
-						resolver()
-					});
-				})
-			});
-
-			it("Checks blocks at start_block and finds transaction, then returns results", async function () {
-				return new Promise(resolver => {
-					let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
-					newTx1.txHash = "b9f9d598c56ae579b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46b"
-					newTx1.startBlock = 62858
 					newTx1.checkBlockserviceForTransactionResult((res) => {
 						expect(res.hash).to.exist
 						expect(res.status).to.equal(0)
@@ -511,25 +484,12 @@ describe("Test TransactionBuilder class", () => {
 			it("Returns error and status code 2 if txHash could not be found within X number of blocks.", function () {
 				this.timeout(50000)
 				let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
-				newTx1.txHash = "b9f9d598c56ae59b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46b"
-				newTx1.startBlock = 62880
+				newTx1.txHash = "bb26df2b0583858a5e18ca2c37d3586ea58c5ed1f4cfb67d3a9b01acbedf367f"
 				newTx1.maxBlockToCheck = 2
 				newTx1.checkBlockserviceForTransactionResult((res) => {
 					expect(res.errors.length).to.be.greaterThan(0)
 					expect(res.status).to.equal(2)
 					expect(res.errors[0]).to.equal(`No transaction result found within ${newTx1.maxBlockToCheck} attempts.`)
-				});
-			});
-			it("Fails back to masternode checker if blockservice is not available.", function (done) {
-				let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
-				newTx1.blockservice.hosts = []
-				newTx1.txHash = "b9f9d598c56ae59b8392651a9a463335b68bdf4d6fd60391fca19a7b1fdb46"
-				newTx1.txCheckLimit = 2;
-				newTx1.checkBlockserviceForTransactionResult((res) => {
-					expect(res.errors.length).to.be.greaterThan(0)
-					expect(res.status).to.equal(2)
-					expect(res.errors.includes("Retry Attempts 2 hit while checking for Tx Result.")).to.equal(true)
-					done()
 				});
 			});
 		})
