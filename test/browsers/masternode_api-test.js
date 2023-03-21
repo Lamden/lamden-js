@@ -136,7 +136,7 @@ describe("Browsers Tests: Test Masternode API returns", () => {
         let callback = arguments[arguments.length-1];
         let api = new Lamden.Masternode_API(goodNetwork);
         let response = await api.getCurrencyBalance(balanceCheckWallet.float);
-        callback(response);
+        callback(response.toNumber());
       }, goodNetwork, balanceCheckWallet).then(res => {
         expect(res).to.above(0);
       })
@@ -146,7 +146,7 @@ describe("Browsers Tests: Test Masternode API returns", () => {
         let callback = arguments[arguments.length-1];
         let api = new Lamden.Masternode_API(goodNetwork);
         let response = await api.getCurrencyBalance(balanceCheckWallet.int);
-        callback(response);
+        callback(response.toNumber());
       }, goodNetwork, balanceCheckWallet).then(res => {
         expect(res).to.above(0);
       })

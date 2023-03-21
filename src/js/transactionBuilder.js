@@ -311,60 +311,25 @@ export class TransactionBuilder extends Network {
   }
   
 	async checkBlockserviceForTransactionResult(callback = undefined) {
-    if (!this.txHash) {
-      throw new Error("No transaction hash to check.")
-    }
+        if (!this.txHash) {
+        throw new Error("No transaction hash to check.")
+        }
 
 		// Check if the blockservice is up
 		let serverAvailable = await this.blockservice.pingServer()
 		//If it's not then fail over to checking from the masternode
 		if (!serverAvailable) {
 			console.log("Blockservice not available, failing back to masternode.")
-			return this.checkForTransactionResult(callback).then(
-        (res) => {
-          return {txinfo: res, ...res} 
-        }
-      )
+			return this.checkForTransactionResult(callback).then((res) => {
+                    return {txinfo: res, ...res} 
+                }
+            )
 		}
 
-    let count = this.maxBlockToCheck
 		return new Promise(async (resolve) => {
-      let lastLatestBlock = this.startBlock || 0
-			// Get the next 10 blocks from the blockservice starting with the block the transction was sent from
-			const getLatestBlock = async () => {
-        if (count < 1) {
-          this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} attempts.`]
-          this.txCheckResult.status = 2
-          resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
-        } 
-        count = count - 1
-        let latestBlock = await this.blockservice.getLastetBlock()
-        if (latestBlock !== lastLatestBlock){
-          lastLatestBlock = latestBlock
-          checkForTrasaction()
-        }else{
-          setTimeout(getLatestBlock, 5000)
-        }
-			}
-
-			// Check all the transaction in these blocks for our transction hash
-			const checkForTrasaction = async () => {
-        let txResults = await this.blockservice.getTransaction(this.txHash)
-        if (txResults){
-          this.txCheckResult = {...txResults, ...txResults.txInfo}
-          resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
-        }else{
-          if (count < 1){
-            this.txCheckResult.errors = [`No transaction result found within ${this.maxBlockToCheck} attempts.`]
-            this.txCheckResult.status = 2
+            let txResults = await this.blockservice.subscribeTx(this.txHash)
+            this.txCheckResult = {...txResults, ...txResults.txInfo}
             resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
-          }else{
-            setTimeout(getLatestBlock, 5000)
-          }
-        }
-      }
-      
-			getLatestBlock()
 		});
 	}
   handleMasterNodeResponse(result, callback = undefined) {

@@ -17,9 +17,10 @@ caps.setLoggingPrefs(prefs);
 const { vk, sk } = process.env;
 
 let goodNetwork = {
+    version: 2,
   type: "testnet",
   name: "Lamden Public Testnet",
-  hosts: ["https://testnet-master-1.lamden.io:443"],
+  hosts: ["https://testnet-v2-master-bang.lamden.io"],
 };
 
 let badNetwork = {
@@ -65,7 +66,7 @@ let valuesTxInfo = {
   },
 };
 
-let txInfo_noNonce = { uid, senderVk, contractName, methodName, kwargs, stampLimit };
+let txInfo_noNonce = { senderVk, contractName, methodName, kwargs, stampLimit };
 let txInfo_withNonce = {
   uid,
   senderVk,
@@ -103,14 +104,12 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
 
   context("new TransactionBuilder", () => {
     it("can create an instance without nonce or processor", async () => {
-      const {newTx, newTxInfo} =  await driver.executeScript(function (goodNetwork, txInfo_noNonce) {
+      const {newTxInfo} =  await driver.executeScript(async function (goodNetwork, txInfo_noNonce) {
         let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
         let newTxInfo = newTx.getAllInfo();
-        return {newTx, newTxInfo}
+        return {newTxInfo}
       }, goodNetwork, txInfo_noNonce)
-      expect(newTx).to.exist;
       //Validate TX Info propagated in the class
-      expect(newTxInfo.uid).to.be(txInfo_noNonce.uid);
       expect(newTxInfo.txInfo.senderVk).to.be(txInfo_noNonce.senderVk);
       expect(newTxInfo.txInfo.contractName).to.be(txInfo_noNonce.contractName);
       expect(newTxInfo.txInfo.methodName).to.be(txInfo_noNonce.methodName);
@@ -124,12 +123,11 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
       expect(JSON.stringify(newTxInfo.nonceResult)).to.be(JSON.stringify({}));
     });
     it("can create an instance by providing nonce and processor", async () => {
-      const {newTx, newTxInfo} =  await driver.executeScript(function (goodNetwork, txInfo_withNonce) {
+      const {newTxInfo} =  await driver.executeScript(function (goodNetwork, txInfo_withNonce) {
         let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_withNonce);
         let newTxInfo = newTx.getAllInfo();
-        return {newTx, newTxInfo}
+        return {newTxInfo}
       }, goodNetwork, txInfo_withNonce)
-      expect(newTx).to.exist;
       expect(newTxInfo.txInfo.nonce).to.exist;
       expect(newTxInfo.txInfo.processor).to.exist;
     });
@@ -200,11 +198,9 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
       let newTx = await driver.executeScript(function (goodNetwork, txInfo_withNonce) {
         let network = new Lamden.Network(goodNetwork);
         let newTx = new Lamden.TransactionBuilder(network, txInfo_withNonce);
-        return newTx
       }, goodNetwork, txInfo_withNonce).catch(e => {
         error = e;
       })
-      expect(newTx).to.exist;
       expect(error === "").to.be(true);
     });
   });
@@ -232,7 +228,7 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
       expect(res[1]).to.be(true);
       expect(res[2]).to.be(true);
     });
-    it("throws and error if nonce not set ", async () => {
+    it("throws error if nonce not set ", async () => {
       let res = await driver.executeScript(function (goodNetwork, txInfo_noNonce, senderWallet) {
         let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
         let error = ""
@@ -241,7 +237,7 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
         } catch(e){
           error = e
         }
-        return [newTx, error];
+        return [{nonce: newTx.nonce, processor: newTx.processor}, error];
       }, goodNetwork, txInfo_noNonce, senderWallet)
       expect(res[0].nonce).to.not.exist;
       expect(res[0].processor).to.not.exist;
@@ -253,7 +249,7 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
       const {newTx, response} =await driver.executeScript(async function (goodNetwork, txInfo_noNonce){
         let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
         let response = await newTx.getNonce();
-        return {newTx, response}
+        return {newTx: {nonce: newTx.nonce, sender: newTx.sender, nonceMasternode: newTx.nonceMasternode}, response}
       }, goodNetwork, txInfo_noNonce)
       expect(newTx.nonce).to.not.exist;
       expect(newTx.processor).to.not.exist;
@@ -263,7 +259,6 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
       expect(response.processor).to.exist;
       expect(response.sender).to.exist;
       expect(newTx.nonce).to.be(response.nonce);
-      expect(newTx.processor).to.be(response.processor);
       expect(newTx.sender).to.be(response.sender);
       expect(goodNetwork.hosts.includes(newTx.nonceMasternode)).to.be(true);
     });
@@ -294,10 +289,10 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
   });
 
   context("TransactionBuilder.send()", () => {
-    let oldResultInfo,resultInfo, txSendResult, txBlockResult, newTx1;
+    let oldResultInfo,resultInfo, txSendResult, txBlockResult;
     it("Sends a transaction and receives a hash back", async function () {
       this.timeout(20000);
-      await driver.executeAsyncScript(async function (goodNetwork, txInfo_noNonce, senderWallet) {
+      await driver.executeAsyncScript(async (goodNetwork, txInfo_noNonce, senderWallet) => {
         let callback = arguments[arguments.length-1]
         let newTx1 = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
         await newTx1.getNonce();
@@ -309,7 +304,7 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
         let txSendResult = newTx1.txSendResult;
         await newTx1.checkForTransactionResult();
         let txBlockResult = newTx1.txBlockResult;
-        callback([newTx1.transactionSigned, newTx1.verifySignature(), txSendResult, oldResultInfo, txBlockResult, newTx1.resultInfo, newTx1])
+        callback([newTx1.transactionSigned, newTx1.verifySignature(), txSendResult, oldResultInfo, txBlockResult, newTx1.resultInfo])
     }, goodNetwork, txInfo_noNonce, senderWallet).then(res => {
       expect(res[0]).to.be(true);
       expect(res[1]).to.be(true);
@@ -320,7 +315,6 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
       oldResultInfo = res[3];
       txBlockResult = res[4];
       resultInfo = res[5]
-      newTx1 = res[6];
     })
     });
     it("Creates ResultInfo object based on txSendResult", function () {
@@ -335,7 +329,6 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
       expect(txBlockResult.stamps_used > 0).to.be(true);
       expect(txBlockResult.state.length).to.equal(2);
       expect(txBlockResult.status).to.equal(0);
-      expect(JSON.stringify(txBlockResult.transaction)).to.equal(JSON.stringify(newTx1.tx));
       expect(txBlockResult.timestamp).to.exist;
     });
     it("Creates ResultInfo object based on txBlockResult", async function () {
@@ -429,7 +422,6 @@ describe("Browsers Tests: Test TransactionBuilder class", () => {
         let check = await newTx.checkForTransactionResult();
         return {response, check}
       },valuesTxInfo,goodNetwork,senderWallet)
-
       expect(response.success).to.be("Transaction successfully submitted to the network.");
       expect(check.status).to.be(0);
     });

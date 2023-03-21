@@ -1,17 +1,22 @@
 import validators from "types-validate-assert";
 const { validateTypes } = validators;
 import fetch from "node-fetch";
+import { io } from "socket.io-client";
+
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 export class LamdenBlockservice_API {
-constructor(networkInfoObj) {
-    if (!validateTypes.isObjectWithKeys(networkInfoObj))
-    throw new Error(`Expected Network to be Object and got Type: ${typeof networkInfoObj}`);
-    if (validateTypes.isArrayWithValues(networkInfoObj.blockservice_hosts)){
-        this.hosts = this.validateHosts(networkInfoObj.blockservice_hosts);
-    }else{
-        this.hosts = []
+    constructor(networkInfoObj) {
+        if (!validateTypes.isObjectWithKeys(networkInfoObj))
+        throw new Error(`Expected Network to be Object and got Type: ${typeof networkInfoObj}`);
+        if (validateTypes.isArrayWithValues(networkInfoObj.blockservice_hosts)){
+            this.hosts = this.validateHosts(networkInfoObj.blockservice_hosts);
+        }else{
+            this.hosts = []
+        }
+
+        this.socket = io(this.host);
     }
-}
 //This will throw an error if the protocol wasn't included in the host string
 vaidateProtocol(host) {
     let protocols = ["https://", "http://"];
@@ -117,16 +122,16 @@ async getCurrentKeysValues(keys, callback){
     }
 }
 
-async getTransaction(hash, callback) {
-    const parms = { hash };
-    return this.send("GET", "/tx", { parms })
-        .then(res => res.json())
-        .then(json => {
-            if (callback) callback(json, null)
-            return json
-        })
-        .catch(err => {
-            if (err.message.includes("invalid json response body")) {
+    async getTransaction(hash, callback) {
+        const parms = { hash };
+        return this.send("GET", "/tx", { parms })
+            .then(res => res.json())
+            .then(json => {
+                if (callback) callback(json, null)
+                return json
+            })
+            .catch(err => {
+                if (err.message.includes("invalid json response body")) {
                 if (callback) callback(null, null)
                 return null
             }else{
@@ -154,5 +159,48 @@ async getContractInfo(contractName) {
             return {error: err.message}
         })
 }
-}
 
+    async subscribeTx (txHash) {
+        // ensure socket connected
+        while(this.socket && !this.socket.connected){
+           await sleep(500)
+        }
+        // check whether the socket is connected   
+        if (this.socket && !this.socket) {
+            return {error: "Subscribe tx result failed. Blockservice socket disconnected"}
+        }
+        // join the tx hash room
+        this.socket.emit('join', txHash);
+
+        return new Promise((resolve) => {
+
+            const processResult = (data) => {
+                const { room, message } = JSON.parse(data)
+                if (room !== txHash) {
+                    return
+                }
+
+                // leave tx room
+                this.socket.emit('leave', txHash);
+                // off the listener
+                this.socket.off(txHash, processResult)
+    
+                resolve({
+                    hlc_timestamp: message.hlc_timestamp,
+                    blockNum: message.blockNum,
+                    affectedContractsList: message.affectedContractsList,
+                    affectedVariablesList: message.affectedVariablesList,
+                    affectedRootKeysList: message.affectedRootKeysList,
+                    affectedRawKeysList: message.affectedRawKeysList,
+                    state_changes_obj: typeof(message.state_changes_obj) === "string"? JSON.parse(message.state_changes_obj) : message.state_changes_obj,
+                    txHash: message.txInfo.hash,
+                    txInfo: message.txInfo,
+                    senderVk: message.sender,
+                    rewards: message.rewards
+                })
+            }
+            // listen for the event
+            this.socket.on("new-state-changes-by-transaction", processResult);
+        })
+    }
+}
