@@ -307,7 +307,7 @@ export class TransactionBuilder extends Network {
 	}
 
   async checkTransactionResult(callback) {
-    await checkBlockserviceForTransactionResult(callback)
+    await this.checkBlockserviceForTransactionResult(callback)
   }
   
 	async checkBlockserviceForTransactionResult(callback = undefined) {

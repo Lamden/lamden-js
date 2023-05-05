@@ -95739,6 +95739,7 @@ const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 
 class LamdenBlockservice_API {
     constructor(networkInfoObj) {
+        this.timeout = 2000;
         if (!validateTypes$3.isObjectWithKeys(networkInfoObj))
         throw new Error(`Expected Network to be Object and got Type: ${typeof networkInfoObj}`);
         if (validateTypes$3.isArrayWithValues(networkInfoObj.blockservice_hosts)){
@@ -95746,8 +95747,6 @@ class LamdenBlockservice_API {
         }else {
             this.hosts = [];
         }
-
-        this.socket = lookup(this.host);
     }
 //This will throw an error if the protocol wasn't included in the host string
 vaidateProtocol(host) {
@@ -95892,17 +95891,30 @@ async getContractInfo(contractName) {
         })
 }
 
+    disconnect() {
+        if (!this.socket || !this.socket.connected) return true
+        this.socket.disconnect();
+        return true
+    }
+
     async subscribeTx (txHash) {
+        if (!this.socket) {
+            this.socket = lookup(this.host);
+        }
+
         // ensure socket connected
-        while(this.socket && !this.socket.connected){
-           await sleep(500);
+        let isTimeout = false;
+        let now = new Date().getTime();
+        while(!this.socket.connected && !isTimeout){
+            isTimeout = new Date().getTime() - now > this.timeout;
+            await sleep(50);
         }
-        // check whether the socket is connected   
-        if (this.socket && !this.socket) {
-            return {error: "Subscribe tx result failed. Blockservice socket disconnected"}
+        
+        // check whether the socket is connected;
+        if (!this.socket.connected) {
+            this.socket.disconnect();
+            return {errors: ["Subscribe tx result failed. Blockservice socket disconnected"]}
         }
-        // join the tx hash room
-        this.socket.emit('join', txHash);
 
         return new Promise((resolve) => {
 
@@ -95933,6 +95945,9 @@ async getContractInfo(contractName) {
             };
             // listen for the event
             this.socket.on("new-state-changes-by-transaction", processResult);
+            
+            // join the tx hash room
+            this.socket.emit('join', txHash);
         })
     }
 }
@@ -96399,7 +96414,7 @@ class TransactionBuilder extends Network {
 	}
 
   async checkTransactionResult(callback) {
-    await checkBlockserviceForTransactionResult(callback);
+    await this.checkBlockserviceForTransactionResult(callback);
   }
   
 	async checkBlockserviceForTransactionResult(callback = undefined) {
