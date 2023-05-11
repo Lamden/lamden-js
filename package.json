@@ -1,6 +1,6 @@
 {
   "name": "lamden-js",
-  "version": "3.8.5",
+  "version": "3.8.6",
   "description": "A javascript implementaion for creating wallets, submitting transactions and interacting with masternodes on the Lamden Blockchain.",
   "main": "dist/cjs/lamden.js",
   "types": "src/index.d.ts",
