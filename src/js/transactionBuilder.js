@@ -329,9 +329,34 @@ export class TransactionBuilder extends Network {
 		return new Promise(async (resolve) => {
             let txResults = await this.blockservice.subscribeTx(this.txHash)
             this.txCheckResult = {...txResults, ...txResults.txInfo}
-            resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+            resolve(this.handleBlockServiceResponse(this.txCheckResult, callback));
 		});
 	}
+
+    handleBlockServiceResponse(result, callback = undefined) {
+        //Check to see if this is a successful transacation submission
+        if (
+            validateTypes.isStringWithValue(result.txHash) && result.isTimeout
+        ) {
+            this.txHash = result.txHash;
+            this.resultInfo = {
+                title: "Check transaction timeout",
+                subtitle: "please re-check the transaction",
+                message: result.errors[0],
+                errorInfo: result.errors,
+                returnResult: "",
+                statusCode: 2,
+                type: "error",
+            };
+        } else {
+            this.setBlockResultInfo(result);
+            this.txBlockResult = result;
+        }
+        this.events.emit("response", result, this.resultInfo.subtitle);
+        if (validateTypes.isFunction(callback)) callback(result);
+        return result;
+    }
+
   handleMasterNodeResponse(result, callback = undefined) {
     //Check to see if this is a successful transacation submission
     if (
