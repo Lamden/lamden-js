@@ -7,7 +7,8 @@ const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 export class LamdenBlockservice_API {
     constructor(networkInfoObj) {
-        this.timeout = 2000
+        this.timeout = 3000
+        this.subscribeTimeOut = 20000
         if (!validateTypes.isObjectWithKeys(networkInfoObj))
         throw new Error(`Expected Network to be Object and got Type: ${typeof networkInfoObj}`);
         if (validateTypes.isArrayWithValues(networkInfoObj.blockservice_hosts)){
@@ -181,7 +182,7 @@ async getContractInfo(contractName) {
         // check whether the socket is connected;
         if (!this.socket.connected) {
             this.socket.disconnect()
-            return {errors: ["Subscribe tx result failed. Blockservice socket disconnected"]}
+            return {txHash: txHash, errors: ["Subscribe tx result failed. Blockservice socket disconnected"]}
         }
 
         return new Promise((resolve) => {
@@ -216,6 +217,12 @@ async getContractInfo(contractName) {
             
             // join the tx hash room
             this.socket.emit('join', txHash);
+
+            // for timeout
+            setTimeout(() => {
+                resolve({isTimeout: true, txHash: txHash, errors: [`Timeout ${this.subscribeTimeOut}ms while subscibing for Tx Result`]})
+            }, this.subscribeTimeOut);
+
         })
     }
 }

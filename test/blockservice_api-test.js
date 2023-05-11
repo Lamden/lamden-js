@@ -221,7 +221,7 @@ describe("Test Blockservice_API", () => {
 			});
 			it("returns a null result if the variable doesn't exist", async () => {
 				let res = await goodNetwork_api.getCurrentKeyValue(good_key_info.contractName, "does_not_exist", good_key_info.key);
-				expect(res.notFound).to.exist
+                expect(res.notFound).to.exist
 				expect(res.value).to.equal(null)
 				expect(res.prev_value).to.equal(null)
 			});
@@ -328,7 +328,7 @@ describe("Test Blockservice_API", () => {
     context(".subscribeTx()", () => {
 		context("Promise", () => {
 			it("returns a result", async function () {
-                this.timeout(10000);
+                this.timeout(12000);
 				let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
                 await newTx.getNonce();
                 //Sign transaction
@@ -339,6 +339,22 @@ describe("Test Blockservice_API", () => {
                 let hash = newTx.txSendResult.hash;
                 let res = await goodNetwork_api.subscribeTx(hash);
                 expect(res.txHash).to.equal(hash);
+			});
+
+            it("it returns error when the execution time exceeds the specified time", async function () {
+                this.timeout(15000);
+				let newTx = new Lamden.TransactionBuilder(goodNetwork, txInfo_noNonce);
+                await newTx.getNonce();
+                //Sign transaction
+                newTx.sign(senderWallet.sk);
+    
+                //Send Tx 
+                await newTx.send();
+                let hash = newTx.txSendResult.hash;
+                let res = await goodNetwork_api.subscribeTx(hash);
+                expect(res.errors[0]).include("Timeout 10000s while subscibing for Tx");
+                expect(res.txHash).to.equal(hash);
+                expect(res.isTimeout).to.equal(true);
 			});
 		})
 	});

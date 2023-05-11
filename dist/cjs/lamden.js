@@ -95739,7 +95739,8 @@ const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay));
 
 class LamdenBlockservice_API {
     constructor(networkInfoObj) {
-        this.timeout = 2000;
+        this.timeout = 3000;
+        this.subscribeTimeOut = 20000;
         if (!validateTypes$3.isObjectWithKeys(networkInfoObj))
         throw new Error(`Expected Network to be Object and got Type: ${typeof networkInfoObj}`);
         if (validateTypes$3.isArrayWithValues(networkInfoObj.blockservice_hosts)){
@@ -95913,7 +95914,7 @@ async getContractInfo(contractName) {
         // check whether the socket is connected;
         if (!this.socket.connected) {
             this.socket.disconnect();
-            return {errors: ["Subscribe tx result failed. Blockservice socket disconnected"]}
+            return {txHash: txHash, errors: ["Subscribe tx result failed. Blockservice socket disconnected"]}
         }
 
         return new Promise((resolve) => {
@@ -95948,6 +95949,12 @@ async getContractInfo(contractName) {
             
             // join the tx hash room
             this.socket.emit('join', txHash);
+
+            // for timeout
+            setTimeout(() => {
+                resolve({isTimeout: true, txHash: txHash, errors: [`Timeout ${this.subscribeTimeOut}ms while subscibing for Tx Result`]});
+            }, this.subscribeTimeOut);
+
         })
     }
 }
@@ -96436,9 +96443,34 @@ class TransactionBuilder extends Network {
 		return new Promise(async (resolve) => {
             let txResults = await this.blockservice.subscribeTx(this.txHash);
             this.txCheckResult = {...txResults, ...txResults.txInfo};
-            resolve(this.handleMasterNodeResponse(this.txCheckResult, callback));
+            resolve(this.handleBlockServiceResponse(this.txCheckResult, callback));
 		});
 	}
+
+    handleBlockServiceResponse(result, callback = undefined) {
+        //Check to see if this is a successful transacation submission
+        if (
+            validateTypes$1.isStringWithValue(result.txHash) && result.isTimeout
+        ) {
+            this.txHash = result.txHash;
+            this.resultInfo = {
+                title: "Check transaction timeout",
+                subtitle: "please re-check the transaction",
+                message: result.errors[0],
+                errorInfo: result.errors,
+                returnResult: "",
+                statusCode: 2,
+                type: "error",
+            };
+        } else {
+            this.setBlockResultInfo(result);
+            this.txBlockResult = result;
+        }
+        this.events.emit("response", result, this.resultInfo.subtitle);
+        if (validateTypes$1.isFunction(callback)) callback(result);
+        return result;
+    }
+
   handleMasterNodeResponse(result, callback = undefined) {
     //Check to see if this is a successful transacation submission
     if (
