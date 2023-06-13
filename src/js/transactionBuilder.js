@@ -388,12 +388,15 @@ export class TransactionBuilder extends Network {
     let statusCode = validateTypes.isNumber(result.status) ? result.status : undefined;
     let stamps = result.stampsUsed || result.stamps_used || 0;
     let message = "";
+
+    if (statusCode = 1 && !result.errors) result.errors = []
+
     if (validateTypes.isArrayWithValues(result.errors)) {
       erroredTx = true;
-      message = `This transaction returned ${result.errors.length} errors.`;
       if (result.result) {
         if (result.result.includes("AssertionError")) result.errors.push(result.result);
       }
+      message = `This transaction returned ${result.errors.length} errors.`;
     }
     if (statusCode && erroredTx) errorText = `returned status code ${statusCode} and `;
 
